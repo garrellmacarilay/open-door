@@ -6,6 +6,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Student;
+use App\Models\Staff;
+use App\Models\Admin;
+use App\Models\EmailNotification;
 
 class User extends Authenticatable
 {
@@ -18,9 +22,12 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'full_name',
         'email',
         'password',
+        'role',
+        'contact_number',
+        'status',
     ];
 
     /**
@@ -44,5 +51,23 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    public function student() {
+        return $this->hasOne(Student::class);
+    } 
+
+    public function staff()
+    {
+        return $this->hasOne(Staff::class);
+    }
+
+    public function admin()
+    {
+        return $this->hasOne(Admin::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(EmailNotification::class);
     }
 }
