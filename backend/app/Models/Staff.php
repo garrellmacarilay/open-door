@@ -9,6 +9,7 @@ use App\Models\Booking;
 
 class Staff extends Model
 {
+    protected $table = 'staffs';
     protected $fillable = [
         'user_id',
         'office_id',
