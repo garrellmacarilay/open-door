@@ -6,15 +6,21 @@ export default function BookConsultationModal({ isOpen, onClose }) {
     service_type: '',
     consultation_date: '',
     concern_description: '',
-    uploaded_file_url: null
+    uploaded_file_url: ''
   });
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8000/api/bookings', form);
+      await axios.post('http://localhost:8000/api/bookings', form, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
       alert('Consultation booked successfully!');
-      onClose();
+      window.location.href = '/dashboard'
     } catch (err) {
       console.error(err);
       alert('Failed to book consultation.');

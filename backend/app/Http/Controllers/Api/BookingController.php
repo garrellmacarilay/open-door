@@ -12,9 +12,19 @@ class BookingController extends Controller
 {
     public function store(Request $request)
     {
+
+        $student = Student::where('user_id', $request->user()->id)->first();
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student not found'
+            ], 404);
+        }
+
         $val = $request->validate([
             'service_type' => 'required|string',
-            'consultation_date' => 'required|date',
+            'consultation_date' => 'required|date_format:Y-m-d\TH:i',
             'concern_description' => 'required|string',
             'uploaded_file_url' => 'nullable|url',
         ]);
@@ -22,8 +32,9 @@ class BookingController extends Controller
         // $student = Student::where('user_id', $request->user()->id)->first();
 
         $booking = Booking::create(array_merge($val, [
-            'student_id' => 1, //temporary for testing
-            'office_id' => 1, //temporary for testing
+            'student_id' => $student->id,
+            'staff_id' => null, // Assign staff later
+            'office_id' => null, //temporary for testing
             'reference_code' => Str::upper(Str::random(10)),
             'status' => 'pending',
         ]));

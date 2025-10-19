@@ -22,7 +22,9 @@ Route::middleware('guest')->group(function () {
 
 
 Route::middleware(['auth:sanctum'])->group(function() {
-    // Protected routes for authenticated users
+    Route::get('/calendar/events', [CalendarController::class, 'index']);
+    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
@@ -36,5 +38,3 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
 
 
-Route::get('/calendar/events', [CalendarController::class, 'index']);
-Route::post('/bookings', [BookingController::class, 'store']);

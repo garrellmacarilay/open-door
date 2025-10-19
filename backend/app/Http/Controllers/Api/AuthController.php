@@ -14,7 +14,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            
+
             $token = $user->createToken('auth_token')->plainTextToken;
 
             return response()->json([
@@ -29,5 +29,14 @@ class AuthController extends Controller
             'success' => false,
             'message' => 'Invalid email or password'
         ], 401);
+    }
+
+    public function logout(Request $request) {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logout successful'
+        ]);
     }
 }
