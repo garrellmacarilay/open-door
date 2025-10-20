@@ -5,6 +5,7 @@ import CalendarDashboard from './testing/CalendarDashoard.jsx'
 import Login from './testing/Login.jsx'
 import AuthCallback from './testing/AuthCallback.jsx'
 import BookAConsultation from './testing/BookAConsultation.jsx'
+import BookingHistory from './testing/BookingHistory.jsx'
 import {BrowserRouter as Router, Route, Routes, Navigate} from 'react-router-dom';
 // import './App.css'
 
@@ -20,6 +21,7 @@ function App() {
         <Route path="/dashboard" element={token ? <CalendarDashboard /> : <Navigate to="/login" />} />
         <Route path='/bookings' element={<BookAConsultation />}/>
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/bookings/history" element={token ? <BookingHistory /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

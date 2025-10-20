@@ -39,6 +39,7 @@ export default function BookConsultationModal({ isOpen, onClose }) {
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
+            <label htmlFor="block text-sm"></label>
             <label className="block text-sm">Service Type</label>
             <select
               value={form.service_type}

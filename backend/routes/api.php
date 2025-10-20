@@ -20,10 +20,17 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 });
 
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return response()->json([
+        'success' => true,
+        'user' => $request->user()->load('student') // includes student relation if any
+    ]);
+});
 
 Route::middleware(['auth:sanctum'])->group(function() {
     Route::get('/calendar/events', [CalendarController::class, 'index']);
     Route::post('/bookings', [BookingController::class, 'store']);
+    Route::get('/bookings/history', [BookingController::class, 'history']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
