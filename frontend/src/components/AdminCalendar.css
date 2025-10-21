@@ -1,0 +1,103 @@
+.admin-calendar {
+  background-color: #e9e9e9;
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+}
+
+.main-content {
+  margin-left: 212px;
+  padding: 20px;
+  flex: 1;
+}
+
+.dashboard-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: bold;
+  font-size: 35px;
+  color: #616161;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.7px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.calendar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Responsive design */
+@media (max-width: 1400px) {
+  .content-grid {
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    margin-left: 0;
+    padding: 10px;
+  }
+  
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .calendar-section {
+    order: 2;
+  }
+  
+  .side-navigation {
+    position: relative;
+    width: 100%;
+    height: auto;
+  }
+  
+  .nav-background {
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .nav-content {
+    flex-direction: row;
+    padding: 15px;
+    justify-content: space-between;
+  }
+  
+  .nav-items {
+    flex-direction: row;
+    flex: 1;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .nav-bottom {
+    margin-top: 0;
+    margin-left: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-title {
+    font-size: 24px;
+  }
+  
+  .nav-items {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .nav-item {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}

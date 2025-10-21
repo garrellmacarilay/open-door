@@ -1,0 +1,136 @@
+.side-navigation {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 212px;
+  height: 100vh;
+  z-index: 1000;
+}
+
+.nav-background {
+  background: linear-gradient(180deg, #142240 0%, #122141 13.45%, #122141 92.42%, #142240 100%);
+  border-radius: 0 20px 20px 0;
+  height: 100%;
+  position: relative;
+  border-right: 2px solid white;
+}
+
+.nav-content {
+  padding: 25px 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nav-top {
+  margin-bottom: 50px;
+}
+
+.profile-image {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nav-items {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.nav-item {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 0;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+  width: 100%;
+  height: 44px;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active {
+  background-color: #122141;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0) invert(1); /* Makes icons white */
+}
+
+.nav-label {
+  white-space: nowrap;
+}
+
+.nav-bottom {
+  margin-top: auto;
+  padding: 0 8px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.user-profile {
+  background-color: #142240;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  max-width: 196px;
+}
+
+.user-img {
+  width: 38px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-name {
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.settings-icon {
+  width: 17px;
+  height: 20px;
+  margin-left: 8px;
+}
