@@ -1,36 +1,38 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-export default function BookingHistory () {
-    const [bookings, setBookings]= React.useState([]);
-    const [loading, setLoading] = React.useState(true);
+export default function BookingHistory() {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const res = await axios.get('http://localhost:8000/api/bookings/history', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:8000/api/bookings/history', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-                setBookings(res.data.bookings || []);
-            } catch (err) {
-                console.error(err);
-                alert('Failed to fetch booking history.');
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchBookings();
-    }, [])
+        setBookings(res.data.bookings || []);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to fetch booking history.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (loading) {
-        return <div className="text-center mt-5">Loading booking history...</div>;
-    }
-     return (
+    fetchBookings();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center mt-5">Loading booking history...</div>;
+  }
+
+  return (
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Booking History</h2>
 
@@ -46,7 +48,7 @@ export default function BookingHistory () {
               <th className="px-4 py-2 text-left">Consultation Date</th>
               <th className="px-4 py-2 text-left">Status</th>
               <th className="px-4 py-2 text-left">Concern</th>
-            </tr >
+            </tr>
           </thead>
           <tbody>
             {bookings.map((booking, index) => (
@@ -64,4 +66,4 @@ export default function BookingHistory () {
       )}
     </div>
   );
-}   
+}
