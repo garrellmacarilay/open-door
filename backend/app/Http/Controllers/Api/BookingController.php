@@ -59,7 +59,7 @@ class BookingController extends Controller
         }
 
         $bookings = Booking::where('student_id', $student->id)
-            ->with('student:user')
+            ->with('student.user')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($booking){
