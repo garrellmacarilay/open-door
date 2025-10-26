@@ -29,6 +29,8 @@ RUN chown -R www-data:www-data /var/www
 # Switch to the non-privileged user to run the application
 USER www-data
 
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
-CMD ["php-fpm"]
+# Expose port 8000 (Laravel's built-in server port)
+EXPOSE 8000
+
+# Run Laravel's built-in server on 0.0.0.0:8000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
