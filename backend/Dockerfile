@@ -1,7 +1,7 @@
 # Use the official PHP 8.3 image as the base
 FROM php:8.3.11-fpm
 
-# Install system dependencies and PHP extensions required for Laravel + SQLite support
+# Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     unzip \
@@ -11,26 +11,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     opcache \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Set the working directory inside the container
 WORKDIR /var/www
-
-# Copy the entire Laravel application code into the container
 COPY . /var/www
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install Laravel dependencies
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
 
-# Ensure correct permissions
-RUN chown -R www-data:www-data /var/www
+# Give write permission to storage & bootstrap/cache
+RUN chown -R www-data:www-data /var/www && chmod -R 775 storage bootstrap/cache database
 
-# Switch to the non-privileged user to run the application
 USER www-data
 
-# ✅ Expose the Render port (Render automatically maps it)
+# Expose Render port
 EXPOSE 10000
 
-# ✅ Run Laravel using the dynamic Render port
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
+# Run necessary Laravel setup before serving
+CMD php artisan key:generate --force && \
+    php artisan migrate --force && \
+    php artisan config:cache && \
+    php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
