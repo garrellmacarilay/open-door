@@ -8,14 +8,13 @@ export default function Login() {
     // const [success, setSuccess] = React.useState('');
     const [message, setMessage] = React.useState('');
     const [password, setPassword] = React.useState('');
-    const API_URL = process.env.APP_URL;
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setMessage('Login in progress...');
 
         try {
-            const res = await axios.post(`${API_URL}/api/login`, {
+            const res = await axios.post('http://localhost:8000/api/login', {
                 email,
                 password
             });
@@ -39,7 +38,7 @@ export default function Login() {
     } 
 
     const handleGoogleLogin = () => {
-        window.location.href = `${API_URL}/api/auth/google`;
+        window.location.href = 'http://localhost:8000/api/auth/google';
     }
 
     return (

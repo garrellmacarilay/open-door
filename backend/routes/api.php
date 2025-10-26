@@ -16,7 +16,7 @@ Route::get('/user', function (Request $request) {
 // });
 Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/auth/google/', [GoogleController::class, 'redirect']);
+    Route::get('/auth/google', [GoogleController::class, 'redirect']);
     Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 });
 
