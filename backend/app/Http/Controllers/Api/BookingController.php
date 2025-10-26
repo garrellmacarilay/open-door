@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Notifications\ModalNotificationCreated;
 use App\Models\Booking;
 use App\Models\Student;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Models\ModalNotification;
+use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
@@ -78,5 +81,51 @@ class BookingController extends Controller
                 'success' => true,
                 'bookings' => $bookings
             ], 200);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        $booking->status = $request->input('status');
+        $booking->save();
+
+        $sender = Auth::user();
+        $receiver = $booking->student->user;
+
+        switch ($booking->status) {
+            case 'approved':
+                $message = "Your booking ({$booking->reference_code}) has been approved";
+                $type = "approval";
+                break;
+
+            case 'declined':
+                $message = "Your booking ({$booking->reference_code}) has been declined";
+                $type = "decline";
+                break;
+
+
+            case 'rescheduled':
+                $message = "Your booking ({$booking->reference_code}) has been rescheduled";
+                $type = "reschedule";
+                break;
+
+            case 'cancelled':
+                $message = "Your booking ({$booking->reference_code}) has been cancelled";
+                $type = "cancellation";
+                break;
+
+            default:
+                $message = "There's an update on your booking ({$booking->reference_code}) .";
+                $type = 'update';
+                break;
+        }
+
+        $receiver->notify(new ModalNotificationCreated($booking, $sender, $type, $message));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking status has been updated'
+        ]);
     }
 }

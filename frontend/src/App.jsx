@@ -19,7 +19,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={token ? <CalendarDashboard /> : <Navigate to="/login" />} />
-        <Route path='/bookings' element={<BookAConsultation />}/>
+        <Route path='/bookings' element={token ?<BookAConsultation />: <Navigate to="/login"/>}/>
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/bookings/history" element={token ? <BookingHistory /> : <Navigate to="/login" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
