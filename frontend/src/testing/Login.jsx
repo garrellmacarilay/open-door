@@ -8,7 +8,7 @@ export default function Login() {
     // const [success, setSuccess] = React.useState('');
     const [message, setMessage] = React.useState('');
     const [password, setPassword] = React.useState('');
-    const API_URL = process.env.REACT_APP_API_URL;
+    const API_URL = process.env.APP_URL;
 
     const handleLogin = async (e) => {
         e.preventDefault();
