@@ -51,7 +51,9 @@ class GoogleController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+
         // Redirect to frontend React app with token
-        return redirect("http://localhost:5173/auth/callback?token={$token}");
+        return redirect("{$frontendUrl}/auth/callback?token={$token}");
     }
 }
