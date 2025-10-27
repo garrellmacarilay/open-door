@@ -71,7 +71,7 @@ export default function CalendarDashboard() {
   return (
     <div className="max-w-5xl mx-auto mt-10">
       <h2 className="text-2xl font-semibold mb-2 text-center">
-        📅 Welcome {user?.student?.student_name || user?.full_name || 'Student'}!
+        📅 Welcome {user?.student?.student_name || user?.full_name || 'Student'}! Lakas mo eh noh
       </h2>
       <p className="text-center text-gray-600 mb-5">Here’s your consultation calendar.</p>
 
