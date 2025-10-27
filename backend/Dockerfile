@@ -12,10 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsqlite3-dev \
     libonig-dev \
     libzip-dev \
+    libpq-dev \
     zip \
     git \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
+        pdo_pgsql \
         pdo_sqlite \
         mbstring \
         zip \
