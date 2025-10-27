@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import api from '../utils/api.js'
 
 export default function BookingHistory() {
   const [bookings, setBookings] = useState([]);
@@ -8,13 +9,7 @@ export default function BookingHistory() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:8000/api/bookings/history', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        const res = await api.get('bookings/history');
 
         setBookings(res.data.bookings || []);
       } catch (err) {

@@ -4,6 +4,7 @@ import axios from 'axios';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import BookAConsultation from './BookAConsultation.jsx';
+import api from '../utils/api';
 
 export default function CalendarDashboard() {
   const [events, setEvents] = useState([]);
@@ -15,13 +16,7 @@ export default function CalendarDashboard() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:8000/api/user', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        const res = await api.get('/user');
         setUser(res.data.user);
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -35,11 +30,7 @@ export default function CalendarDashboard() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/calendar/events', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        const res = await api.get('/calendar/events');
 
         if (res.data.success) {
           setEvents(res.data.data);
@@ -59,17 +50,7 @@ export default function CalendarDashboard() {
   // 🔹 Logout handler
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(
-        'http://localhost:8000/api/logout',
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const res = await api.post('/logout',);
 
       if (res.data.success) {
         localStorage.removeItem('token');

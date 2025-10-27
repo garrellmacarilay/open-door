@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import api from '../utils/api.js'
 import axios from 'axios';
 
 export default function BookConsultationModal({ isOpen, onClose }) {
@@ -13,12 +14,7 @@ export default function BookConsultationModal({ isOpen, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8000/api/bookings', form, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      await api.post('/bookings', form);
       alert('Consultation booked successfully!');
       window.location.href = '/dashboard'
     } catch (err) {
