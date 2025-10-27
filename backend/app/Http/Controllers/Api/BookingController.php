@@ -83,6 +83,35 @@ class BookingController extends Controller
             ], 200);
     }
 
+    public function recent(Request $request)
+    {
+        $student = Student::where('user_id', $request->user()->id)->first();
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student not found'
+            ]);
+        }
+
+        $recentBookings = Booking::where('student_id', $student->id)
+            ->orderBy('created_at', 'desc')
+            ->take(1)
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    'reference_code' => $booking->reference_code,
+                    'service_type' => $booking->service_type,
+                    'consultation_date' => $booking->consultation_date,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'bookings' => $recentBookings
+            ]);
+    }
+
     public function updateStatus(Request $request, $id)
     {
         $booking = Booking::findOrFail($id);

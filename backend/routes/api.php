@@ -29,8 +29,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum'])->group(function() {
     Route::get('/calendar/events', [CalendarController::class, 'index']);
+
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/history', [BookingController::class, 'history']);
+    Route::get('/bookings/recent', [BookingController::class, 'recent']);
+
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
