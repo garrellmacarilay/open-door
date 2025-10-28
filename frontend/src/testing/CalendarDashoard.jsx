@@ -5,6 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import BookAConsultation from './BookAConsultation.jsx';
 import RecentBooking from './RecentBooking'
+import NotificationModal from './NotificationModal.jsx';
 import api from '../utils/api';
 
 export default function CalendarDashboard() {
@@ -70,9 +71,13 @@ export default function CalendarDashboard() {
 
   return (
     <div className="max-w-5xl mx-auto mt-10">
-      <h2 className="text-2xl font-semibold mb-2 text-center">
-        📅 Welcome {user?.student?.student_name || user?.full_name || 'Student'}! Lakas mo eh noh
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold">
+          📅 Welcome {user?.student?.student_name || user?.full_name || 'Student'}!
+        </h2>
+        <NotificationModal /> {/* 👈 Add your modal here */}
+      </div>
+
       <p className="text-center text-gray-600 mb-5">Here’s your consultation calendar.</p>
 
       <FullCalendar

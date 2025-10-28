@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api'; // Make sure this points to your axios utility
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -12,19 +14,32 @@ export default function Login() {
 
     try {
       const res = await api.post('/login', { email, password });
-      const data = res.data;
+      console.log('Login Response:', res.data);
 
-      if (data.success) {
-        localStorage.setItem('token', data.token);
-        setMessage('Login successful!');
-        window.location.href = '/dashboard';
-      }
-    } catch (error) {
-      if (error.response && error.response.data) {
-        setMessage(error.response.data.message);
+      const { success, access_token, message, user } = res.data;
+      const finalToken = access_token;
+
+      if (success && finalToken) {
+        localStorage.setItem('token', finalToken);
+
+        if (user?.role) {
+            localStorage.setItem('user', JSON.stringify(user));
+        }
+
+        setMessage('Login successful! Redirecting...');
+
+        if (user?.role === 'admin') {
+            navigate('/admin/dashboard');
+        } else {
+            navigate('/dashboard');
+        }     
       } else {
-        setMessage('An error occurred. Please try again.');
+         setMessage(message || 'Login failed. Please try again.');
       }
+
+    } catch (error) {
+        console.error('Login Error:', error.response?.data || error.message);
+        setMessage(error.response?.data?.message || 'Something went wrong.');
     }
   };
 
