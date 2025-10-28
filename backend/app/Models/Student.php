@@ -14,6 +14,7 @@ class Student extends Model
         'student_number',
         'program',
         'year_level',
+        'missed_count'
     ];
 
     public function user()
