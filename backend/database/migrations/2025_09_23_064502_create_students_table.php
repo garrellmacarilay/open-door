@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // FK
             $table->string('student_number')->unique();
+            $table->integer('missed_count')->default(0);
             $table->string('program')->nullable(); //made it null for testing
             $table->integer('year_level')->nullable(); //made it null for testing
             $table->timestamps();
