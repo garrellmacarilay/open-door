@@ -25,7 +25,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
 
         {/* 🔑 Auth Routes */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
 
         {/* 🎓 Student Dashboard */}
