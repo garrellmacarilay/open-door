@@ -46,7 +46,7 @@ class GoogleController extends Controller
                 'student_number' => 'S' . Str::upper(Str::random(7)),
             ]);
 
-            $user->update(['student_id' => $student->id]);
+            $user->update(attributes: ['student_id' => $student->id]);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
