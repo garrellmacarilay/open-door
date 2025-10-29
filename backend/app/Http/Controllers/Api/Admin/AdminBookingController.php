@@ -2,25 +2,28 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use App\Models\Booking;
-use App\Notifications\ModalNotificationCreated;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\ModalNotificationCreated;
 
 class AdminBookingController extends Controller
 {
 
     public function dashboard()
     {
-        if (Auth::user()->role !== 'admin') {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
         $totalBookings = Booking::count();
         $pending = Booking::where('status', 'pending')->count();
         $approved = Booking::where('status', 'approved')->count();
         $cancelled = Booking::where('status', 'cancelled')->count();
+
+        // ✅ Add these new ones safely
+        $todayConsultations = Booking::whereDate('consultation_date', now())->count();
+        $thisMonthConsultations = Booking::whereMonth('consultation_date', now()->month)
+            ->whereYear('consultation_date', now()->year)
+            ->count();
 
         $recentBookings = Booking::with('student.user')
             ->latest()
@@ -29,10 +32,14 @@ class AdminBookingController extends Controller
             ->map(function ($booking) {
                 return [
                     'reference_code' => $booking->reference_code,
-                    'student_name' => $booking->student->user->full_name ?? 'Unknown',
+                    'student_name' =>  optional($booking->student?->user)->full_name ?? 'Unknown',
                     'service_type' => $booking->service_type,
                     'status' => ucfirst($booking->status),
-                    'created_at' => $booking->created_at->diffForHumans(),
+                    'consultation_date' => $booking->consulatation_date
+                        ? Carbon::parse($booking->consultation_date)->toIso8601String()
+                        : null,
+                    'created_at' => $booking->created_at->toIso8601String(),
+
                 ];
             });
 
@@ -43,33 +50,36 @@ class AdminBookingController extends Controller
                 'pending' => $pending,
                 'approved' => $approved,
                 'cancelled' => $cancelled,
+                'today' => $todayConsultations,
+                'month' => $thisMonthConsultations,
             ],
             'recent_bookings' => $recentBookings,
         ]);
     }
+        // 🟩 Fetch all bookings
+    // public function index()
+    // {
+    //     $bookings = Booking::with('student.user')
+    //         ->orderBy('created_at', 'desc')
+    //         ->get()
+    //         ->map(function ($booking) {
+    //             return [
+    //                 'id' => $booking->id,
+    //                 'reference_code' => $booking->reference_code,
+    //                 'student_name' => $booking->student->user->full_name ?? 'Unknown',
+    //                 'service_type' => $booking->service_type,
+    //                 'consultation_date' => $booking->consultation_date,
+    //                 'status' => ucfirst($booking->status),
+    //             ];
+    //         });
 
-    // 🟩 Fetch all bookings
-    public function index()
-    {
-        $bookings = Booking::with('student.user')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($booking) {
-                return [
-                    'id' => $booking->id,
-                    'reference_code' => $booking->reference_code,
-                    'student_name' => $booking->student->user->full_name ?? 'Unknown',
-                    'service_type' => $booking->service_type,
-                    'consultation_date' => $booking->consultation_date,
-                    'status' => ucfirst($booking->status),
-                ];
-            });
+    //     return response()->json([
+    //         'success' => true,
+    //         'bookings' => $bookings
+    //     ]);
+    // }
 
-        return response()->json([
-            'success' => true,
-            'bookings' => $bookings
-        ]);
-    }
+
 
     // 🟨 Update booking status (approve, decline, etc.)
     public function updateStatus(Request $request, $id)

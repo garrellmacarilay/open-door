@@ -35,10 +35,7 @@ function App() {
         />
 
         {/* 📘 Booking Routes */}
-        <Route
-          path="/bookings"
-          element={token ? <BookAConsultation /> : <Navigate to="/login" replace />}
-        />
+
         <Route
           path="/bookings/history"
           element={token ? <BookingHistory /> : <Navigate to="/login" replace />}

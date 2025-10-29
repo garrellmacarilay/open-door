@@ -67,7 +67,7 @@ export default function AdminDashboard() {
       if (res.data.success) {
         localStorage.removeItem("token");
         alert("Logged out successfully!");
-        window.location.href = "/login";
+        navigate('/login');
       }
     } catch (err) {
       console.error(err);
@@ -89,24 +89,24 @@ export default function AdminDashboard() {
         <NotificationModal />
       </div>
 
-      {/* Stats Section */}
+      {/* Stats Section */} 
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-          <div className="bg-blue-500 text-white rounded-xl p-5 shadow">
-            <h2 className="text-lg font-semibold">Total Bookings</h2>
-            <p className="text-3xl font-bold mt-2">{stats.total}</p>
+       <div className="flex flex-wrap justify-center lg:justify-between gap-6 mb-10">
+  
+          <div className="w-full sm:w-[300px] bg-purple-500 text-white rounded-xl p-6 shadow text-center">
+            <h2 className="text-lg font-semibold">Today's Consultations</h2>
+            <p className="text-3xl font-bold mt-2">{stats.today}</p>
           </div>
-          <div className="bg-yellow-500 text-white rounded-xl p-5 shadow">
+
+          
+          <div className="w-full sm:w-[300px] bg-purple-500 text-white rounded-xl p-6 shadow text-center">
             <h2 className="text-lg font-semibold">Pending</h2>
             <p className="text-3xl font-bold mt-2">{stats.pending}</p>
           </div>
-          <div className="bg-green-500 text-white rounded-xl p-5 shadow">
-            <h2 className="text-lg font-semibold">Approved</h2>
-            <p className="text-3xl font-bold mt-2">{stats.approved}</p>
-          </div>
-          <div className="bg-red-500 text-white rounded-xl p-5 shadow">
-            <h2 className="text-lg font-semibold">Cancelled</h2>
-            <p className="text-3xl font-bold mt-2">{stats.cancelled}</p>
+
+          <div className="w-full sm:w-[300px] bg-purple-500 text-white rounded-xl p-6 shadow text-center">
+            <h2 className="text-lg font-semibold">This Month</h2>
+            <p className="text-3xl font-bold mt-2">{stats.month}</p>
           </div>
         </div>
       )}
