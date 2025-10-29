@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Notifications\ModalNotificationCreated;
+use Carbon\Carbon;
 use App\Models\Booking;
+use App\Models\Office;
 use App\Models\Student;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Models\ModalNotification;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\ModalNotificationCreated;
 
 class BookingController extends Controller
 {
@@ -26,21 +28,43 @@ class BookingController extends Controller
         }
 
         $val = $request->validate([
+            'office_id' => 'required|integer|exists:offices,id',
             'service_type' => 'required|string',
-            'consultation_date' => 'required|date_format:Y-m-d\TH:i',
+            'consultation_date' => [
+                'required',
+                'date_format:Y-m-d\TH:i',
+                function ($_, $value, $fail) {
+                    $consultationDate = Carbon::parse($value);
+                    $minDate = Carbon::now()->addDays(2)->startOfDay();
+
+                    if ($consultationDate->lessThan($minDate)) {
+                        $fail('You can only book a consultation at least 2 days in advance.');
+                    }
+                }
+            ],
             'concern_description' => 'required|string',
-            'uploaded_file_url' => 'nullable|url',
+            'group_members' => 'nullable|string',
+            'uploaded_file_url' => 'nullable|file|mimes:pdf,jpg,png|max:5120',
         ]);
 
-        // $student = Student::where('user_id', $request->user()->id)->first();
+        if ($request->hasFile('uploaded_file_url')) {
+            $path = $request->file('uploaded_file_url')->store('attachments', 'public');
+            $val['uploaded_file_url'] = '/storage/' . $path;
+        } else {
+            $val['uploaded_file_url'] = null;
+        }
+
+        $office = Office::findOrFail($val['office_id']);
 
         $booking = Booking::create(array_merge($val, [
             'student_id' => $student->id,
             'staff_id' => null, // Assign staff later
-            'office_id' => null, //temporary for testing
+            'office_id' => $office->id, //temporary for testing
             'reference_code' => Str::upper(Str::random(10)),
             'status' => 'pending',
         ]));
+
+
 
         return response()->json([
             'success' => true,

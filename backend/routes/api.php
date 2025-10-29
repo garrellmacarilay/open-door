@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CalendarController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Admin\AdminBookingController;
+use App\Models\Office;
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -34,6 +36,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum'])->group(function() {
     Route::get('/calendar/events', [CalendarController::class, 'index']);
+    Route::get('/offices', function() {
+        return response()->json(Office::all());
+    });
 
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/history', [BookingController::class, 'history']);

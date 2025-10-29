@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('bookings', function (Blueprint $table) {
             $table->id(); // PK
             $table->foreignId('student_id')->constrained('students')->onDelete('cascade'); // FK
-            $table->foreignId('office_id')->nullable()->constrained('offices')->onDelete('cascade'); // FK
+            $table->foreignId('office_id')->constrained('offices')->onDelete('cascade'); // FK
             $table->foreignId('staff_id')->nullable()->constrained('staffs')->onDelete('set null'); // FK
             $table->string('service_type');
             $table->dateTime('consultation_date');
             $table->text('concern_description');
             $table->enum('status', ['pending','approved','cancelled','rescheduled','completed'])->default('pending');
+            $table->string('group_members')->nullable();
             $table->string('uploaded_file_url')->nullable();
             $table->string('reference_code')->unique();
             $table->timestamps();
