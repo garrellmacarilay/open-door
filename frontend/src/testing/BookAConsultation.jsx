@@ -58,18 +58,21 @@ export default function BookConsultationModal({ isOpen, onClose }) {
   // ✅ Keep it mounted but hidden when closed
   return (
     <div
-      className={`transition-all duration-200 ${isOpen ? 'block' : 'hidden'}`}
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-200
+        ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+      style={{ backdropFilter: isOpen ? 'blur(4px)' : 'none' }}
     >
-      <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
+      {/* Modal card */}
+      <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg z-10">
         <h2 className="text-xl font-semibold mb-4">Book a Consultation</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
+          {/* Office */}
           <div>
             <label className="block text-sm font-medium mb-1">Office</label>
-            <select 
+            <select
               value={form.office_id}
-              onChange={(e) => setForm({ ...form, office_id: e.target.value})}
+              onChange={(e) => setForm({ ...form, office_id: e.target.value })}
               className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400"
               required
               disabled={offices.length === 0}
@@ -80,12 +83,13 @@ export default function BookConsultationModal({ isOpen, onClose }) {
                   {office.office_name}
                 </option>
               ))}
-
             </select>
             {errors.office && (
-              <p className="text-red-500 text-sm">{errors.office_id[0]}</p>
+              <p className="text-red-500 text-sm">{errors.office_id?.[0]}</p>
             )}
           </div>
+
+          {/* Service Type */}
           <div>
             <label className="block text-sm font-medium mb-1">Service Type</label>
             <select
@@ -102,6 +106,7 @@ export default function BookConsultationModal({ isOpen, onClose }) {
             </select>
           </div>
 
+          {/* Date */}
           <div>
             <label className="block text-sm font-medium mb-1">Date</label>
             <input
@@ -111,11 +116,12 @@ export default function BookConsultationModal({ isOpen, onClose }) {
               className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400"
               required
             />
-            {errors.consultation_date && (  
+            {errors.consultation_date && (
               <p className="text-red-500 text-sm">{errors.consultation_date[0]}</p>
             )}
           </div>
 
+          {/* Topic */}
           <div>
             <label className="block text-sm font-medium mb-1">Topic</label>
             <textarea
@@ -126,28 +132,31 @@ export default function BookConsultationModal({ isOpen, onClose }) {
             />
           </div>
 
+          {/* Group Members */}
           <div>
             <label className="block text-sm font-medium mb-1">Group Members (optional)</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={form.group_members}
-              onChange={(e) => setForm({ ...form, group_members: e.target.value})}
-              className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400" 
+              onChange={(e) => setForm({ ...form, group_members: e.target.value })}
+              className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400"
             />
           </div>
 
+          {/* Attachment */}
           <div>
             <label className="block text-sm font-medium mb-1">Attachment (optional)</label>
-            <input 
+            <input
               type="file"
               onChange={(e) => setForm({ ...form, uploaded_file_url: e.target.files[0] })}
-              className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400" 
+              className="border p-2 w-full rounded focus:ring-2 focus:ring-blue-400"
             />
             {errors.uploaded_file_url && (
               <p className="text-red-500 text-sm">{errors.uploaded_file_url[0]}</p>
             )}
           </div>
 
+          {/* Actions */}
           <div className="flex justify-end space-x-2">
             <button
               type="submit"
@@ -166,5 +175,6 @@ export default function BookConsultationModal({ isOpen, onClose }) {
         </form>
       </div>
     </div>
+
   );
 }
