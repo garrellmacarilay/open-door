@@ -12,20 +12,30 @@ use App\Notifications\ModalNotificationCreated;
 class AdminBookingController extends Controller
 {
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $totalBookings = Booking::count();
-        $pending = Booking::where('status', 'pending')->count();
-        $approved = Booking::where('status', 'approved')->count();
-        $cancelled = Booking::where('status', 'cancelled')->count();
+        $officeId = $request->query('office_id');
+
+        $bookingQuery = Booking::query();
+
+        if ($officeId) {
+            $bookingQuery->where('office_id', $officeId);
+        }
+
+        $totalBookings = $bookingQuery->count();
+        $pending = (clone $bookingQuery)->where('status', 'pending')->count();
+        $approved = (clone $bookingQuery)->where('status', 'approved')->count();
+        $cancelled = (clone $bookingQuery)->where('status', 'cancelled')->count();
 
         // ✅ Add these new ones safely
-        $todayConsultations = Booking::whereDate('consultation_date', now())->count();
-        $thisMonthConsultations = Booking::whereMonth('consultation_date', now()->month)
+        $todayConsultations = (clone $bookingQuery)->whereDate('consultation_date', now())->count();
+        $thisMonthConsultations = (clone $bookingQuery)
+            ->whereMonth('consultation_date', now()->month)
             ->whereYear('consultation_date', now()->year)
             ->count();
 
-        $recentBookings = Booking::with('student.user')
+        $recentBookings = (clone $bookingQuery)
+            ->with('student.user')
             ->latest()
             ->take(5)
             ->get()
@@ -35,7 +45,7 @@ class AdminBookingController extends Controller
                     'student_name' =>  optional($booking->student?->user)->full_name ?? 'Unknown',
                     'service_type' => $booking->service_type,
                     'status' => ucfirst($booking->status),
-                    'consultation_date' => $booking->consulatation_date
+                    'consultation_date' => $booking->consultation_date
                         ? Carbon::parse($booking->consultation_date)->toIso8601String()
                         : null,
                     'created_at' => $booking->created_at->toIso8601String(),
@@ -57,27 +67,27 @@ class AdminBookingController extends Controller
         ]);
     }
         // 🟩 Fetch all bookings
-    // public function index()
-    // {
-    //     $bookings = Booking::with('student.user')
-    //         ->orderBy('created_at', 'desc')
-    //         ->get()
-    //         ->map(function ($booking) {
-    //             return [
-    //                 'id' => $booking->id,
-    //                 'reference_code' => $booking->reference_code,
-    //                 'student_name' => $booking->student->user->full_name ?? 'Unknown',
-    //                 'service_type' => $booking->service_type,
-    //                 'consultation_date' => $booking->consultation_date,
-    //                 'status' => ucfirst($booking->status),
-    //             ];
-    //         });
+    public function index()
+    {
+        $bookings = Booking::with('student.user')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    'id' => $booking->id,
+                    'reference_code' => $booking->reference_code,
+                    'student_name' => $booking->student->user->full_name ?? 'Unknown',
+                    'service_type' => $booking->service_type,
+                    'consultation_date' => $booking->consultation_date,
+                    'status' => ucfirst($booking->status),
+                ];
+            });
 
-    //     return response()->json([
-    //         'success' => true,
-    //         'bookings' => $bookings
-    //     ]);
-    // }
+        return response()->json([
+            'success' => true,
+            'bookings' => $bookings
+        ]);
+    }
 
 
 

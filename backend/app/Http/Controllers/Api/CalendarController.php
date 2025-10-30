@@ -11,44 +11,19 @@ class CalendarController extends Controller
 {
     public function index()
     {
-        // $user = Auth::user();
-
-        // if ($user == null) {
-        //     return response()->json([
-        //         'success' => false,
-        //         'message' => 'Unauthorized'
-        //     ], 401);
-        // }
-
-        // if ($user->role === 'admin') {
-        //     $bookings = Booking::with(['student', 'office', 'staff'])
-        //     ->get();
-        // } elseif ($user->role === 'staff') {
-        //     $bookings = Booking::with(['student','staff'])
-        //     ->where('staff_id', $user->staff->id)
-        //     ->get();
-        // } else {
-        //     $bookings = Booking::with('staff')
-        //     ->where('student_id', $user->student->id)
-        //     ->get();
-        // }
-
-        $bookings = Booking::all();
+        $bookings = Booking::with(['student.user', 'office', 'staff'])->get();
 
         $events = $bookings->map(function ($bookings) {
             return [
                 'id' => $bookings->id,
-                'title' => $bookings->service_type . ' - ' . $bookings->status,
+                'title' => $bookings->student->user->full_name ?? 'Unknown',
                 'start' => $bookings->consultation_date,
                 'end' => $bookings->consultation_date,
                 'color' => $this->getStatusColor($bookings->status),
                 'details' => [
-                    // 'student' => $bookings->student->first_name . ' ' . $bookings->student->last_name,
-                    // 'office' => $bookings->office->name,
-                    // 'staff' => $bookings->staff ? $bookings->staff->first_name . ' ' . $bookings->staff->last_name : 'Unassigned',
-                    'student' => 'Test Student',
-                    'office' => 'Test Office',
-                    'staff' => 'Test Staff',
+                    'student' => $bookings->student->user->full_name ?? 'Unknown',
+                    'office' => $bookings->office->office_name ?? 'N/A',
+                    'staff' => $bookings->staff ? $bookings->staff->user->full_name : 'Unassigned',
                     'concern_description' => $bookings->concern_description,
                     'status' => $bookings->status,
                     'reference_code' => $bookings->reference_code,
