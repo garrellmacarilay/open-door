@@ -10,6 +10,8 @@ import BookingHistory from "./testing/BookingHistory.jsx";
 import RecentBooking from "./testing/RecentBooking.jsx";
 import AdminDashboard from "./testing/AdminDashboard.jsx";
 
+import StudentDashboard from "./pages/StudentDashboard.jsx";
+
 // 🧠 Route Guards
 import AdminRoute from "./utils/auth/AdminRoute.jsx";
 
@@ -55,6 +57,7 @@ function App() {
           }
         />
 
+        <Route path="/frontend/dashboard" element={<StudentDashboard />} />
         {/* 🧭 Catch-All Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
