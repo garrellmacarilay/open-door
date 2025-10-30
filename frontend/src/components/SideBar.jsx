@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import NotificationModal from '../testing/NotificationModal';
 
-export default function Sidebar({ user, onBookClick, onLogout }) {
+export default function Sidebar({ user, onBookClick, onShowCalendar, onShowHistory, onLogout }) {
   const navigate = useNavigate();
 
   return (
@@ -10,9 +10,14 @@ export default function Sidebar({ user, onBookClick, onLogout }) {
       <h2 className="text-xl font-semibold mb-6">
         👋 {user?.student?.student_name || user?.full_name || 'Student'}
       </h2>
-      <NotificationModal />
 
       <div className="mt-6 flex flex-col gap-3">
+        <button
+          onClick={onShowCalendar}
+          className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition'
+        >
+          📅 Calendar Dashboard
+        </button>
         <button
           onClick={onBookClick}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
@@ -20,10 +25,10 @@ export default function Sidebar({ user, onBookClick, onLogout }) {
           Book a Consultation
         </button>
         <button
-          onClick={() => navigate('/bookings/history')}
+          onClick={onShowHistory}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
         >
-          Booking History
+         📜 Booking History
         </button>
         <button
           onClick={() => navigate('/bookings/recent')}
