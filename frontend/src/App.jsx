@@ -9,6 +9,7 @@ import BookAConsultation from "./testing/BookAConsultation.jsx";
 import BookingHistory from "./testing/BookingHistory.jsx";
 import RecentBooking from "./testing/RecentBooking.jsx";
 import AdminDashboard from "./testing/AdminDashboard.jsx";
+import SessionExpiredModal from "./utils/SessionExpiredModal.jsx";
 
 import StudentDashboard from "./pages/StudentDashboard.jsx";
 
@@ -22,6 +23,9 @@ function App() {
 
   return (
     <Router>
+
+      <SessionExpiredModal />
+
       <Routes>
         {/* 🏠 Default Redirect */}
         <Route path="/" element={<Navigate to="/login" replace />} />
