@@ -3,9 +3,9 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import api from "../utils/api";
 
-export default function AdminCalendar({ events }) {
+export default function AdminCalendar({ appointments }) {
     const [selectedOfficeId, setSelectedOfficeId] = useState("");
-    const [calendarEvents, setCalendarEvents] = useState(events || []);
+    const [calendarAppointments, setCalendarAppointments] = useState(appointments || []);
     const [offices, setOffices] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -28,7 +28,7 @@ export default function AdminCalendar({ events }) {
         try {
             const res = await api.get(`/admin/dashboard${officeId ? `?office_id=${officeId}` : ""}`)
             if (res.data.success) {
-                setCalendarEvents(
+                setCalendarAppointments(
                     res.data.recent_bookings.map((booking) => ({
                         title: booking.service_type,
                         start: booking.consultation_date,
@@ -69,7 +69,7 @@ export default function AdminCalendar({ events }) {
             plugins={[dayGridPlugin]}
             initialView="dayGridMonth"
             height="auto"
-            events={calendarEvents}
+            events={calendarAppointments}
             timeZone="Asia/Manila"
             />
         )}

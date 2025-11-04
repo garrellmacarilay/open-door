@@ -7,7 +7,32 @@ export default function AdminActions({ user, onLogout }) {
         👋 {user?.full_name || 'Admin'}
       </h2>
 
-      <div className="mt-auto">
+      <div className="mt-6 flex flex-col gap-3">
+
+        <button
+          className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition'
+        >
+          Dashboard
+        </button>
+
+        <button
+          className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition'
+        >
+          Office Management
+        </button>
+
+        <button
+          className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition'
+        >
+          Consultation Summary
+        </button>
+
+        <button
+          className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition'
+        >
+          Analytics
+        </button>
+
         <button
           onClick={onLogout}
           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition w-full"
