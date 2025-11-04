@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     zip \
     git \
+    bash \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
         pdo_pgsql \
@@ -50,7 +51,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 ENV COMPOSER_MEMORY_LIMIT=-1
 
 # ----------------------------
-# Install PHP dependencies (skip scripts to avoid artisan errors)
+# Install PHP dependencies
 # ----------------------------
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
 
@@ -62,13 +63,16 @@ USER www-data
 # ----------------------------
 # Expose port
 # ----------------------------
-EXPOSE ${PORT:-10000}
+EXPOSE ${PORT:-9000}
 
 # ----------------------------
-# Laravel setup and serve
+# Laravel setup and php-fpm for production
 # ----------------------------
-CMD php artisan config:cache && \
+CMD bash -c "\
+    php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache && \
     php artisan migrate:fresh --seed --force && \
-    php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
+    echo 'Starting php-fpm...' && \
+    php-fpm -F \
+"
