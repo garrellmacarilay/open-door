@@ -24,7 +24,7 @@ function App() {
   return (
     <Router>
 
-      {/* <SessionExpiredModal /> */}
+      <SessionExpiredModal />
 
       <Routes>
         {/* 🏠 Default Redirect */}
