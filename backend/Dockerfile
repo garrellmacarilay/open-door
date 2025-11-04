@@ -22,6 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         mbstring \
         zip \
         opcache \
+        bcmath \
+        exif \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # ----------------------------
@@ -29,35 +31,44 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ----------------------------
 WORKDIR /var/www
 
+# ----------------------------
 # Copy application code
+# ----------------------------
 COPY . /var/www
+
+# Ensure storage and cache directories exist and are writable
+RUN mkdir -p storage bootstrap/cache database \
+    && chown -R www-data:www-data storage bootstrap/cache database \
+    && chmod -R 775 storage bootstrap/cache database
 
 # ----------------------------
 # Install Composer
 # ----------------------------
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
+# Allow Composer unlimited memory
+ENV COMPOSER_MEMORY_LIMIT=-1
 
 # ----------------------------
-# Set permissions
+# Install PHP dependencies (skip scripts to avoid artisan errors)
 # ----------------------------
-RUN chown -R www-data:www-data /var/www \
-    && chmod -R 775 storage bootstrap/cache database
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
 
+# ----------------------------
+# Switch to www-data
+# ----------------------------
 USER www-data
 
 # ----------------------------
-# Expose Render port
+# Expose port
 # ----------------------------
 EXPOSE ${PORT:-10000}
 
 # ----------------------------
 # Laravel setup and serve
 # ----------------------------
-# Using CMD instead of RUN so these commands execute at container start
-CMD php artisan config:cache && \
+CMD php artisan key:generate && \
+    php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache && \
     php artisan migrate --force && \
