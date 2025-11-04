@@ -63,7 +63,7 @@ USER www-data
 # ----------------------------
 # Expose port
 # ----------------------------
-EXPOSE ${PORT:-9000}
+EXPOSE ${PORT:-10000}
 
 # ----------------------------
 # Laravel setup and php-fpm for production
@@ -73,6 +73,6 @@ CMD bash -c "\
     php artisan route:cache && \
     php artisan view:cache && \
     php artisan migrate:fresh --seed --force && \
-    echo 'Starting php-fpm...' && \
-    php-fpm -F \
+    echo 'Starting Laravel built-in server...' && \
+    php artisan serve --host=0.0.0.0 --port=${PORT:-10000} \
 "
