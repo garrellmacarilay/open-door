@@ -72,7 +72,7 @@ CMD bash -c "\
     php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache && \
-    php artisan migrate:fresh --seed --force && \
+    php artisan migrate: --force && \
     echo 'Starting Laravel built-in server...' && \
     php artisan serve --host=0.0.0.0 --port=${PORT:-10000} \
 "
