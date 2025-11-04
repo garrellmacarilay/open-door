@@ -18,7 +18,7 @@ class StudentMiddleware
     {
         $user = Auth::user();
 
-        if (!$user || $user->role !== 'admin') {
+        if (!$user || $user->role !== 'student') {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
