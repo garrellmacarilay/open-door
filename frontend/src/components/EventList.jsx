@@ -1,45 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 
-export default function EventList({ events = [] }) {
+export default function EventList({ events = [], isAdmin, onCreateEvent }) {
+
+
+  const formatTime = (dateString, timeString) => {
+    const dateTime = new Date(`${dateString}T${timeString}`);
+    return dateTime.toLocaleTimeString("en-US" ,{
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  };
+
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
   };
 
-  const formatTime = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  };
-
   return (
     <div className="bg-white shadow p-4 rounded-lg h-full flex flex-col">
-      <h2 className="text-xl font-semibold mb-4">Upcoming Events</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Upcoming Events</h2>
+
+        {/* ✅ Show Create Event button only for Admin */}
+        {isAdmin && (
+          <button
+            onClick={onCreateEvent}
+            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+          >
+            + Create Event
+          </button>
+        )}
+      </div>
 
       <ul className="space-y-3 overflow-y-auto">
         {events.length > 0 ? (
           events.map((event) => (
             <li key={event.id} className="border rounded p-3">
-              <p className="font-medium">{event.title}</p>
-              <p className="text-sm text-gray-500">{event.details.office}</p>
-              <span
-                className="inline-block px-2 py-1 mt-1 rounded text-xs font-semibold capitalize"
-                style={{
-                  backgroundColor: event.color,
-                  color: "white",
-                }}
-              >
-                {event.details.status}
-              </span>
+              <p className="font-medium">{event.event_title}</p>
+              <p className="text-sm text-gray-500">{event.description}</p>
               <div className="mt-2 text-sm text-gray-500">
-                <p>{formatDate(event.start)}</p>
-                <p className="text-gray-400">{formatTime(event.start)}</p>
+                <p>{formatDate(event.event_date)}</p>
+                <p className="text-gray-400">
+                  {formatTime(event.event_date, event.event_time)}
+                </p>
               </div>
             </li>
           ))
