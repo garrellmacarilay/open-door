@@ -21,16 +21,6 @@ class GoogleController extends Controller
     {
         $googleUser = Socialite::driver('google')->stateless()->user();
 
-        // $user = User::firstOrCreate(
-        //     ['email' => $googleUser->getEmail()],
-        //     [
-        //         'student_id' => Student::create()->id,
-        //         'name' => $googleUser->getName(),
-        //         'google_id' => $googleUser->getId(),
-        //         'password' => Hash::make(Str::random(16)),
-        //     ]
-        // );
-
         $user = User::where('email', $googleUser->getEmail())->first();
 
         if (!$user) {
@@ -49,7 +39,7 @@ class GoogleController extends Controller
             $user->update(attributes: ['student_id' => $student->id]);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token', ['*'], now()->addMinutes(30))->plainTextToken;
 
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 

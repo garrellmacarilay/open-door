@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use Carbon\Carbon;
-use App\Models\Booking;
+use App\Models\Event;
 use App\Models\Office;
+use App\Models\Booking;
 use App\Models\Student;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -46,6 +47,17 @@ class BookingController extends Controller
             'group_members' => 'nullable|string',
             'uploaded_file_url' => 'nullable|file|mimes:pdf,jpg,png|max:5120',
         ]);
+
+        $consultationDay = Carbon::parse($val['consultation_date'])->toDateString();
+
+        $eventExists = Event::where('event_date', $consultationDay)->exists();
+
+        if ($eventExists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not allowed. There is an event scheduled for this date'
+            ], 422);
+        }
 
         if ($request->hasFile('uploaded_file_url')) {
             $path = $request->file('uploaded_file_url')->store('attachments', 'public');

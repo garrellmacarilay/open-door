@@ -15,7 +15,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('auth_token', ['*'], now()->addMinutes(30))->plainTextToken;
 
             return response()->json([
                 'success' => true,

@@ -13,7 +13,7 @@ class CalendarController extends Controller
     {
         $bookings = Booking::with(['student.user', 'office', 'staff'])->get();
 
-        $events = $bookings->map(function ($bookings) {
+        $appointments = $bookings->map(function ($bookings) {
             return [
                 'id' => $bookings->id,
                 'title' => $bookings->student->user->full_name ?? 'Unknown',
@@ -33,7 +33,7 @@ class CalendarController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $events
+            'data' => $appointments
         ]);
     }
 
