@@ -3,14 +3,16 @@ import api from '../utils/api';
 import Sidebar from '../components/SideBar.jsx';
 import MainContent from '../components/MainContent.jsx';
 import BookingHistory from "../testing/BookingHistory.jsx";
+import AppointmentList from '../components/AppointmentList.jsx';
 import EventList from '../components/EventList.jsx';
 
+
 export default function CalendarDashboard() {
-  const [events, setEvents] = useState([]);
+  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [user, setUser] = useState(null);
-
+  const [events, setEvents] = useState([])
   const [activePage, setActivePage] = useState('calendar')
 
   // Fetch user info
@@ -26,12 +28,12 @@ export default function CalendarDashboard() {
     fetchUser();
   }, []);
 
-  // Fetch calendar events
+  // Fetch appointments
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchAppointments = async () => {
       try {
-        const res = await api.get('/calendar/events');
-        if (res.data.success) setEvents(res.data.data);
+        const res = await api.get('/calendar/appointments');
+        if (res.data.success) setAppointments(res.data.data);
         else console.error('Failed to fetch events:', res.data.message);
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -39,8 +41,21 @@ export default function CalendarDashboard() {
         setLoading(false);
       }
     };
-    fetchEvents();
+    fetchAppointments();
   }, []);
+
+  //Fetch events
+  useEffect(() => {
+  const fetchEvents = async () => {
+    try {
+      const res = await api.get('/calendar/events');
+      if (res.data.success) setEvents(res.data.data);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
+  fetchEvents();
+}, []);
 
   const handleLogout = async () => {
     try {
@@ -73,14 +88,15 @@ export default function CalendarDashboard() {
           <>
             <div className="flex-1 overflow-y-auto">
               <MainContent
-                events={events}
+                appointments={appointments}
                 isBookingOpen={isBookingOpen}
                 onCloseBooking={() => setIsBookingOpen(false)}
               />
             </div>
 
-            <div className='w-full md:w-[350px] flex-shrink-0 overflow-auto'> 
-              <EventList events={events} />
+            <div className='w-full md:w-[350px] flex-shrink-0 overflow-auto flex flex-col gap-4'> 
+              <EventList events={events}  isAdmin={user?.role === 'admin'}/>
+              <AppointmentList appointments={appointments} />
             </div>
           </>
         )}
