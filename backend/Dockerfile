@@ -67,9 +67,9 @@ EXPOSE ${PORT:-10000}
 # ----------------------------
 # Laravel setup and serve
 # ----------------------------
-CMD php artisan key:generate && \
-    php artisan config:cache && \
+CMD php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache && \
     php artisan migrate --force && \
+    php artisan db:seed --class=AdminSeeder || true && \
     php artisan serve --host=0.0.0.0 --port=${PORT:-10000}

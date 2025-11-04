@@ -15,19 +15,23 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::create([
+        $user = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
             'full_name' => 'Super Admin',
-            'email' => 'admin@example.com',
             'password' => Hash::make('password123'), // Make sure to hash the password
             'role' => 'admin',
             'status' => 'active',
-        ]);
+            ]
+        );
 
         // Create the admin details record linked to this user
-        Admin::create([
-            'user_id' => $user->id,
+        Admin::firstOrCreate(
+            ['user_id' => $user->id],
+            [
             'role_description' => 'Has full system access and management privileges.',
             'managed_offices' => json_encode(['Head Office', 'IT Department']),
-        ]);
+            ]
+        );
     }
 }
