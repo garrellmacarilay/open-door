@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import { Pencil } from "lucide-react"
 
-export default function EventList({ events = [], isAdmin, onCreateEvent }) {
+export default function EventList({ events = [], isAdmin, onCreateEvent, onEditEvent }) {
 
 
   const formatTime = (dateString, timeString) => {
@@ -38,7 +39,7 @@ export default function EventList({ events = [], isAdmin, onCreateEvent }) {
       <ul className="space-y-3 overflow-y-auto">
         {events.length > 0 ? (
           events.map((event) => (
-            <li key={event.id} className="border rounded p-3">
+            <li key={event.id} className="border rounded p-3  relative">
               <p className="font-medium">{event.event_title}</p>
               <p className="text-sm text-gray-500">{event.description}</p>
               <div className="mt-2 text-sm text-gray-500">
@@ -47,6 +48,14 @@ export default function EventList({ events = [], isAdmin, onCreateEvent }) {
                   {formatTime(event.event_date, event.event_time)}
                 </p>
               </div>
+              {isAdmin && (
+                <button
+                  onClick={() => onEditEvent(event)}
+                  className="absolute top-3 right-3 text-blue-600 hover:text-blue-800"
+                >
+                  <Pencil size={18} />
+                </button>
+              )}
             </li>
           ))
         ) : (

@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function AppointmentList({ appointments = [] }) {
+export default function AppointmentList({ appointments = [], onSelect }) {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString("en-US", {
@@ -25,7 +25,7 @@ export default function AppointmentList({ appointments = [] }) {
       <ul className="space-y-3 overflow-y-auto">
         {appointments.length > 0 ? (
           appointments.map((appointment) => (
-            <li key={appointment.id} className="border rounded p-3">
+            <li key={appointment.id} className="border rounded p-3" onClick={() => onSelect && onSelect(appointment.id)}>
               <p className="font-medium">{appointment.title}</p>
               <p className="text-sm text-gray-500">{appointment.details.office}</p>
               <span

@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import NotificationModal from '../testing/NotificationModal';
 
-export default function Sidebar({ user, onBookClick, onShowCalendar, onShowHistory, onLogout }) {
+export default function Sidebar({ user, onBookClick, onEditProfile, onShowCalendar, onShowHistory, onShowRecent, onLogout }) {
   const navigate = useNavigate();
 
   return (
@@ -31,10 +31,16 @@ export default function Sidebar({ user, onBookClick, onShowCalendar, onShowHisto
          📜 Booking History
         </button>
         <button
-          onClick={() => navigate('/bookings/recent')}
+          onClick={onShowRecent}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
         >
           Booked Consultation
+        </button>
+        <button
+          onClick={onEditProfile}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+        >
+          Edit Profile
         </button>
         <button
           onClick={onLogout}
