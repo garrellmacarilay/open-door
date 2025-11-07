@@ -1,6 +1,7 @@
 import React from 'react';
+import AdminConsultationSummary from './AdminConsultationSummary';
 
-export default function AdminActions({ user, onLogout }) {
+export default function AdminActions({ user, onLogout, onSelect }) {
   return (
     <div className="w-72 bg-white border-r border-gray-300 p-6 flex flex-col h-full shadow-lg">
       <h2 className="text-xl font-semibold mb-6">
@@ -11,6 +12,7 @@ export default function AdminActions({ user, onLogout }) {
 
         <button
           className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition'
+          onClick={() => onSelect("dashboard")}
         >
           Dashboard
         </button>
@@ -23,6 +25,7 @@ export default function AdminActions({ user, onLogout }) {
 
         <button
           className='bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition'
+          onClick={() => onSelect("consultation_summary")}
         >
           Consultation Summary
         </button>

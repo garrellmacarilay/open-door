@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../utils/api.js'
 import axios from 'axios';
 
-export default function AdminEvents({ isOpen, onClose }) {
+export default function AdminEvents({ isOpen, onClose, eventData }) {
   const [form, setForm] = useState({
     event_title: '',
     description: '',
@@ -12,31 +12,58 @@ export default function AdminEvents({ isOpen, onClose }) {
 
   const [errors, setErrors] = useState({});
 
+  useEffect(() => {
+    if (eventData) {
+      setForm({
+        event_title: eventData.event_title || '',
+        description: eventData.description || '',
+        event_date: eventData.event_date || '',
+        event_time: eventData.event_time || '',
+      })
+    } else {
+      setForm({
+        event_title: "",
+        description: "",
+        event_date: "",
+        event_time: "",
+      })
+    }
+  }, [eventData])
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!form.event_title || !form.description || !form.event_date || !form.event_time) {
+      alert('All fields are required');
+      return;
+    }
+
+    let eventTime = form.event_time;
+    if (eventTime.length > 5) eventTime = eventTime.slice(0,5);
+
+    const payload = {
+      event_title: form.event_title,
+      description: form.description,
+      event_date: form.event_date,
+      event_time: eventTime
+    };
+
     try {
-        const formData = new FormData();
-        
-        formData.append('event_title', form.event_title);
-        formData.append('description', form.description)
-        formData.append('event_date', form.event_date)
-        formData.append('event_time', form.event_time)
-
-        await api.post('/admin/events', formData, {
-          headers: { 'Content-Type': 'multipart/form-data'}
-      });
-
-
-      alert('Event successfully created!');
-      window.location.href = '/admin/dashboard'
-
-    } catch (err) {
-      if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
+      if (eventData) {
+        //Update
+        await api.put(`/admin/events/${eventData.id}`, payload)
+        alert('Event updated successfully')
       } else {
-        alert (err.response?.data?.message || 'Failed to create event ');
+        //Create
+        await api.post('/admin/events', payload)
+        alert('Event created successfully')
       }
+
+      onClose()
+      window.location.reload()
+    } catch (err) {
+      console.error('Validation errors:', err.response?.data);
+      if (err.response?.data?.errors) setErrors(err.response.data.errors);
     }
   };
   
@@ -50,7 +77,7 @@ export default function AdminEvents({ isOpen, onClose }) {
     >
       {/* Modal card */}
       <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg z-10">
-        <h2 className="text-xl font-semibold mb-4">Calendar Events</h2>
+        <h2 className="text-xl font-semibold mb-4">{eventData ? "Edit Event" : "Create Event"}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
         

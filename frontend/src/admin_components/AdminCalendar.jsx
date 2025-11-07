@@ -16,10 +16,25 @@ export default function AdminCalendar({ appointments }) {
                 setOffices(res.data)
             } catch (err) {
                 console.error(err)
+            } finally {
+                setLoading(false)
             }
         }
         fetchOffices()
     }, [])
+
+    useEffect(() => {
+        if (appointments) {
+            setCalendarAppointments(
+                appointments.map((booking) => ({
+                    title: booking.service_type,
+                    start: booking.consultation_date,
+                    end: booking.consultation_date,
+                    color: "#6366F1"
+                }))
+            )
+        }
+    }, [appointments]);
     
     const handleOfficeChange = async (e) => {
         const officeId  = e.target.value;
