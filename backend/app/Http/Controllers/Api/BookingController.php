@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Event;
 use App\Models\Office;
 use App\Models\Booking;
@@ -76,7 +77,15 @@ class BookingController extends Controller
             'status' => 'pending',
         ]));
 
+        $admins = User::where('role', 'admin')->get();
 
+        foreach ($admins as $admin) {
+            $type = 'booking_request';
+            $message = "A student booked an appointment ({$booking->reference_code}).";
+
+            $notification = new ModalNotificationCreated($booking, $student->user, $type, $message);
+            $notification->handleCustomInsert($admin);
+        }
 
         return response()->json([
             'success' => true,
@@ -132,10 +141,12 @@ class BookingController extends Controller
 
         $recentBookings = Booking::where('student_id', $student->id)
             ->orderBy('created_at', 'desc')
-            ->take(1)
+            ->take(11)
             ->get()
             ->map(function ($booking) {
                 return [
+                    'student_name' => $booking->student->user->full_name ?? "Unknown",
+                    'office' => $booking->office->office_name,
                     'reference_code' => $booking->reference_code,
                     'service_type' => $booking->service_type,
                     'consultation_date' => $booking->consultation_date,

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use App\Models\Booking;
 
 class NotificationController extends Controller
 {
@@ -13,17 +16,19 @@ class NotificationController extends Controller
     {
         $user = Auth::user();
 
-        $notifications = $user->notifications()
-            ->latest()
+        $notifications = DB::table('modal_notifications')
+            ->where('receiver_id', $user->id)
+            ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($notification) {
+            ->map(function ($notif) {
                 return [
-                    'id' => $notification->id,
-                    'type' => $notification->data['type'] ?? null,
-                    'message' => $notification->data['message'] ?? null,
-                    'booking_reference' => $notification->data['booking_reference'] ?? null,
-                    'read_at' => $notification->read_at,
-                    'created_at' => $notification->created_at->diffForHumans(),
+                    'id' => $notif->id,
+                    'type' => $notif->type,
+                    'message' => $notif->message,
+                    'booking_id' => $notif->booking_id,
+                    'booking_reference' => $notif->booking_reference,
+                    'read_at' => $notif->status === 'read' ? now()->toISOString() : null,
+                    'created_at' => Carbon::parse($notif->created_at)->diffForHumans(),
                 ];
             });
 
@@ -37,16 +42,22 @@ class NotificationController extends Controller
     public function markAsRead($id)
     {
         $user = Auth::user();
-        $notification = $user->notifications()->find($id);
+        $notif = DB::table('modal_notifications')
+            ->where('id', $id)
+            ->where('receiver_id', $user->id)
+            ->first();
 
-        if ($notification) {
-            $notification->markAsRead();
-            return response()->json(['success' => true]);
+        if (!$notif) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Notification not found'
+            ], 404);
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Notification not found'
-        ], 404);
+        DB::table('modal_notifications')
+            ->where('id', $id)
+            ->update(['status' => 'read']);
+
+        return response()->json(['success' => true]);
     }
 }
