@@ -18,7 +18,7 @@ export default function SessionExpiredModal() {
   const handleLogin = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    localStorage.removeItem("sessionExpired");
+    localStorage.removeItem("SessionExpired");
 
     navigate("/login");
   };
