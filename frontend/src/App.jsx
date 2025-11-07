@@ -5,7 +5,6 @@ import { useState } from "react";
 import Login from "./testing/Login.jsx";
 import AuthCallback from "./testing/AuthCallback.jsx";
 import CalendarDashboard from "./testing/CalendarDashoard.jsx";
-import BookAConsultation from "./testing/BookAConsultation.jsx";
 import BookingHistory from "./testing/BookingHistory.jsx";
 import RecentBooking from "./testing/RecentBooking.jsx";
 import AdminDashboard from "./testing/AdminDashboard.jsx";
@@ -60,8 +59,7 @@ function App() {
             </AdminRoute>
           }
         />
-
-        <Route path="/frontend/dashboard" element={<StudentDashboard />} />
+        
         {/* 🧭 Catch-All Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
