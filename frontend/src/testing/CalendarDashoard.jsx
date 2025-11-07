@@ -5,6 +5,7 @@ import MainContent from '../components/MainContent.jsx';
 import BookingHistory from "../testing/BookingHistory.jsx";
 import AppointmentList from '../components/AppointmentList.jsx';
 import EventList from '../components/EventList.jsx';
+import RecentBooking from './RecentBooking.jsx';
 
 
 export default function CalendarDashboard() {
@@ -14,6 +15,10 @@ export default function CalendarDashboard() {
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([])
   const [activePage, setActivePage] = useState('calendar')
+
+   if (localStorage.getItem("SessionExpired") === "true") {
+    return null; // Stop everything — modal handles redirect
+  }
 
   // Fetch user info
   useEffect(() => {
@@ -80,6 +85,7 @@ export default function CalendarDashboard() {
         onBookClick={() => setIsBookingOpen(true)}
         onShowCalendar={() => setActivePage("calendar")}
         onShowHistory={() => setActivePage("history")}
+        onShowRecent={() => setActivePage("recent")}
         onLogout={handleLogout}
       />
 
@@ -104,6 +110,12 @@ export default function CalendarDashboard() {
         {activePage === "history" && (
           <div className="flex-1 overflow-y-auto bg-white rounded-lg p-4 shadow">
             <BookingHistory />
+          </div>
+        )}
+
+        {activePage === "recent" && (
+          <div className="flex-1 h-full overflow-y-auto bg-white rounded-lg p-4 shadow">
+            <RecentBooking />
           </div>
         )}
       </div>

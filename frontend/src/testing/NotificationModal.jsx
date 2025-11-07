@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import api from '../utils/api'; // your axios instance
+import { useNavigate } from 'react-router-dom';
 
-export default function NotificationModal() {
+export default function NotificationModal({ onSelectBooking }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false); // modal toggle
 
   // ✅ Fetch notifications when modal opens
@@ -37,6 +39,16 @@ export default function NotificationModal() {
       console.error('Error marking notification as read:', err);
     }
   };
+
+  const handleNotificationClick = async (notif) => {
+    await markAsRead(notif.id)
+
+    if (notif.booking_id) {
+      onSelectBooking(notif.booking_id)
+    }
+
+    setOpen(false)
+  }
 
   return (
     <div className="relative">
@@ -79,7 +91,7 @@ export default function NotificationModal() {
               notifications.map((notif) => (
                 <div
                   key={notif.id}
-                  onClick={() => markAsRead(notif.id)}
+                  onClick={() => handleNotificationClick(notif)}
                   className={`p-3 border-b cursor-pointer transition ${
                     notif.read_at
                       ? 'bg-white hover:bg-gray-50'
