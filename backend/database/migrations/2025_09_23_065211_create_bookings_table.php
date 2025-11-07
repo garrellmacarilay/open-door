@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('service_type');
             $table->dateTime('consultation_date');
             $table->text('concern_description');
-            $table->enum('status', ['pending','approved','cancelled','rescheduled','completed'])->default('pending');
+            $table->enum('status', ['pending','approved','cancelled','rescheduled','completed', 'declined'])->default('pending');
             $table->string('group_members')->nullable();
             $table->string('uploaded_file_url')->nullable();
             $table->string('reference_code')->unique();
