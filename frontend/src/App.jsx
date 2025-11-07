@@ -23,7 +23,7 @@ function App() {
   return (
     <Router>
 
-      <SessionExpiredModal />
+      {/* <SessionExpiredModal /> */}
 
       <Routes>
         {/* 🏠 Default Redirect */}
@@ -59,7 +59,7 @@ function App() {
             </AdminRoute>
           }
         />
-        
+
         {/* 🧭 Catch-All Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
