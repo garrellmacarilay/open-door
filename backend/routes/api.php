@@ -61,9 +61,14 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminBookingController::class, 'dashboard']);
-    Route::get('/bookings', [AdminBookingController::class, 'index']);
-    Route::patch('/bookings/{id}/status', [AdminBookingController::class, 'updateStatus']);
+
+    Route::get('/admin/bookings', [AdminBookingController::class, 'index']);
+    Route::get('/admin/bookings/{id}', [AdminBookingController::class, 'show']);
+    Route::patch('/bookings/status/{id}', [AdminBookingController::class, 'updateStatus']);
+
+    
     Route::post('/admin/events', [AdminEventController::class, 'storeEvents']);
+    Route::put('/admin/events/{id}', [AdminEventController::class, 'updateEvent']);
 });
 
 
