@@ -51,4 +51,15 @@ class Booking extends Model
     {
         return $this->hasMany(EmailNotification::class);
     }
+
+    public function getStatusColor($status)
+{
+    return match($status) {
+        'approved' => 'green',
+        'declined' => 'red',
+        'rescheduled' => 'yellow',
+        'cancelled' => 'gray',
+        default => 'blue',
+    };
+}
 }

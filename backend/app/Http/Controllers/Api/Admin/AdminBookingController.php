@@ -108,8 +108,7 @@ class AdminBookingController extends Controller
 
     public function show($id) {
 
-        $bookings = Booking::with(['student.user', 'office'])
-            ->find($id);
+        $bookings = Booking::with(['student.user', 'office'])->find($id);
 
         if (!$bookings) {
             return response()->json([
