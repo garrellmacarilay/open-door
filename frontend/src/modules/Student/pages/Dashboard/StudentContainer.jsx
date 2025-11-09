@@ -6,7 +6,7 @@ import DashboardContent from './DashboardContent';
 
 // Import the other page components
 import BookedConsultation from '../../pages/Booked Consultation/BookedConsultation';
-import BookingHistory from '../../pages/Boooking History/BookingHistory';
+import BookingHistory from '../Booking History/BookingHistory.jsx';
 import FAQsContent from '../../pages/FAQs/FAQsContent';
 
 // Main content component that switches based on active page
