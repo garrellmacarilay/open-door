@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('top_office')->nullable();
             $table->foreignId('generated_by')->constrained('admins')->onDelete('cascade'); // FK
             $table->string('file_url')->nullable();
+            $table->timestamps();
         });
     }
 

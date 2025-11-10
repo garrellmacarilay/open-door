@@ -12,6 +12,8 @@ use App\Models\EmailNotification;
 
 class Booking extends Model
 {
+    protected $casts =  ['consulatation_date' => 'datetime'];
+
     protected $fillable = [
         'student_id',
         'office_id',
@@ -19,6 +21,7 @@ class Booking extends Model
         'service_type',
         'consultation_date',
         'concern_description',
+        'group_members',
         'status',
         'uploaded_file_url',
         'reference_code',
@@ -48,4 +51,15 @@ class Booking extends Model
     {
         return $this->hasMany(EmailNotification::class);
     }
+
+    public function getStatusColor($status)
+{
+    return match($status) {
+        'approved' => 'green',
+        'declined' => 'red',
+        'rescheduled' => 'yellow',
+        'cancelled' => 'gray',
+        default => 'blue',
+    };
+}
 }

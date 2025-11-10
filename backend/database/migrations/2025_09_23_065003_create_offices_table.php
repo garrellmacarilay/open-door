@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('offices', function (Blueprint $table) {
-            $table->id(); 
+            $table->id();
             $table->string('office_name');
             $table->string('contact_email');
-            $table->string('contact_number');
+            $table->string('contact_number')->nullable();
             $table->enum('status', ['active','inactive'])->default('active');
             $table->timestamps();
         });

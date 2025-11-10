@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('modal_notifications', function (Blueprint $table) {
-            $table->id(); 
+            $table->id();
             $table->foreignId('booking_id')->constrained('bookings')->onDelete('cascade'); // FK
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade'); // FK
             $table->foreignId('receiver_id')->constrained('users')->onDelete('cascade'); // FK
-            $table->enum('type', ['approval','decline','reschedule','cancellation']);
+            $table->enum('type', ['approval','decline','reschedule','cancellation', 'booking_request']);
             $table->text('message');
             $table->enum('status', ['sent','read','archived'])->default('sent');
             $table->timestamps();
