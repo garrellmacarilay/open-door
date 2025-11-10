@@ -3,40 +3,67 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\Student;
+use App\Models\Office;
 use App\Models\Booking;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class BookingSeeder extends Seeder
 {
     public function run(): void
     {
-        // 🔒 Temporarily disable foreign key checks (for SQLite or MySQL)
-        DB::statement('PRAGMA foreign_keys = OFF;'); // For SQLite
-        // DB::statement('SET FOREIGN_KEY_CHECKS=0;'); // For MySQL
+        $statuses = ['approved', 'pending', 'cancelled', 'rescheduled', 'completed', 'declined'];
+        $offices = Office::all();
 
-        $statuses = ['pending', 'approved', 'cancelled', 'rescheduled', 'completed'];
-        $serviceTypes = ['Consultation', 'Therapy', 'Assessment', 'Follow-up', 'Advisory'];
-
-        for ($i = 1; $i <= 10; $i++) {
-            Booking::create([
-                'service_type' => $serviceTypes[array_rand($serviceTypes)],
-                'consultation_date' => Carbon::now()
-                    ->addDays(rand(0, 10))
-                    ->setTime(rand(8, 16), [0, 30][rand(0, 1)]),
-                'concern_description' => 'This is a test booking concern for event #' . $i,
-                'status' => $statuses[array_rand($statuses)],
-                'uploaded_file_url' => null,
-                'reference_code' => strtoupper(Str::random(8)),
-                'student_id' => 1, // temporary test IDs
-                'staff_id' => 1,
-                'office_id' => 1,
-            ]);
+        if ($offices->isEmpty()) {
+            $this->command->error("No offices found. Please seed offices first.");
+            return;
         }
 
-        // ✅ Re-enable foreign key checks
-        DB::statement('PRAGMA foreign_keys = ON;'); // For SQLite
-        // DB::statement('SET FOREIGN_KEY_CHECKS=1;'); // For MySQL
+        // --- Create 50 students with bookings ---
+        for ($i = 1; $i <= 50; $i++) {
+
+            // Create a student user
+            $user = User::create([
+                'full_name'  => "Student {$i}",
+                'email'      => "student{$i}@student.laverdad.edu.ph",
+                'password'   => bcrypt('password'),
+                'role'       => 'student',
+                'contact_number' => '09' . rand(100000000, 999999999),
+            ]);
+
+            // Create student info
+            $student = Student::create([
+                'user_id' => $user->id,
+                'student_number' => 'LVCC-' . rand(10000, 99999),
+                'program' => 'BSIT',
+                'year_level' => rand(1, 4),
+            ]);
+
+            // Generate 1–3 bookings per student
+            $bookingCount = rand(1, 3);
+
+            for ($b = 1; $b <= $bookingCount; $b++) {
+
+                $consultDate = Carbon::now()
+                    ->subDays(rand(1, 60))
+                    ->setTime(rand(8, 16), rand(0, 59));
+
+                Booking::create([
+                    'student_id' => $student->id,
+                    'office_id'  => $offices->random()->id,
+                    'staff_id'   => null, // optional
+                    'service_type' => 'Consultation',
+                    'consultation_date' => $consultDate,
+                    'concern_description' => "Dummy consultation concern #{$i}-{$b}",
+                    'status' => $statuses[array_rand($statuses)],
+                    'group_members' => null,
+                    'uploaded_file_url' => null,
+                    'reference_code' => strtoupper(Str::random(10)),
+                ]);
+            }
+        }
     }
 }

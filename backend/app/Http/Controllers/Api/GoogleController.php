@@ -39,7 +39,7 @@ class GoogleController extends Controller
             $user->update(attributes: ['student_id' => $student->id]);
         }
 
-        $token = $user->createToken('auth_token', ['*'], now()->addMinutes(30))->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 

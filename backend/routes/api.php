@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\CalendarController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Admin\AdminEventController;
 use App\Http\Controllers\Api\Admin\AdminBookingController;
-
+use App\Http\Controllers\Api\Admin\AnalyticsController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -66,9 +66,14 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/bookings/{id}', [AdminBookingController::class, 'show']);
     Route::patch('/bookings/status/{id}', [AdminBookingController::class, 'updateStatus']);
 
-    
+
     Route::post('/admin/events', [AdminEventController::class, 'storeEvents']);
     Route::put('/admin/events/{id}', [AdminEventController::class, 'updateEvent']);
+
+    Route::get('/admin/analytics/stats', [AnalyticsController::class, 'consultationStats']);
+    Route::get('/admin/analytics/trends', [AnalyticsController::class, 'consultationTrends']);
+    Route::get('/admin/analytics/distribution', [AnalyticsController::class, 'serviceDistribution']);
+    Route::get('/admin/analytics/generate-report', [AnalyticsController::class, 'generateReport']);
 });
 
 

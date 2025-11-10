@@ -12,6 +12,7 @@ import EventList from "../components/EventList.jsx";
 import AdminEvents from "../admin_components/AdminEvents.jsx";
 import AppointmentRequests from "../components/AppointmentRequests.jsx";
 import AdminConsultationSummary from "../admin_components/AdminConsultationSummary.jsx";
+import AdminAnalytics from "../admin_components/AdminAnalytics.jsx";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -172,6 +173,8 @@ export default function AdminDashboard() {
         )}
 
         {activePage === "consultation_summary" && <AdminConsultationSummary />}
+
+        {activePage === "analytics" && <AdminAnalytics />}
       </main>
       
       {selectedBookingId && (
