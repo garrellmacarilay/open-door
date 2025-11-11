@@ -30,9 +30,11 @@ export default function Login() {
 
         if (user?.role === 'admin') {
             navigate('/admin/dashboard');
+        } else if (user?.role === 'staff'){
+            navigate('/office/dashboard');
         } else {
-            navigate('/dashboard');
-        }     
+          navigate('/dashboard')
+        }    
       } else {
          setMessage(message || 'Login failed. Please try again.');
       }

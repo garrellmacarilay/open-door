@@ -8,12 +8,14 @@ import CalendarDashboard from "./testing/CalendarDashoard.jsx";
 import BookingHistory from "./testing/BookingHistory.jsx";
 import RecentBooking from "./testing/RecentBooking.jsx";
 import AdminDashboard from "./testing/AdminDashboard.jsx";
+import OfficeDashboard from "./testing/OfficeDashboard.jsx";
 import SessionExpiredModal from "./utils/SessionExpiredModal.jsx";
 
 import StudentDashboard from "./pages/StudentDashboard.jsx";
 
 // 🧠 Route Guards
 import AdminRoute from "./utils/auth/AdminRoute.jsx";
+import OfficeRoute from "./utils/auth/OfficeRoute.jsx";
 
 const isAuthenticated = () => !!localStorage.getItem("token");
 
@@ -48,6 +50,15 @@ function App() {
         <Route
           path="/bookings/recent"
           element={token ? <RecentBooking /> : <Navigate to="/login" replace />}
+        />
+
+        <Route
+          path='/office/dashboard'
+          element={
+            <OfficeRoute>
+              <OfficeDashboard />
+            </OfficeRoute>
+          } 
         />
 
         {/* 🧑‍💼 Admin Dashboard (Protected) */}

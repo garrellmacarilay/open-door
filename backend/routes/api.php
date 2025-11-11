@@ -9,9 +9,10 @@ use App\Http\Controllers\Api\GoogleController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CalendarController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\Office\OfficeController;
+use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\AdminEventController;
 use App\Http\Controllers\Api\Admin\AdminBookingController;
-use App\Http\Controllers\Api\Admin\AnalyticsController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -56,7 +57,10 @@ Route::middleware(['auth:sanctum', 'student'])->group(function() {
 });
 
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
-    // Protected routes for staff users
+    Route::get('/office/dashboard', [OfficeController::class, 'dashboard']);
+    Route::get('/office/bookings/{id}', [OfficeController::class, 'showBooking']);
+    Route::get('/office/consultation-summary', [OfficeController::class, 'consultationSummary']);
+
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
