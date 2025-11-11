@@ -2,9 +2,56 @@ import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react"; // optional, for the back icon
 import Login_img from "../../components/global-img/LVCC-Gate.jpg";
 import PSAS_Logo from "../../components/global-img/PSAS-Logo.png";
+import api from "../../utils/api";
+import { useNavigate } from 'react-router-dom'
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [message, setMessage] = useState('')
+  const navigate = useNavigate()
+
+  const handleLogin = async (e) => {
+    e.preventDefault()
+
+    setMessage('Login in progress..')
+
+    try {
+      const res = await api.post('/login', { email, password })
+      console.log('Login in progress...')
+
+      const { success, access_token, message, user} = res.data
+      const finalToken = access_token
+
+      if (success && finalToken) {
+        localeStorage.setItem('token', finalToken)
+
+        if (user?.role) {
+        localStorage.setItem('user', JSON.stringify(user))
+        }
+
+        setMessage('Login successful! Redirecting...')
+
+        // if (user?.role === 'admin') {
+        //   navigate('/admin/dashboard');
+        // } else if (user?.role === 'staff') {
+        //   navigate('/staff/dashboard')
+        // } else {
+        //   navigate('/dashboard');
+        // }
+        navigate('/dashboard');
+      } else {
+        setMessage(message || 'Login failed. Please try again.');
+      }
+            
+    } catch (err) {
+      console.error('Login Error:', error.response?.data || error.message);
+      setMessage(error.response?.data?.message || 'Something went wrong.');
+    }
+  }
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_APP_API_URL}/auth/google`
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -56,7 +103,7 @@ export default function LoginPage() {
 
 
             <button
-              onClick={handleSubmit}
+              onClick={handleLogin}
               className="w-full bg-[#1e3a8a]! hover:bg-[#1e40af] text-white font-semibold py-3 rounded-md transition duration-200 shadow-md hover:shadow-lg"
             >
               Log In
@@ -70,6 +117,7 @@ export default function LoginPage() {
 
             <button
               type="button"
+              onClick={handleGoogleLogin}
               className="flex items-center justify-center gap-2 py-3 rounded-md transition bg-white! hover:bg-blue-700 text-black border-gray-600!"
             >
               <img
