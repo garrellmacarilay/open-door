@@ -33,13 +33,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /var/www
 
 # ----------------------------
-# Copy application code including manually downloaded vendor packages
+# Copy application code
 # ----------------------------
 COPY . /var/www
 
-# ----------------------------
 # Ensure storage and cache directories exist and are writable
-# ----------------------------
 RUN mkdir -p storage bootstrap/cache database \
     && chown -R www-data:www-data storage bootstrap/cache database \
     && chmod -R 775 storage bootstrap/cache database
@@ -52,12 +50,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 ENV COMPOSER_MEMORY_LIMIT=-1
 
 # ----------------------------
-# Install PHP dependencies
+# Install PHP dependencies (no require inside Docker!)
 # ----------------------------
-# Composer will use the existing vendor/spatie/laravel-pdf if present
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist \
-    && composer require spatie/laravel-pdf:@dev --no-interaction --no-progress
-
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
 
 # ----------------------------
 # Switch to www-data
