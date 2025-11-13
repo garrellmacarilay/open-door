@@ -33,26 +33,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /var/www
 
 # ----------------------------
-# Copy application code
+# Copy only composer files first (for caching)
 # ----------------------------
-COPY . /var/www
-
-# Ensure storage and cache directories exist and are writable
-RUN mkdir -p storage bootstrap/cache database \
-    && chown -R www-data:www-data storage bootstrap/cache database \
-    && chmod -R 775 storage bootstrap/cache database
+COPY composer.json composer.lock /var/www/
 
 # ----------------------------
 # Install Composer
 # ----------------------------
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
 ENV COMPOSER_MEMORY_LIMIT=-1
 
 # ----------------------------
-# Install PHP dependencies (dev-main for Spatie included)
+# Install PHP dependencies (no --no-scripts)
 # ----------------------------
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --ignore-platform-reqs
+
+# ----------------------------
+# Copy the rest of the application
+# ----------------------------
+COPY . /var/www
+
+# ----------------------------
+# Ensure storage and cache directories exist
+# ----------------------------
+RUN mkdir -p storage bootstrap/cache database \
+    && chown -R www-data:www-data storage bootstrap/cache database \
+    && chmod -R 775 storage bootstrap/cache database
 
 # ----------------------------
 # Switch to www-data
