@@ -50,7 +50,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 ENV COMPOSER_MEMORY_LIMIT=-1
 
 # ----------------------------
-# Install PHP dependencies (no require inside Docker!)
+# Install PHP dependencies (dev-main for Spatie included)
 # ----------------------------
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
 
