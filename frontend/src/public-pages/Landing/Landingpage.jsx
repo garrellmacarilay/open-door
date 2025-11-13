@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 import landingBg from "../../assets/img/bg-image.png";
 import student1 from "../../assets/img/student-1.png";
@@ -14,7 +15,8 @@ export const FrameLandingPage = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: -40, right: 0 });
   const contactButtonRef = useRef(null);
-
+  const navigate = useNavigate()
+  
   const contactInfo = [
     {
       id: 1,
@@ -53,6 +55,10 @@ export const FrameLandingPage = () => {
       icon: "📰"
     }
   ];
+
+  const handleLoginPage = () => {
+    navigate('/login')
+  }
 
   const handleEmailClick = (email) => {
     // Create mailto link with subject line
@@ -114,7 +120,7 @@ export const FrameLandingPage = () => {
           {/* Login button overlaid on the left */}
           <div className="absolute left-6 md:left-16 top-[70%] z-20 transform -translate-y-1/2">
             <a
-              href="/login"
+              onClick={handleLoginPage}
               className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-[#1e3a8a] hover:bg-[#1e40af] text-white! font-semibold transition duration-200 shadow-md hover:shadow-lg"
             >Log In</a>
           </div>
