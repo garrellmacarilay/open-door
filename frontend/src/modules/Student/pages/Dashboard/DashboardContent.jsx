@@ -11,6 +11,16 @@ function DashboardContent() {
     const [showReminderModal, setShowReminderModal] = useState(false);
     const [showBookingModal, setShowBookingModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [errors, setErrors] = useState([])
+    const [offices, setOffices] = useState([])
+    const [form, setForm] = useState({
+      office_id: '',
+      service_type: '',
+      consultation_date: '',
+      concern_description: '',
+      uploaded_file_url: null,
+      group_members: ''
+    })
     const [showEditProfileModal, setShowEditProfileModal] = useState(false);
     const [bookedAppointments, setBookedAppointments] = useState([
       // Multiple appointments on November 15th to test the "View all" functionality
@@ -63,14 +73,14 @@ function DashboardContent() {
         studentName: 'Garrell Macarilay'
       }, // November 22, 2025
     ]);
-    const [formData, setFormData] = useState({
-      office: '',
-      serviceType: '',
-      date: '',
-      topic: '',
-      groupMembers: '',
-      attachment: null
-    });
+    // const [formData, setFormData] = useState({
+    //   office: '',
+    //   serviceType: '',
+    //   date: '',
+    //   topic: '',
+    //   groupMembers: '',
+    //   attachment: null
+    // });
   
     // Edit Profile form data
     const [editProfileData, setEditProfileData] = useState({
@@ -151,35 +161,66 @@ function DashboardContent() {
       }));
     };
   
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      // Handle form submission logic here
-      console.log('Form submitted:', formData);
+    // const handleSubmit = (e) => {
+    //   e.preventDefault();
+    //   // Handle form submission logic here
+    //   console.log('Form submitted:', formData);
       
-      // Add the new appointment to the calendar
-      if (formData.date && formData.office) {
-        const appointmentDate = new Date(formData.date);
-        const newAppointment = {
-          date: appointmentDate,
-          office: formData.office,
-          time: '9:00 AM', // Default time, can be made dynamic
-          studentName: 'Garrell Macarilay'
-        };
-        setBookedAppointments(prev => [...prev, newAppointment]);
-      }
+    //   // Add the new appointment to the calendar
+    //   if (formData.date && formData.office) {
+    //     const appointmentDate = new Date(formData.date);
+    //     const newAppointment = {
+    //       date: appointmentDate,
+    //       office: formData.office,
+    //       time: '9:00 AM', // Default time, can be made dynamic
+    //       studentName: 'Garrell Macarilay'
+    //     };
+    //     setBookedAppointments(prev => [...prev, newAppointment]);
+    //   }
       
+    //   setShowBookingModal(false);
+    //   setShowSuccessModal(true);
+    //   // Reset form
+    //   setFormData({
+    //     office: '',
+    //     serviceType: '',
+    //     date: '',
+    //     topic: '',
+    //     groupMembers: '',
+    //     attachment: null
+    //   });
+    // };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault()
       setShowBookingModal(false);
       setShowSuccessModal(true);
-      // Reset form
-      setFormData({
-        office: '',
-        serviceType: '',
-        date: '',
-        topic: '',
-        groupMembers: '',
-        attachment: null
-      });
-    };
+      try {
+        const formData = new FormData()
+
+        formData.append('office_id', form.office_id)
+        formData.append('service_type', form.service_type);
+        formData.append('consultation_date', form.consultation_date)
+        formData.append('concern_description', form.concern_description)
+        formData.append('group_members', form.group_members)
+
+        if (form.uploaded_file_url instanceof File){
+          formData.append('uploaded_file_url', form.uploaded_file_url)
+        }
+
+        await api.post('/bookings', formData, {
+          headers: { "Content-Type": 'multipart/form-data'}
+        })
+
+        
+      } catch (err) {
+        if (err.response?.data?.errors) {
+          setErrors(err.response.data.errors);
+        } else {
+          alert (err.response?.data?.message || 'Failed to book consultation. ');
+        }
+      }
+  }
   
     const handleCancel = () => {
       setShowBookingModal(false);

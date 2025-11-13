@@ -3,23 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useNavigation } from '../../../../contexts/NavigationContext';
 import PSASLogo from '../../components/img/PSAS-Logo.png';
 
-function StudentNav() {
+import api from '../../../../utils/api';
+
+function StudentNav({ onLogout }) {
   const { activePage, navigateToPage } = useNavigation();
   const navigate = useNavigate();
 
   const handleNavigation = (page) => {
     navigateToPage(page);
   };
-
-  const handleLogout = () => {
-    // Clear any user session data if needed
-    // localStorage.removeItem('userToken'); // Uncomment if using localStorage
-    // sessionStorage.clear(); // Uncomment if using sessionStorage
-    
-    // Navigate to landing page using React Router
-    navigate('/');
-  };
-
+  
   return (
     <div className="w-[250px] bg-[#122141] text-white flex flex-col shrink-0 relative">
       {/* Top Section with darker background */}
@@ -110,7 +103,7 @@ function StudentNav() {
       {/* Logout Section - Bottom */}
       <div className="bg-[#142240] h-[72px] flex items-center justify-center border-y-2 border-white">
         <button 
-          onClick={handleLogout}
+          onClick={onLogout}
           className="flex items-center gap-3 px-5 bg-[#142240]! hover:bg-[#122141] transition-colors rounded-lg py-2"
         >
           <span className="font-bold text-[15px] text-white" style={{ fontFamily: 'Poppins', letterSpacing: '-0.02em', lineHeight: '1.5em' }}>Logout</span>

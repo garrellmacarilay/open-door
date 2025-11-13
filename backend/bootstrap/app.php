@@ -2,8 +2,10 @@
 
 use Illuminate\Foundation\Application;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\OfficeMiddleware;
 use App\Http\Middleware\StudentMiddleware;
 use Illuminate\Http\Middleware\HandleCors;
+use App\Http\Middleware\StaffAdminMiddleware;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
@@ -28,7 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => AdminMiddleware::class,
-            'student' => StudentMiddleware::class
+            'student' => StudentMiddleware::class,
+            'staff' => OfficeMiddleware::class,
+            'staffadmin' => StaffAdminMiddleware::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

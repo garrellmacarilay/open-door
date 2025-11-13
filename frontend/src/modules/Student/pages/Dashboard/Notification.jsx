@@ -3,46 +3,65 @@ import NotificationIcon from "../../components/img/notification.png";
 
 function Notification() {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(false)
 
   // Sample notification data
-  const notifications = [
-    {
-      id: 1,
-      title: 'New Consultation Schedule',
-      time: '2 hours ago',
-      icon: 'clock'
-    },
-    {
-      id: 2,
-      title: 'Booking Confirmed',
-      time: '3 hours ago',
-      icon: 'clock'
-    },
-    {
-      id: 3,
-      title: 'Reminder: Upcoming Meeting',
-      time: '5 hours ago',
-      icon: 'clock'
-    },
-    {
-      id: 4,
-      title: 'Schedule Updated',
-      time: '1 day ago',
-      icon: 'clock'
-    },
-    {
-      id: 5,
-      title: 'New Message',
-      time: '2 days ago',
-      icon: 'clock'
-    },
-    {
-      id: 6,
-      title: 'System Maintenance',
-      time: '3 days ago',
-      icon: 'clock'
+  // const notifications = [
+  //   {
+  //     id: 1,
+  //     title: 'New Consultation Schedule',
+  //     time: '2 hours ago',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 2,
+  //     title: 'Booking Confirmed',
+  //     time: '3 hours ago',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 3,
+  //     title: 'Reminder: Upcoming Meeting',
+  //     time: '5 hours ago',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 4,
+  //     title: 'Schedule Updated',
+  //     time: '1 day ago',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 5,
+  //     title: 'New Message',
+  //     time: '2 days ago',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 6,
+  //     title: 'System Maintenance',
+  //     time: '3 days ago',
+  //     icon: 'clock'
+  //   }
+  // ];
+  useEffect(() => {
+    if (open) fetchNotifications()
+  }, [open])
+  const fetchNotifications = async () => {
+    try {
+      const res = await api.get('/notifications')
+
+      if (res.data.success) {
+        setNotifications(res.data.notifications)
+      }
+    } catch (err) {
+      console.error('Error fetching notifications', err)
+    } finally {
+      setLoading(false)
     }
-  ];
+  }
 
   const handleNotificationClick = () => {
     setShowNotificationModal(!showNotificationModal);

@@ -9,6 +9,9 @@ import BookedConsultation from '../../pages/Booked Consultation/BookedConsultati
 import BookingHistory from '../Booking History/BookingHistory.jsx';
 import FAQsContent from '../../pages/FAQs/FAQsContent';
 
+import api from '../../../../utils/api.js';
+import { useNavigate } from 'react-router-dom'
+
 // Main content component that switches based on active page
 function MainContent({ 
   showEditProfileModal, 
@@ -48,10 +51,26 @@ function MainContent({
     }
   };
 
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      const res = await api.post('/logout')
+
+      if (res.data.success) {
+        localStorage.removeItem('token')
+        window.location.href = '/login'
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Failed to log out')    
+    }
+  }
+
   return (
     <div className="flex h-screen w-screen bg-gray-100 overflow-hidden">
       {/* Sidebar Navigation Component */}
-      <StudentNav />
+      <StudentNav onLogout={handleLogout}/>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -80,6 +99,7 @@ function StudentContainer() {
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [errors, setErrors] = useState([])
   const [editProfileData, setEditProfileData] = useState({
     username: '',
     email: 'garrell.macarilay@student.laverdad.edu.ph',
@@ -139,22 +159,53 @@ function StudentContainer() {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   console.log('Form submitted:', formData);
+  //   setShowBookingModal(false);
+  //   setShowSuccessModal(true);
+  //   // Reset form
+  //   setFormData({
+  //     office: '',
+  //     serviceType: '',
+  //     date: '',
+  //     time: '',
+  //     topic: '',
+  //     groupMembers: '',
+  //     attachment: null
+  //   });
+  // };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     setShowBookingModal(false);
     setShowSuccessModal(true);
-    // Reset form
-    setFormData({
-      office: '',
-      serviceType: '',
-      date: '',
-      time: '',
-      topic: '',
-      groupMembers: '',
-      attachment: null
-    });
-  };
+    try {
+      const formData = new FormData()
+
+      formData.append('office_id', form.office_id)
+      formData.append('service_type', form.service_type);
+      formData.append('consultation_date', form.consultation_date)
+      formData.append('concern_description', form.concern_description)
+      formData.append('group_members', form.group_members)
+
+      if (form.uploaded_file_url instanceof File){
+        formData.append('uploaded_file_url', form.uploaded_file_url)
+      }
+
+      await api.post('/bookings', formData, {
+        headers: { "Content-Type": 'multipart/form-data'}
+      })
+
+      
+    } catch (err) {
+      if (err.response?.data?.errors) {
+        setErrors(err.response.data.errors);
+      } else {
+        alert (err.response?.data?.message || 'Failed to book consultation. ');
+      }
+    }
+  }
 
   const handleCancel = () => {
     setShowBookingModal(false);
