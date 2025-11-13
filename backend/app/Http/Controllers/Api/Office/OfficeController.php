@@ -101,12 +101,14 @@ class OfficeController extends Controller
         $bookings = Booking::with(['student.user', 'office'])
             ->where('office_id', $officeId) // ✅ Only this office
             ->when($search, function ($query) use ($search) {
-                $query->whereHas('student.user', function ($q) use ($search) {
-                    $q->where('full_name', 'LIKE', "%{$search}%");
-                })
-                ->orWhere('reference_code', 'LIKE', "%{$search}%")
-                ->orWhere('service_type', 'LIKE', "%{$search}%")
-                ->orWhere('status', 'LIKE', "%{$search}%");
+                $query->where(function ($q) use  ($search) {
+                    $q->whereHas('student.user', function ($q2) use ($search) {
+                        $q2->where('full_name', 'LIKE', '%{$search}%');
+                    })
+                    ->orWhere('reference_code', 'LIKE', "%{$search}%")
+                    ->orWhere('service_type', 'LIKE', "%{$search}%")
+                    ->orWhere('status', 'LIKE', "%{$search}%");
+                });
             })
             ->orderBy('created_at', 'desc')
             ->get()
