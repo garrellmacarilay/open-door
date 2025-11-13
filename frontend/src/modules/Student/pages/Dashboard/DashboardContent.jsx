@@ -247,7 +247,7 @@ function DashboardContent() {
         setShowReminderModal={setShowReminderModal}
       />
       
-      <div className="flex-1 px-4 pb-4 flex gap-4 overflow-hidden rounded-lg">
+      <div className="flex-1 px-4 pb-4 flex gap-4 overflow-hidden rounded-lg -mr-0.5">
         {/* Calendar Section */}
         <Calendar 
           currentDate={currentDate}
@@ -257,7 +257,7 @@ function DashboardContent() {
         />
 
         {/* Right Sidebar - Two Modals */}
-        <div className="w-80 flex flex-col gap-4 shrink-0">
+        <div className="w-80 flex flex-col gap-4 shrink-0 min-h-0">
           {/* Upcoming Appointments Component */}
           <UpcomingAppointments upcomingEvents={upcomingEvents} />
           

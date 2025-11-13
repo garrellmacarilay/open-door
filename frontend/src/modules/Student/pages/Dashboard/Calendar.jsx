@@ -134,14 +134,20 @@ function Calendar({
         {/* Calendar Body */}
         <div className="bg-white rounded-lg border-2 border-gray-900 flex-1 flex flex-col min-h-0">
           {/* Days of Week */}
-          <div className="grid grid-cols-7 rounded-lg-top border-b border-gray-200 shrink-0">
-            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
-              <div key={day} className="rounded-t-lg border-x border-gray-200 p-2 text-center text-xs font-semibold text-gray-600 bg-gray-50" style={{ fontFamily: 'Poppins' }}>
+          <div className="grid grid-cols-7 shrink-0">
+          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, index) => (
+            <div 
+              key={day} 
+              className={`bg-gray-50 border border-[#EFEFEF] h-[34px] flex items-center justify-center ${
+                index === 0 ? 'rounded-tl-[10px]' : index === 6 ? 'rounded-tr-[10px]' : ''
+              }`}
+            >
+              <span className="text-black text-[15px] font-semibold" style={{ fontFamily: 'Inter' }}>
                 {day}
-              </div>
-            ))} 
-          </div>
-          
+              </span>
+            </div>
+          ))} 
+        </div>
           {/* Calendar Grid - 6 rows x 7 columns using flexible boxes */}
           <div className={`flex-1 flex flex-col min-h-0 transition-all duration-150 ${
             isAnimating ? 'opacity-50 scale-98' : 'opacity-100 scale-100'
@@ -170,6 +176,7 @@ function Calendar({
               <span className="text-xs" style={{ fontFamily: 'Poppins' }}>Declined</span>
             </div>
           </div>
+
         </div>
       </div>
 
