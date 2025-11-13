@@ -9,10 +9,12 @@ use App\Http\Controllers\Api\GoogleController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\CalendarController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\Office\OfficeController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\AdminEventController;
 use App\Http\Controllers\Api\Admin\AdminBookingController;
+use App\Http\Controllers\Api\Admin\AdminOfficeController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -30,9 +32,15 @@ Route::middleware('guest')->group(function () {
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    $user = $request->user()->load('student');
+
+    $user->profile_picture_url = $user->profile_picture
+        ? asset('storage/' . $user->profile_picture)
+        : null;
+
     return response()->json([
         'success' => true,
-        'user' => $request->user()->load('student') // includes student relation if any
+        'user' => $user // includes student relation if any
     ]);
 });
 
@@ -45,6 +53,8 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/read/{id}', [NotificationController::class, 'markAsRead']);
+
+    Route::post('/user/profile', [ProfileController::class, 'updateProfile']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
 });
@@ -59,8 +69,13 @@ Route::middleware(['auth:sanctum', 'student'])->group(function() {
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::get('/office/dashboard', [OfficeController::class, 'dashboard']);
     Route::get('/office/bookings/{id}', [OfficeController::class, 'showBooking']);
-    Route::get('/office/consultation-summary', [OfficeController::class, 'consultationSummary']);
+    Route::get('/office/bookings', [OfficeController::class, 'consultationSummary']);
 
+});
+
+Route::middleware(['auth:sanctum', 'staffadmin'])->group(function () {
+    Route::post('/admin/events', [AdminEventController::class, 'storeEvents']);
+    Route::put('/admin/events/{id}', [AdminEventController::class, 'updateEvent']);
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
@@ -71,8 +86,10 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::patch('/bookings/status/{id}', [AdminBookingController::class, 'updateStatus']);
 
 
-    Route::post('/admin/events', [AdminEventController::class, 'storeEvents']);
-    Route::put('/admin/events/{id}', [AdminEventController::class, 'updateEvent']);
+    Route::get('/admin/offices', [AdminOfficeController::class, 'show']);
+    Route::post('/admin/office/create', [AdminOfficeController::class, 'store']);
+    Route::patch('/admin/office/store/{id}', [AdminOfficeController::class, 'update']);
+    Route::delete('/admin/office/delete/{id}', [AdminOfficeController::class, 'delete']);
 
     Route::get('/admin/analytics/stats', [AnalyticsController::class, 'consultationStats']);
     Route::get('/admin/analytics/trends', [AnalyticsController::class, 'consultationTrends']);
