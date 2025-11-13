@@ -3,9 +3,12 @@ import api from "../utils/api";
 
 import OfficeHeader from '../office_components/OfficeHeader'
 import OfficeCalendar from '../office_components/OfficeCalendar'
-import OfficeEventList from "../office_components/OfficeEventList";
+import EventList from "../components/EventList";
 import AppointmentList from "../components/AppointmentList";
 import AppointmentRequests from "../components/AppointmentRequests";
+import OfficeActions from "../office_components/OfficeActions";
+import OfficeConsultationSummary from "../office_components/OfficeConsultationSummary";
+import AdminEvents from "../admin_components/AdminEvents";
 
 export default function OfficeDashboard() {
     const [appointments, setAppointments] = useState([])
@@ -13,6 +16,19 @@ export default function OfficeDashboard() {
     const [loading, setLoading] = useState(true)
     const [selectedBookingId, setSelectedBookingId] = useState(null)
     const [events, setEvents] = useState([])
+    const [activePage, setActivePage] = useState("dashboard");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [user, setUser] = useState(null)
+
+    const fetchUser = async () => {
+        try {
+            const res  = await api.get('/user')
+            if (res.data.success) setUser(res.data.user)
+        } catch (err) {
+            console.error ('fetch user failed:', err)
+        }
+    }
 
     const fetchOfficeAppointments = async () => {
         try {
@@ -67,11 +83,24 @@ export default function OfficeDashboard() {
         }
     }
 
+    const handleLogout = async () => {
+        try {
+            const res = await api.post('/logout')
+            if (res.data.success) {
+                localStorage.removeItem("token");
+                navigate("/login");
+            }
+        } catch (err) {
+            alert('Failed to log out')
+        }
+    }
+
     useEffect(() =>{
         (async () => {
             await Promise.all([
                 fetchOfficeAppointments(),
-                fetchEvents()
+                fetchEvents(),
+                fetchUser()
             ])
             setLoading(false)
         })()
@@ -81,10 +110,11 @@ export default function OfficeDashboard() {
 
     return (
         <div className="flex h-screen">
+            <OfficeActions user={user} onSelect={setActivePage} onLogout={handleLogout} />
         <main className="flex-1 flex flex-col p-6 overflow-auto">
             <OfficeHeader />
-
-            <div className="flex flex-col md:flex-row gap-6 h-[80vh] overflow-hidden">
+            {activePage === 'dashboard' && (
+                <div className="flex flex-col md:flex-row gap-6 h-[80vh] overflow-hidden">
                 <div className="flex-1 overflow-auto">
                     <OfficeCalendar appointments={appointments} />
                 </div>
@@ -96,11 +126,24 @@ export default function OfficeDashboard() {
                         onSelect={handleSelectBooking} 
                     />
 
-                    <OfficeEventList
+                    <EventList
+                        isStaff={user?.role === 'staff'}
                         events={events}
+                        onCreateEvent={() => {
+                            setSelectedEvent(null);
+                            setIsModalOpen(true);
+                        }}
+                        onEditEvent={(event) => {
+                            setSelectedEvent(event);
+                            setIsModalOpen(true);
+                        }}
                     />
                 </aside>
             </div>
+
+            )}
+            
+            {activePage === 'consultation_summary' && <OfficeConsultationSummary />}
         </main>
         {selectedBookingId && (
             <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
@@ -124,6 +167,14 @@ export default function OfficeDashboard() {
                     </button>  
                 </div>
             </div>
+        )}
+        {isModalOpen && (
+            <AdminEvents
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onEventCreated={fetchEvents}
+                eventData={selectedEvent}
+            />
         )}
     </div>
     )

@@ -12,6 +12,7 @@ export default function CalendarDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([])
   const [activePage, setActivePage] = useState('calendar')
@@ -86,6 +87,7 @@ export default function CalendarDashboard() {
         onShowCalendar={() => setActivePage("calendar")}
         onShowHistory={() => setActivePage("history")}
         onShowRecent={() => setActivePage("recent")}
+        onEditProfile={() => setIsEditProfileOpen(true)}
         onLogout={handleLogout}
       />
 
@@ -97,6 +99,8 @@ export default function CalendarDashboard() {
                 appointments={appointments}
                 isBookingOpen={isBookingOpen}
                 onCloseBooking={() => setIsBookingOpen(false)}
+                isEditProfileOpen={isEditProfileOpen}
+                onCloseEditProfile={() =>setIsEditProfileOpen(false)}
               />
             </div>
 

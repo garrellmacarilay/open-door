@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Pencil } from "lucide-react"
 
-export default function EventList({ events = [], isAdmin, onCreateEvent, onEditEvent }) {
+export default function EventList({ events = [], isAdmin, isStaff, onCreateEvent, onEditEvent }) {
 
 
   const formatTime = (dateString, timeString) => {
@@ -26,7 +26,7 @@ export default function EventList({ events = [], isAdmin, onCreateEvent, onEditE
         <h2 className="text-xl font-semibold">Upcoming Events</h2>
 
         {/* ✅ Show Create Event button only for Admin */}
-        {isAdmin && (
+        {isAdmin || isStaff && (
           <button
             onClick={onCreateEvent}
             className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
@@ -48,7 +48,7 @@ export default function EventList({ events = [], isAdmin, onCreateEvent, onEditE
                   {formatTime(event.event_date, event.event_time)}
                 </p>
               </div>
-              {isAdmin && (
+              {isAdmin ||isStaff && (
                 <button
                   onClick={() => onEditEvent(event)}
                   className="absolute top-3 right-3 text-blue-600 hover:text-blue-800"
