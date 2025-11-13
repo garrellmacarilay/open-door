@@ -53,8 +53,8 @@ ENV COMPOSER_MEMORY_LIMIT=-1
 # ----------------------------
 # Install PHP dependencies
 # ----------------------------
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
-
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts \
+    && composer require spatie/laravel-pdf:@dev --no-interaction --no-progress
 # ----------------------------
 # Switch to www-data
 # ----------------------------
