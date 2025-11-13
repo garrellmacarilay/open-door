@@ -55,7 +55,9 @@ ENV COMPOSER_MEMORY_LIMIT=-1
 # Install PHP dependencies
 # ----------------------------
 # Composer will use the existing vendor/spatie/laravel-pdf if present
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist \
+    && composer require spatie/laravel-pdf:@dev --no-interaction --no-progress
+
 
 # ----------------------------
 # Switch to www-data
