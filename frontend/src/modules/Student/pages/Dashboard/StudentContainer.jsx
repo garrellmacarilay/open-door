@@ -176,7 +176,7 @@ function StudentContainer() {
 
   return (
     <>
-        <NavigationProvider>
+        <NavigationProvider module="Student">
         <MainContent 
             showEditProfileModal={showEditProfileModal}
             setShowEditProfileModal={setShowEditProfileModal}
