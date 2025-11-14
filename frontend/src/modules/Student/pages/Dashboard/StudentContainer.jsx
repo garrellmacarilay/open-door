@@ -59,7 +59,7 @@ function MainContent({
 
       if (res.data.success) {
         localStorage.removeItem('token')
-        navigate('/login')
+        navigate('/')
       }
     } catch (err) {
       console.error(err)
