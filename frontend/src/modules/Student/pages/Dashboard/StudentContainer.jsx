@@ -59,7 +59,7 @@ function MainContent({
 
       if (res.data.success) {
         localStorage.removeItem('token')
-        window.location.href = '/login'
+        navigate('/login')
       }
     } catch (err) {
       console.error(err)
