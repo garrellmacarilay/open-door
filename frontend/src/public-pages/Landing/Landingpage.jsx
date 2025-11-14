@@ -16,6 +16,17 @@ export const FrameLandingPage = () => {
   const [modalPosition, setModalPosition] = useState({ top: -40, right: 0 });
   const contactButtonRef = useRef(null);
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    if (token) {
+      localStorage.setItem("token", token);
+      window.history.replaceState({}, document.title, "/")
+      navigate("/dashboard");
+    }
+  }, [navigate])
   
   const contactInfo = [
     {

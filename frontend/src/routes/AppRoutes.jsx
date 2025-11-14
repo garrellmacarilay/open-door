@@ -16,8 +16,8 @@ function AppRoutes() {
         <Routes>
             <Route path="/" element={<Landingpage />}/>
             <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/dashboard" element={token ? <StudentContainer /> : <Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     </BrowserRouter>
 
