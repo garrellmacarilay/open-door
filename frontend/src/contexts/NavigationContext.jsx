@@ -10,31 +10,64 @@ export const useNavigation = () => {
   return context;
 };
 
-export const NavigationProvider = ({ children }) => {
+export const NavigationProvider = ({ children, module = 'Student' }) => {
   const [activePage, setActivePage] = useState('Dashboard');
+  const [currentModule, setCurrentModule] = useState(module);
 
-  // Define page titles mapping
-  const pageTitles = {
-    'Dashboard': 'Student Dashboard',
-    'BookedConsultation': 'Booked Consultation',
-    'BookingHistory': 'Booking History',
-    'FAQs': 'Frequently Asked Questions'
+  // Define page titles mapping for different modules
+  const modulePageTitles = {
+    Student: {
+      'Dashboard': 'Student Dashboard',
+      'BookedConsultation': 'Booked Consultation',
+      'BookingHistory': 'Booking History',
+      'FAQs': 'Frequently Asked Questions'
+    },
+    Staff: {
+      'Dashboard': 'Staff Dashboard',
+      'ConsultationSummary': 'Consultation Summary'
+    },
+    Admin_PSAS: {
+      'Dashboard': 'Admin Dashboard',
+      'OfficeManagement': 'Office Management',
+      'ConsultationSummary': 'Consultation Summary',
+      'Analytics': 'Analytics'
+    }
+  };
+
+  // Get current module's page titles
+  const getCurrentModulePages = () => {
+    return modulePageTitles[currentModule] || modulePageTitles.Student;
   };
 
   const navigateToPage = (page) => {
     setActivePage(page);
   };
 
+  const switchModule = (newModule) => {
+    setCurrentModule(newModule);
+    setActivePage('Dashboard'); // Reset to dashboard when switching modules
+  };
+
   const getCurrentPageTitle = () => {
-    return pageTitles[activePage] || 'Student Dashboard';
+    const currentPages = getCurrentModulePages();
+    return currentPages[activePage] || `${currentModule} Dashboard`;
+  };
+
+  const getModuleHomeTitle = () => {
+    return `${currentModule} Dashboard`;
   };
 
   return (
     <NavigationContext.Provider value={{
       activePage,
+      currentModule,
       navigateToPage,
+      switchModule,
       getCurrentPageTitle,
-      pageTitles
+      getModuleHomeTitle,
+      getCurrentModulePages,
+      pageTitles: getCurrentModulePages(), // For backward compatibility
+      modulePageTitles
     }}>
       {children}
     </NavigationContext.Provider>
