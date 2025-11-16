@@ -109,7 +109,7 @@ function OfficeManagement() {
         </button>
 
         {/* Table Container */}
-        <div className="mt-[80px] mx-[35px] mb-[35px] flex-1">
+        <div className="mt-20 mx-[35px] mb-[35px] flex-1">
           
           {/* Table Header */}
           <div className="bg-[#122141] border border-[#BDBDBD] rounded-t-[5px] h-[65px] flex items-center">
