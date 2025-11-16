@@ -26,21 +26,21 @@ function StaffCalendarHeader({
       </button> */}
 
       {/* Month Navigation - Center */}
-      <div className="flex items-center gap-90 justify-center">
+      <div className="flex items-center gap-87 justify-center">
         {/* Left Button */}
         <button 
           onClick={() => navigateMonth('prev')}
           disabled={isAnimating}
-          className={`text-white text-3xl font-bold transition-all duration-150 bg-transparent! border-0 ${
+          className={`text-white ml-5 mb-2.5! text-3xl font-bold transition-all duration-150 bg-transparent! border-0 ${
             isAnimating ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
           }`}
         >
           ‹
         </button>
         
-        <span className={`font-bold text-[15px] text-white transition-all duration-150 ${
+        <span className={`font-bold text-[20px] text-white transition-all duration-150  whitespace-nowrap ${
           isAnimating ? 'opacity-50 scale-85' : 'opacity-100 scale-100'
-        }`} style={{ fontFamily: 'Inter', lineHeight: '1.0em' }}>
+        }`} style={{ fontFamily: 'Inter', lineHeight: '0.2em' }}>
           {getMonthName(currentDate)}
         </span>
 
@@ -48,7 +48,7 @@ function StaffCalendarHeader({
         <button 
           onClick={() => navigateMonth('next')}
           disabled={isAnimating}
-          className={`text-white text-2xl font-bold transition-all duration-150 bg-transparent! border-0 ${
+          className={`text-white mr-5 mb-2 text-3xl font-bold transition-all duration-150 bg-transparent! border-0 ${
             isAnimating ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
           }`}
         >
