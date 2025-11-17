@@ -12,7 +12,7 @@ class CalendarController extends Controller
 
     public function index()
     {
-        $bookings = Booking::with(['student.user', 'office', 'staff'])->get();
+        $bookings = Booking::with(['student.user', 'office', 'staff'])->where('status', 'pending')->get();
 
         $appointments = $bookings->map(function ($bookings) {
             return [

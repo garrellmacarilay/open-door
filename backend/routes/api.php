@@ -77,6 +77,7 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'staffadmin'])->group(function () {
+    Route::get('/calendar/appointments', [CalendarController::class, 'index']);
     Route::post('/admin/events', [AdminEventController::class, 'storeEvents']);
     Route::put('/admin/events/{id}', [AdminEventController::class, 'updateEvent']);
 });
