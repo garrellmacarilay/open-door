@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react"; // optional, for the back icon
 import Login_img from "../../components/global-img/LVCC-Gate.jpg";
 import PSAS_Logo from "../../components/global-img/PSAS-Logo.png";
@@ -6,10 +7,33 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Basic validation
+    if (!email || !password) {
+      alert("Please fill in all fields");
+      return;
+    }
+    
+    // Here you would normally make an API call to authenticate
     console.log("Login submitted", { email, password });
+    
+    // For now, navigate to admin dashboard (replace with your actual route)
+    navigate("/admin");
+  };
+
+  const handleGoogleLogin = () => {
+    // Here you would implement Google OAuth
+    console.log("Google login clicked");
+    alert("Google login functionality would be implemented here");
+    // For demo purposes, navigate to admin (replace with actual Google OAuth)
+    // navigate("/admin");
+  };
+
+  const handleBackClick = () => {
+    navigate("/"); // Navigate back to landing page
   };
   return (
     <div className="flex items-center justify-center min-h-screen min-w-screen bg-linear-to-b bg-[#1F3463]! ">
@@ -18,7 +42,10 @@ export default function LoginPage() {
         
         <div className="w-full md:w-1/2 p-10 pt-6 relative flex flex-col justify-center content-center">
           {/* Back Arrow */}
-          <button className="absolute top-6 left-6 text-black bg-white! p-2 rounded-full  hover:bg-gray-100 transition">
+          <button 
+            onClick={handleBackClick}
+            className="absolute top-6 left-6 text-black bg-white p-2 rounded-full hover:bg-gray-100 transition"
+          >
             <ArrowLeft size={24} />
           </button>
           {/* Logo */}
@@ -35,7 +62,7 @@ export default function LoginPage() {
           
          </div>
       
-          <form className="flex flex-col gap-4 mt-8">
+          <form className="flex flex-col gap-4 mt-8" onSubmit={handleSubmit}>
             <div>
                 <input
                   type="email"
@@ -64,8 +91,8 @@ export default function LoginPage() {
 
 
             <button
-              onClick={handleSubmit}
-              className="w-full bg-[#1e3a8a]! hover:bg-[#1e40af] text-white font-semibold py-3 rounded-md transition duration-200 shadow-md hover:shadow-lg"
+              type="submit"
+              className="w-full bg-[#1e3a8a] hover:bg-[#1e40af] text-white font-semibold py-3 rounded-md transition duration-200 shadow-md hover:shadow-lg"
             >
               Log In
             </button>
@@ -78,7 +105,8 @@ export default function LoginPage() {
 
             <button
               type="button"
-              className="flex items-center justify-center gap-2 py-3 rounded-md transition bg-white! hover:bg-blue-700 text-black border-gray-600!"
+              onClick={handleGoogleLogin}
+              className="flex items-center justify-center gap-2 py-3 rounded-md transition bg-white hover:bg-gray-50 text-black border border-gray-300 hover:border-blue-500"
             >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
