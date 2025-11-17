@@ -242,7 +242,7 @@ function StaffUpcomingAppointments({ upcomingEvents }) {
             {/* Close Button */}
             <button
               onClick={handleCloseModal}
-              className="absolute bg-[#142240]! top-27 right-131 text-white hover:text-gray-300 transition-colors"
+              className="absolute bg-[#142240]! top-32 right-135 text-white hover:text-gray-300 transition-colors"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

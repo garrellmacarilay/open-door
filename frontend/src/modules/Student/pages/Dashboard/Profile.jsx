@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import userProfile from '../../../../components/global-img/user.png';
 
 function Profile({ setShowEditProfileModal, profileImageUrl }) {
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -38,7 +39,7 @@ function Profile({ setShowEditProfileModal, profileImageUrl }) {
           style={{
             backgroundImage: profileImageUrl 
               ? `url(${profileImageUrl})` 
-              : 'url(${profile})'
+              : `url(${userProfile})`
           }}
         ></div>
         <svg width="10" height="5" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -59,7 +60,7 @@ function Profile({ setShowEditProfileModal, profileImageUrl }) {
               style={{
                 backgroundImage: profileImageUrl 
                   ? `url(${profileImageUrl})` 
-                  : 'url(${profile})'
+                  : `url(${userProfile})`
               }}
             ></div>
             {/* User Info */}
