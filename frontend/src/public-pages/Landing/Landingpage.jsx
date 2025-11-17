@@ -13,6 +13,7 @@ import Footer from "./Footer.jsx";
 export const FrameLandingPage = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: -40, right: 0 });
+  const [loginButtonVisible, setLoginButtonVisible] = useState(true);
   const contactButtonRef = useRef(null);
 
   const contactInfo = [
@@ -87,6 +88,21 @@ export const FrameLandingPage = () => {
     setShowContactModal(false);
   };
 
+  // Handle scroll effect for login button
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      // Hide button when scrolled more than 50% of viewport height
+      setLoginButtonVisible(scrollY < viewportHeight * 0.5);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -102,17 +118,27 @@ export const FrameLandingPage = () => {
   }, [showContactModal]);
 
   return (
-    <div className="flex flex-col bg-[#1f3463]">
-      <section
-      className="relative flex flex-col justify-center items-start text-white bg-center px-6 md:px-16 py-32 min-h-screen"
+    <>
+       <section
+      // Landing Page 1st Modal
+      className="relative flex flex-col justify-center items-start text-white px-6 md:px-16 py-32 min-h-screen"
       style={{ 
           backgroundImage: `url(${landingBg})`,
-          minHeight: '100vh'
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          minHeight: '100vh',
+          height: '100vh'
         }}
       > 
           
-          {/* Login button overlaid on the left */}
-          <div className="absolute left-6 md:left-16 top-[70%] z-20 transform -translate-y-1/2">
+          {/* Login button overlaid on the left - hides when scrolled */}
+          <div className={`fixed left-6 md:left-16 top-[70%] z-10 transform -translate-y-1/2 transition-all duration-500 ease-in-out ${
+            loginButtonVisible 
+              ? 'opacity-100 translate-x-0' 
+              : 'opacity-0 -translate-x-full pointer-events-none'
+          }`}>
             <a
               href="/login"
               className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-[#1e3a8a] hover:bg-[#1e40af] text-white! font-semibold transition duration-200 shadow-md hover:shadow-lg"
@@ -120,6 +146,8 @@ export const FrameLandingPage = () => {
           </div>
           
       </section>
+      {/* Landing Page Body */}
+      <div className="flex flex-col bg-[#1f3463] relative z-20">
 
       {/* About Us */}
       <section className="bg-[#1f3463] text-white flex flex-col-reverse md:flex-row items-center justify-between gap-10 p-8 md:p-16">
@@ -170,7 +198,7 @@ export const FrameLandingPage = () => {
 
       {/* Holistic Education */}
       <section className="bg-[#1f3463]! mb-20 flex flex-col items-center text-center gap-8 p-8 md:p-16">
-        <h2 className="text-4xl font-semibold">Holistic Education</h2>
+        <h2 className="text-4xl text-white font-semibold">Holistic Education</h2>
         <p className="max-w-3xl text-lg text-white leading-relaxed">
           Beyond academics, LVCC emphasizes Christian values, character
           formation, moral discipline, and community service. Students are
@@ -269,6 +297,8 @@ export const FrameLandingPage = () => {
         </>
       )}
     </div>
+    </>
+    
   );
 };
 
