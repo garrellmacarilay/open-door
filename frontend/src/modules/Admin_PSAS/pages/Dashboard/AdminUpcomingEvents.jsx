@@ -1,7 +1,26 @@
 import React, { useState } from 'react';
 
-function AdminUpcomingEvents({ events = [] }) {
+function AdminUpcomingEvents() {
+  const [events, setEvents] = useState([
+    // Sample events for demonstration
+    {
+      id: 1,
+      title: 'Mental Health Break',
+      date: new Date('2025-11-20'),
+      time: '10:00 AM',
+      description: 'A scheduled break focusing on mental wellness and stress relief for all staff members.'
+    },
+    {
+      id: 2,
+      title: 'Team Meeting',
+      date: new Date('2025-11-22'),
+      time: '2:00 PM',
+      description: 'Monthly team meeting to discuss project updates and upcoming initiatives.'
+    }
+  ]);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [showViewEventModal, setShowViewEventModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     date: '',
@@ -18,9 +37,22 @@ function AdminUpcomingEvents({ events = [] }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log('Event data:', formData);
+    
+    // Create new event object
+    const newEvent = {
+      id: Date.now(), // Simple ID generation
+      title: formData.title,
+      date: new Date(formData.date),
+      time: formData.time,
+      description: formData.description
+    };
+    
+    // Add event to the list
+    setEvents(prevEvents => [...prevEvents, newEvent]);
+    
+    console.log('Event added:', newEvent);
     setShowAddEventModal(false);
+    
     // Reset form
     setFormData({
       title: '',
@@ -40,6 +72,22 @@ function AdminUpcomingEvents({ events = [] }) {
       description: ''
     });
   };
+
+  const handleViewEvent = (event) => {
+    setSelectedEvent(event);
+    setShowViewEventModal(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setShowViewEventModal(false);
+    setSelectedEvent(null);
+  };
+
+  const handleDeleteEvent = (eventId) => {
+    setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
+    setShowViewEventModal(false);
+    setSelectedEvent(null);
+  };
   return (
     <div className="bg-white rounded-lg shadow-sm flex flex-col h-full">
       {/* Header */}
@@ -49,8 +97,23 @@ function AdminUpcomingEvents({ events = [] }) {
 
       {/* Content - Scrollable Events */}
       <div className="flex-1 overflow-y-auto p-4 min-h-0">
-        {events?.slice(0, 3).map((event, index) => (
-          <div key={`${event?.title || 'event'}-${event?.time || 'time'}-${index}`} className="border border-gray-400 rounded-[5px] p-3 mb-4 bg-[rgba(207,226,255,0.25)]">
+        {events.length === 0 ? (
+          <div className="flex items-center justify-center h-32 text-gray-500">
+            <div className="text-center">
+              <p className="text-sm" style={{ fontFamily: 'Inter' }}>No upcoming events</p>
+              <p className="text-xs mt-1" style={{ fontFamily: 'Inter' }}>Click "Add Event" to create your first event</p>
+            </div>
+          </div>
+        ) : (
+          events
+            .sort((a, b) => new Date(a.date) - new Date(b.date)) // Sort by date
+            .slice(0, 5) // Show up to 5 events
+            .map((event, index) => (
+          <div 
+            key={event.id || `event-${index}`}
+            className="border border-gray-400 rounded-[5px] p-3 mb-4 bg-[rgba(207,226,255,0.25)] cursor-pointer hover:bg-[rgba(207,226,255,0.4)] transition-colors"
+            onClick={() => handleViewEvent(event)}
+          >
             {/* Event Title Row */}
             <div className="flex items-center gap-2 mb-2">
               <svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -82,7 +145,8 @@ function AdminUpcomingEvents({ events = [] }) {
               <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.time || 'Unknown Time'}</span>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
 
       {/* Fixed Add Event Button at Bottom */}
@@ -152,10 +216,22 @@ function AdminUpcomingEvents({ events = [] }) {
                   <input
                     type="time"
                     required
-                    value={formData.time}
-                    onChange={(e) => handleInputChange('time', e.target.value)}
-                    placeholder="8:00 AM"
-                    className="w-full h-10 color-black! px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 placeholder-[#BCBABA] focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
+                    value={formData.time.includes(':') && !formData.time.includes('M') ? formData.time : ''}
+                    onChange={(e) => {
+                      const timeValue = e.target.value;
+                      if (timeValue) {
+                        // Convert 24h to 12h format for display
+                        const [hours, minutes] = timeValue.split(':');
+                        const hour = parseInt(hours);
+                        const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                        const formattedTime = `${hour12}:${minutes} ${ampm}`;
+                        handleInputChange('time', formattedTime);
+                      } else {
+                        handleInputChange('time', '');
+                      }
+                    }}
+                    className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
                     style={{ fontFamily: 'Inter' }}
                   />
                 </div>
@@ -202,6 +278,92 @@ function AdminUpcomingEvents({ events = [] }) {
               </div>
             </form>
             
+          </div>
+        </div>
+      )}
+
+      {/* View Event Modal - Same Design as Add Event */}
+      {showViewEventModal && selectedEvent && (
+        <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[10px] shadow-[0px_4px_50px_10px_rgba(125,125,125,0.25)] w-full max-w-[534px] h-auto max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="bg-[#122141] rounded-t-[10px] h-[60px] flex items-center justify-between px-6 shrink-0">
+              <h3 className="text-white text-lg font-bold" style={{ fontFamily: 'Inter' }}>
+                Event Details
+              </h3>
+              <button
+                onClick={handleCloseViewModal}
+                className="text-white hover:text-gray-300 transition-colors"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 flex-1 min-h-0 overflow-y-auto">
+              <div className="space-y-6">
+                {/* Event Title */}
+                <div>
+                  <label className="block text-black text-sm font-semibold mb-2" style={{ fontFamily: 'Inter' }}>
+                    Event Title
+                  </label>
+                  <div className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 bg-gray-50 flex items-center" style={{ fontFamily: 'Inter' }}>
+                    {selectedEvent.title || 'Unknown Event'}
+                  </div>
+                </div>
+
+                {/* Event Date */}
+                <div>
+                  <label className="block text-black text-sm font-semibold mb-2" style={{ fontFamily: 'Inter' }}>
+                    Event Date
+                  </label>
+                  <div className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 bg-gray-50 flex items-center" style={{ fontFamily: 'Inter' }}>
+                    {selectedEvent.date ? selectedEvent.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date'}
+                  </div>
+                </div>
+
+                {/* Event Time */}
+                <div>
+                  <label className="block text-black text-sm font-semibold mb-2" style={{ fontFamily: 'Inter' }}>
+                    Event Time
+                  </label>
+                  <div className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 bg-gray-50 flex items-center" style={{ fontFamily: 'Inter' }}>
+                    {selectedEvent.time || 'Unknown Time'}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-black text-sm font-semibold mb-2" style={{ fontFamily: 'Inter' }}>
+                    Description
+                  </label>
+                  <div className="w-full min-h-[76px] px-4 py-2 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 bg-gray-50" style={{ fontFamily: 'Inter' }}>
+                    {selectedEvent.description || 'No description available'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-3 justify-end pt-6 border-t border-gray-100 mt-6">
+                {/* Delete Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to delete this event?')) {
+                      handleDeleteEvent(selectedEvent.id);
+                    }
+                  }}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-[5px] flex items-center justify-center transition-colors"
+                >
+                  <span className="text-white text-sm font-bold" style={{ fontFamily: 'Poppins' }}>
+                    Delete
+                  </span>
+                </button>
+                
+              </div>
+            </div>
           </div>
         </div>
       )}
