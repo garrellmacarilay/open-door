@@ -37,13 +37,13 @@ function AdminNav() {
           <div 
             className={`h-[55px] flex items-center m-0 cursor-pointer transition-all duration-300 ease-out relative overflow-hidden group ${
               activePage === 'Dashboard' 
-                ? 'bg-gradient-to-r from-purple-600/20 to-transparent border-l-4 border-purple-500 translate-x-2' 
-                : 'hover:translate-x-2 hover:bg-gradient-to-r hover:from-purple-600/10 hover:to-transparent'
+                ? 'bg-linear-to-r from-purple-600/20 to-transparent border-l-4 border-purple-500 translate-x-2' 
+                : 'hover:translate-x-2 hover:bg-linear-to-r hover:from-purple-600/10 hover:to-transparent'
             }`}
             onClick={() => handleNavigation('Dashboard')}
           >
             {/* Gradient left border for hover */}
-            <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-purple-400 to-purple-600 transition-all duration-300 ${
+            <div className={`absolute left-0 top-0 h-full w-1 bg-linear-to-b from-purple-400 to-purple-600 transition-all duration-300 ${
               activePage === 'Dashboard' ? 'scale-y-100 w-1' : 'scale-y-0 group-hover:scale-y-100 group-hover:w-1'
             }`}></div>
             
@@ -81,13 +81,13 @@ function AdminNav() {
           <div 
             className={`h-14 flex items-center cursor-pointer transition-all duration-300 ease-out m-0 relative overflow-hidden group ${
               activePage === 'OfficeManagement' 
-                ? 'bg-gradient-to-r from-purple-600/20 to-transparent border-l-4 border-purple-500 translate-x-2' 
-                : 'hover:translate-x-2 hover:bg-gradient-to-r hover:from-purple-600/10 hover:to-transparent'
+                ? 'bg-linear-to-r from-purple-600/20 to-transparent border-l-4 border-purple-500 translate-x-2' 
+                : 'hover:translate-x-2 hover:bg-linear-to-r hover:from-purple-600/10 hover:to-transparent'
             }`}
             onClick={() => handleNavigation('OfficeManagement')}
           >
             {/* Gradient left border for hover */}
-            <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-purple-400 to-purple-600 transition-all duration-300 ${
+            <div className={`absolute left-0 top-0 h-full w-1 bg-linear-to-b from-purple-400 to-purple-600 transition-all duration-300 ${
               activePage === 'OfficeManagement' ? 'scale-y-100 w-1' : 'scale-y-0 group-hover:scale-y-100 group-hover:w-1'
             }`}></div>
             
@@ -130,13 +130,13 @@ function AdminNav() {
           <div 
             className={`h-14 flex items-center cursor-pointer transition-all duration-300 ease-out m-0 relative overflow-hidden group ${
               activePage === 'ConsultationSummary' 
-                ? 'bg-gradient-to-r from-purple-600/20 to-transparent border-l-4 border-purple-500 translate-x-2' 
-                : 'hover:translate-x-2 hover:bg-gradient-to-r hover:from-purple-600/10 hover:to-transparent'
+                ? 'bg-linear-to-r from-purple-600/20 to-transparent border-l-4 border-purple-500 translate-x-2' 
+                : 'hover:translate-x-2 hover:bg-linear-to-r hover:from-purple-600/10 hover:to-transparent'
             }`}
             onClick={() => handleNavigation('ConsultationSummary')}
           >
             {/* Gradient left border for hover */}
-            <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-purple-400 to-purple-600 transition-all duration-300 ${
+            <div className={`absolute left-0 top-0 h-full w-1 bg-linear-to-b from-purple-400 to-purple-600 transition-all duration-300 ${
               activePage === 'ConsultationSummary' ? 'scale-y-100 w-1' : 'scale-y-0 group-hover:scale-y-100 group-hover:w-1'
             }`}></div>
             
@@ -169,13 +169,13 @@ function AdminNav() {
           <div 
             className={`h-14 flex items-center cursor-pointer transition-all duration-300 ease-out m-0 relative overflow-hidden group ${
               activePage === 'Analytics' 
-                ? 'bg-gradient-to-r from-purple-600/20 to-transparent border-l-4 border-purple-500 translate-x-2' 
-                : 'hover:translate-x-2 hover:bg-gradient-to-r hover:from-purple-600/10 hover:to-transparent'
+                ? 'bg-linear-to-r from-purple-600/20 to-transparent border-l-4 border-purple-500 translate-x-2' 
+                : 'hover:translate-x-2 hover:bg-linear-to-r hover:from-purple-600/10 hover:to-transparent'
             }`}
             onClick={() => handleNavigation('Analytics')}
           >
             {/* Gradient left border for hover */}
-            <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-purple-400 to-purple-600 transition-all duration-300 ${
+            <div className={`absolute left-0 top-0 h-full w-1 bg-linear-to-b from-purple-400 to-purple-600 transition-all duration-300 ${
               activePage === 'Analytics' ? 'scale-y-100 w-1' : 'scale-y-0 group-hover:scale-y-100 group-hover:w-1'
             }`}></div>
             
