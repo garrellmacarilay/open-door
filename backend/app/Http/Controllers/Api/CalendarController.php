@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CalendarController extends Controller
 {
+
     public function index()
     {
         $bookings = Booking::with(['student.user', 'office', 'staff'])->get();
@@ -19,7 +20,7 @@ class CalendarController extends Controller
                 'title' => $bookings->student->user->full_name ?? 'Unknown',
                 'start' => $bookings->consultation_date,
                 'end' => $bookings->consultation_date,
-                'color' => $this->getStatusColor($bookings->status),
+                'color' => $bookings->getStatusColor($bookings->status),
                 'details' => [
                     'student' => $bookings->student->user->full_name ?? 'Unknown',
                     'office' => $bookings->office->office_name ?? 'N/A',
@@ -35,23 +36,5 @@ class CalendarController extends Controller
             'success' => true,
             'data' => $appointments
         ]);
-    }
-
-    private function getStatusColor($status)
-    {
-        switch ($status) {
-            case 'pending':
-                return 'orange';
-            case 'approved':
-                return 'blue';
-            case 'cancelled':
-                return 'red';
-            case 'rescheduled':
-                return 'purple';
-            case 'completed':
-                return 'green';
-            default:
-                return 'gray';
-        }
     }
 }

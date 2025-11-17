@@ -3,6 +3,7 @@ import { NavigationProvider, useNavigation } from '../../../../contexts/Navigati
 import StudentNav from './StudentNav';
 import Header from './Header';
 import DashboardContent from './DashboardContent';
+import { useRecent } from '../../../../hooks/studentDashboard.js';
 
 // Import the other page components
 import BookedConsultation from '../../pages/Booked Consultation/BookedConsultation';
@@ -34,6 +35,7 @@ function MainContent({
   handleCancelReminder,
   handleSuccessContinue
 }) {
+  const { recentBookings } = useRecent()
   const { activePage } = useNavigation();
 
   const renderContent = () => {
@@ -41,7 +43,7 @@ function MainContent({
       case 'Dashboard':
         return <DashboardContent  />;
       case 'BookedConsultation':
-        return <BookedConsultation />;
+        return <BookedConsultation recentBookings={ recentBookings }/>;
       case 'BookingHistory':
         return <BookingHistory />;
       case 'FAQs':

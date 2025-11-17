@@ -17,6 +17,41 @@ use App\Notifications\ModalNotificationCreated;
 
 class BookingController extends Controller
 {
+    public function show()
+    {
+        $user = Auth::user();
+
+        $bookings = Booking::with(['student.user', 'office', 'staff'])
+            ->whereIn('status', ['approved', 'pending'])
+            ->whereHas('student', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->get();
+
+        $appointments = $bookings->map(function ($booking) {
+            return [
+                'id' => $booking->id,
+                'title' => $booking->student->user->full_name ?? 'Unknown',
+                'start' => $booking->consultation_date,
+                'end' => $booking->consultation_date,
+                'color' => $booking->getStatusColor($booking->status),
+                'details' => [
+                    'student' => $booking->student->user->full_name ?? 'Unknown',
+                    'office' => $booking->office->office_name ?? 'N/A',
+                    'staff' => $booking->staff ? $booking->staff->user->full_name : 'Unassigned',
+                    'concern_description' => $booking->concern_description,
+                    'status' => $booking->status,
+                    'reference_code' => $booking->reference_code,
+                ]
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $appointments
+        ]);
+    }
+
     public function store(Request $request)
     {
 
@@ -107,6 +142,7 @@ class BookingController extends Controller
         }
 
         $bookings = Booking::where('student_id', $student->id)
+            ->whereIn('status', ['declined', 'completed', 'cancelled'])
             ->with('student.user')
             ->orderBy('created_at', 'desc')
             ->get()
@@ -141,6 +177,7 @@ class BookingController extends Controller
 
         $recentBookings = Booking::where('student_id', $student->id)
             ->orderBy('created_at', 'desc')
+            ->whereIn('status', ['approved', 'pending'])
             ->take(11)
             ->get()
             ->map(function ($booking) {
