@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { ArrowLeft } from "lucide-react"; // optional, for the back icon
+import { ArrowLeft, Eye, EyeOff } from "lucide-react"; // optional, for the back icon
 import Login_img from "../../components/global-img/LVCC-Gate.jpg";
 import PSAS_Logo from "../../components/global-img/PSAS-Logo.png";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -44,14 +45,21 @@ export default function LoginPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-md text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent transition"
                 />
             </div>
-            <div>
+            <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "password" : "text"}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent transition"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent transition"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
             </div>
 
 
@@ -63,7 +71,7 @@ export default function LoginPage() {
             </button>
 
             <div className="flex items-center my-4">
-              <div className="grow border-t border-gray-300"></div>~
+              <div className="grow border-t border-gray-300"></div>
               <span className="mx-2 text-gray-500 text-sm">or</span>
               <div className="grow border-t border-gray-300"></div>
             </div>
