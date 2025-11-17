@@ -32,7 +32,7 @@ function AdminNav() {
 
       {/* Main Navigation Section with white border */}
       <div className="flex-1 bg-[#122141] border-t-2 border-white ">
-        <nav className="pt-14 px-5 space-y-5">
+        <nav className="pt-14 px-2 space-y-5">
           {/* Dashboard */}
           <div 
             className={`h-[55px] flex items-center m-0 cursor-pointer transition-all duration-300 ease-out relative overflow-hidden group ${
@@ -65,7 +65,7 @@ function AdminNav() {
                 </svg>
               </div>
               <span 
-                className={`font-bold transition-all duration-300 ${
+                className={`font-bold transition-all duration-300 whitespace-nowrap ${
                   activePage === 'Dashboard' 
                     ? 'text-white text-[14px]' 
                     : 'text-white text-[12px] group-hover:text-[14px]'
@@ -114,9 +114,9 @@ function AdminNav() {
                 </svg>
               </div>
               <span 
-                className={`font-bold transition-all duration-300 ${
+                className={`font-bold transition-all duration-300 whitespace-nowrap ${
                   activePage === 'OfficeManagement' 
-                    ? 'text-white text-[14px]' 
+                    ? 'text-white text-[12px]' 
                     : 'text-white text-[12px] group-hover:text-[14px]'
                 }`} 
                 style={{ fontFamily: 'Poppins', letterSpacing: '-0.02em', lineHeight: '1.5em' }}
@@ -153,7 +153,7 @@ function AdminNav() {
                 </svg>
               </div>
               <span 
-                className={`font-bold transition-all duration-300 ${
+                className={`font-bold transition-all duration-300 whitespace-nowrap ${
                   activePage === 'ConsultationSummary' 
                     ? 'text-white text-[14px]' 
                     : 'text-white text-[12px] group-hover:text-[14px]'
@@ -197,7 +197,7 @@ function AdminNav() {
                 </svg>
               </div>
               <span 
-                className={`font-bold transition-all duration-300 ${
+                className={`font-bold transition-all duration-300 whitespace-nowrap ${
                   activePage === 'Analytics' 
                     ? 'text-white text-[14px]' 
                     : 'text-white text-[12px] group-hover:text-[14px]'
