@@ -5,7 +5,7 @@ function CalendarHeader({
   isAnimating, 
   navigateMonth, 
   getMonthName, 
-  setShowReminderModal 
+  openReminder 
 }) {
   return (
     /* Calendar Header - Following Figma Design */
@@ -51,7 +51,7 @@ function CalendarHeader({
       
       {/* Book Consultation Button - Right */}
       <button 
-        onClick={() => setShowReminderModal(true)}
+        onClick={ openReminder }
         className="bg-[#1156E8]! hover:bg-[#0d47c4] rounded-[5px] flex items-center justify-center gap-2 px-2! py-4 h-[38px] transition-colors"
       >
         <div className="w-6 h-6 flex items-center justify-center">

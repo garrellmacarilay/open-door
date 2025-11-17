@@ -5,17 +5,17 @@ import UpcomingEvents from './UpcomingEvents';
 import Calendar from './Calendar';
 import { useAppointments, useEvents, useBooking, useRecent } from '../../../../hooks/studentDashboard'
 import { useBookingModal } from '../../../../hooks/bookingModal'
-import BookConsultationModal from '../Booking Consultation Form/BookConsultationModal'
-import BookingReminderModal from '../Booking Consultation Form/BookingReminderModal'
-import SuccessModal from '../Booking Consultation Form/SuccessModal';
+import BookConsultationModal from '../Booking_Consultation_Form/BookConsultationModal'
+import BookingReminderModal from '../Booking_Consultation_Form/BookingReminderModal'
+import SuccessModal from '../Booking_Consultation_Form/SuccessModal';
 
 function DashboardContent() {
     
     const { appointments, fetchAppointments, upcomingAppointments } = useAppointments()
     const { events, fetchEvents } = useEvents()
-    const { form, setForm, errors, offices, handleSubmit, showSuccessModal, setShowSuccessModal} = useBooking()
+    const { form, setForm, errors, offices, handleSubmit, showSuccessModal } = useBooking()
     const { recentBookings, fetchRecentBookings } = useRecent() 
-    const { showReminderModal, showBookingModal,
+    const { showReminderModal, showBookingModal, 
       openReminder, closeReminder, openBooking, closeBooking, 
       openSuccess, closeSuccess
     } = useBookingModal()
