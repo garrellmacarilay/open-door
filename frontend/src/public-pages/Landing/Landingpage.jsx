@@ -12,9 +12,10 @@ import Footer from "./Footer.jsx";
 
 export const FrameLandingPage = () => {
   const [showContactModal, setShowContactModal] = useState(false);
-  const [modalPosition, setModalPosition] = useState({ top: -40, right: 0 });
+  const [modalPosition, setModalPosition] = useState({ top: 1000, right: 0 });
   const [loginButtonVisible, setLoginButtonVisible] = useState(true);
   const contactButtonRef = useRef(null);
+  const aboutUsRef = useRef(null);
 
   const contactInfo = [
     {
@@ -73,15 +74,17 @@ export const FrameLandingPage = () => {
     }
   };
 
-  const handleContactUs = (contactButtonElement) => {
-    if (contactButtonElement) {
-      const rect = contactButtonElement.getBoundingClientRect();
-      setModalPosition({
-        top: rect.top - 20, // Position slightly above the button
-        right: window.innerWidth - rect.right + 10 // Position to the right with small margin
+  const handleContactUs = () => {
+    setShowContactModal(true);
+  };
+
+  const handleAboutUsClick = () => {
+    if (aboutUsRef.current) {
+      aboutUsRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
       });
     }
-    setShowContactModal(true);
   };
 
   const closeModal = () => {
@@ -150,7 +153,7 @@ export const FrameLandingPage = () => {
       <div className="flex flex-col bg-[#1f3463] relative z-20">
 
       {/* About Us */}
-      <section className="bg-[#1f3463] text-white flex flex-col-reverse md:flex-row items-center justify-between gap-10 p-8 md:p-16">
+      <section ref={aboutUsRef} className="aboutus bg-[#1f3463] text-white flex flex-col-reverse md:flex-row items-center justify-between gap-10 p-8 md:p-16">
         <div className="flex-1 space-y-4">
           <h2 className="text-4xl md:text-5xl font-semibold">About Us</h2>
           <p className="text-lg leading-relaxed">
@@ -218,29 +221,25 @@ export const FrameLandingPage = () => {
       </section>
 
       {/* Footer */}
-       <Footer onContactUsClick={handleContactUs} />
+      <Footer onContactUsClick={handleContactUs} onAboutUsClick={handleAboutUsClick} />
 
       {/* Contact Us Modal */}
       {showContactModal && (
         <>
           
-          
           {/* Modal */}
-          <div 
-            className="overlap absolute bg-white rounded-2xl shadow-lg w-96 z-50"
-            style={{
-              top: `2200px`,
-              left: `350px`,
-              maxHeight: '500px'
-            }}
-          >
-            {/* Close Button */}
-            <button
-              onClick={closeModal}
-              className=" top-4 right-4 bg-white! text-black! hover:bg-gray-700 text-xl font-bold z-10"
+          <div className="absolute top-350 right-192 flex items-center justify-center z-50 p-4">
+            <div 
+              className="contact-modal bg-white rounded-2xl shadow-lg w-full max-w-md mx-auto"
+              style={{ maxHeight: '80vh' }}
             >
-              ×
-            </button>
+              {/* Close Button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-7 right-8 bg-transparent text-gray-600 hover:text-black1000 w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold z-10 transition-colors"
+              >
+                ×
+              </button>
 
             {/* Modal Header */}
             <div className="p-4 border-b">
@@ -250,12 +249,12 @@ export const FrameLandingPage = () => {
             </div>
 
             {/* Contact List */}
-            <div className="p-4 space-y-1 max-h-80 overflow-y-auto">
+            <div className="p-4 space-y-1 max-h-96 overflow-y-auto border-white!">
               {contactInfo.map((contact) => (
                 <div
                   key={contact.id}
                   onClick={() => handleEmailClick(contact.email)}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors border border-gray-100 hover:border-blue-200 group"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors border-transparent! hover:border-blue-200 group"
                   title={`Click to send email to ${contact.email}`}
                 >
                   {/* Avatar/Icon */}
@@ -287,11 +286,12 @@ export const FrameLandingPage = () => {
             {/* Modal Footer */}
             <div className="p-4 border-t text-center bg-gray-50">
               <p className="text-xs text-gray-600 mb-1" style={{ fontFamily: 'Poppins' }}>
-                📧 Click on any contact to send an email
+                 Click on any contact to send an email
               </p>
               <p className="text-xs text-gray-500" style={{ fontFamily: 'Poppins' }}>
-                Opens your default email client (Gmail, Outlook, etc.)
+               
               </p>
+            </div>
             </div>
           </div>
         </>
