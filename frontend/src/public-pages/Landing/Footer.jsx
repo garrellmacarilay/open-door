@@ -2,18 +2,18 @@ import React from "react";
 import { Info, Phone, MapPin } from "lucide-react";
 import LVCCLogo from "../../assets/img/LV_Logo.png";
 
-export default function Footer({ onContactUsClick }) {
+export default function Footer({ onContactUsClick, onAboutUsClick }) {
   return (
     <footer className="bg-black text-white">
       {/* Top Section */}
       <div className="flex flex-col md:flex-row justify-evenly items-center  md:items-start px-6 md:px-16 py-10 border-t border-white/30">
         {/* Left Section */}
         <div className="flex flex-col ml-30 pt-9 space-y-3 text-left md:mb-0">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 cursor-pointer hover:text-yellow-400 transition-colors" onClick={onAboutUsClick}>
             <Info className="text-white" size={18} />
             <p className="font-semibold">About Us</p>
           </div>
-          <div className="flex items-center space-x-3 cursor-pointer hover:text-yellow-400 transition-colors contact-us-button" onClick={(e) => onContactUsClick && onContactUsClick(e.currentTarget)}>
+          <div className="flex items-center space-x-3 cursor-pointer hover:text-yellow-400 transition-colors contact-us-button" onClick={onContactUsClick}>
             <Phone className="text-white" size={18} />
             <p className="font-semibold">Contact Us</p>
           </div>
