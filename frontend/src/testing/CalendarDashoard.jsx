@@ -38,7 +38,7 @@ export default function CalendarDashboard() {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const res = await api.get('/calendar/appointments');
+        const res = await api.get('/my-bookings');
         if (res.data.success) setAppointments(res.data.data);
         else console.error('Failed to fetch events:', res.data.message);
       } catch (error) {

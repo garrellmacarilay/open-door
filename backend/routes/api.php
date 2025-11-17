@@ -45,6 +45,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware(['auth:sanctum'])->group(function() {
+    Route::get('/profile', [ProfileController::class, 'show']);
+
     Route::get('/calendar/appointments', [CalendarController::class, 'index']);
     Route::get('/offices', function() {
         return response()->json(Office::all());
@@ -60,6 +62,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
 });
 
 Route::middleware(['auth:sanctum', 'student'])->group(function() {
+    Route::get('/my-bookings', [BookingController::class, 'show']);
     Route::post('/bookings', [BookingController::class, 'store']);
     Route::get('/bookings/history', [BookingController::class, 'history']);
     Route::get('/bookings/recent', [BookingController::class, 'recent']);
@@ -74,6 +77,7 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'staffadmin'])->group(function () {
+    Route::get('/calendar/appointments', [CalendarController::class, 'index']);
     Route::post('/admin/events', [AdminEventController::class, 'storeEvents']);
     Route::put('/admin/events/{id}', [AdminEventController::class, 'updateEvent']);
 });

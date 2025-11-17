@@ -59,6 +59,6 @@ class GoogleController extends Controller
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
         // Redirect to frontend React app with token
-        return redirect("{$frontendUrl}/auth/callback?token={$token}");
+        return redirect("{$frontendUrl}/?token={$token}");
     }
 }

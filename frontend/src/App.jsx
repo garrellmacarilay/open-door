@@ -29,11 +29,10 @@ function App() {
 
       <Routes>
         {/* 🏠 Default Redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
 
         {/* 🔑 Auth Routes */}
         <Route path="/login" element={token ? <Navigate to="/dashboard" replace /> : <Login />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/" element={<AuthCallback />} />
 
         {/* 🎓 Student Dashboard */}
         <Route
