@@ -144,7 +144,6 @@ class AnalyticsController extends Controller
         $fileName = 'consultation_report_' . now()->subMonth()->format('Y_m') . '.pdf';
         $filePath = $directory . '/' . $fileName;
 
-
         Browsershot::html($html)
             ->format('A4')
             ->margins(10, 10, 10, 10)
