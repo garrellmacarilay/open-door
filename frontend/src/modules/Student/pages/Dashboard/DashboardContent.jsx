@@ -484,14 +484,14 @@ function DashboardContent() {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="border border-[#000000]! rounded-lg text-black! text-xs font-medium bg-white! hover:bg-gray-50 transition-colors"
+                    className="border border-[#000000]! rounded-[10px] w-25 h-9 text-black! text-base font-medium bg-white! hover:bg-gray-50 transition-colors"
                     style={{ fontFamily: 'Inter' }}
                   >
                    Cancel
                   </button>
                   <button
                     type="submit"
-                    className="justify-center items-center bg-[#155DFC]! rounded-lg text-white text-xs font-medium hover:bg-[#0d47c4] transition-colors"
+                    className="justify-center items-center bg-[#155DFC]! rounded-[10px] w-35 h-9 text-white text-base font-medium hover:bg-[#0d47c4] transition-colors"
                     style={{ fontFamily: 'Inter' }}
                   >
                     Submit Request
