@@ -249,7 +249,7 @@ function DashboardContent() {
       
       <div className="flex-1 px-4 pb-4 flex gap-4 overflow-hidden rounded-lg -mr-0.5">
         {/* Calendar Section */}
-        <Calendar 
+        <Calendar className="shadow-lg"
           currentDate={currentDate}
           isAnimating={isAnimating}
           bookedAppointments={bookedAppointments}
@@ -332,7 +332,7 @@ function DashboardContent() {
                 {/* Office Selection */}
                 <div className="space-y-1 -pt-3">
                   <label className="block text-black  text-base font-semibold" style={{ fontFamily: 'Inter' }}>
-                    Office *
+                    Office <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -343,7 +343,7 @@ function DashboardContent() {
                       required
                     >
                       <option value="">Select Office</option>
-                      <option value="Communications">Communications</option>
+                      <option value="Prefect of Student and Services">Prefect of Student and Services</option>
                       <option value="Guidance and Counseling">Guidance and Counseling</option>
                       <option value="Medical and Dental Services">Medical and Dental Services</option>
                       <option value="Sports Development and Management">Sports Development and Management</option>
@@ -366,7 +366,7 @@ function DashboardContent() {
                 {/* Type of Service */}
                 <div className="space-y-1">
                   <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
-                    Type of Service *
+                    Type of Service <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -384,11 +384,11 @@ function DashboardContent() {
                   </div>
                 </div>
 
-                <div className ="flex gap-4 flex-row">
+                <div className ="flex gap-3 flex-row">
                     {/* Date */}
-                  <div className="space-y-1 flex-1">
+                  <div className="space-y-1 flex-4">
                     <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
-                      Date *
+                      Date <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -403,26 +403,42 @@ function DashboardContent() {
                   </div>
                     {/* Time */}
                   <div className="space-y-1 flex-1">
-                  <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
-                    Time *
-                  </label>
-                  <div className="relative w-full">
-                    <input
-                      type="time"
-                      value={formData.time}
-                      onChange={(e) => handleInputChange('time', e.target.value)}
-                      className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
-                      style={{ fontFamily: 'Inter' }}
-                      required
-                    />
+                      <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                        Start Time <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative w-full">
+                        <input
+                          type="time"
+                          value={formData.startTime}
+                          onChange={(e) => handleInputChange('startTime', e.target.value)}
+                          className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                          style={{ fontFamily: 'Inter' }}
+                          required
+                        />
+                      </div>
                   </div>
-                </div>
+                  <div className="space-y-1 flex-2">
+                      <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                        End Time <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative w-full">
+                        <input
+                          type="time"
+                          value={formData.endTime}
+                          onChange={(e) => handleInputChange('endTime', e.target.value)}
+                          className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                          style={{ fontFamily: 'Inter' }}
+                          required
+                        />
+                      </div>
+                  </div>
+
                 </div>
 
                 {/* Topic */}
                 <div className="space-y-1">
                   <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
-                    Topic *
+                    Topic <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     value={formData.topic}
