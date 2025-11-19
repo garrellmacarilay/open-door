@@ -417,7 +417,7 @@ function DashboardContent() {
                         />
                       </div>
                   </div>
-                  <div className="space-y-1 flex-2">
+                  {/* <div className="space-y-1 flex-2">
                       <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
                         End Time <span className="text-red-500">*</span>
                       </label>
@@ -431,7 +431,7 @@ function DashboardContent() {
                           required
                         />
                       </div>
-                  </div>
+                  </div> */}
 
                 </div>
 
