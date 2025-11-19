@@ -8,38 +8,56 @@ function StaffNotification() {
   const notifications = [
     {
       id: 1,
-      title: 'New Consultation Schedule',
-      time: '2 hours ago',
+      student: 'Garrell Macarilay',
+      starttime: '11:00 AM',
+      endtime: '12:00 PM',
+      notiftime: '2 hours ago',
+      status: 'Booked',
       icon: 'clock'
     },
     {
       id: 2,
-      title: 'Booking Confirmed',
-      time: '3 hours ago',
+      student: 'Eunice Lugtu',
+      starttime: '1:00 PM',
+      endtime: '2:00 PM',
+      notiftime: '3 hours ago',
+      status: 'Booked',
       icon: 'clock'
     },
     {
       id: 3,
-      title: 'Reminder: Upcoming Meeting',
-      time: '5 hours ago',
+      student: 'Vincent Duriga',
+      starttime: '2:30 PM',
+      endtime: '3:30 PM',
+      notiftime: '5 hours ago',
+      status: 'Cancelled',
       icon: 'clock'
     },
     {
       id: 4,
-      title: 'Schedule Updated',
-      time: '1 day ago',
+      student: 'Eva Anggana',
+      starttime: '9:00 AM',
+      endtime: '10:00 AM',
+      notiftime: '1 day ago',
+      status: 'Booked',
       icon: 'clock'
     },
     {
       id: 5,
-      title: 'New Message',
-      time: '2 days ago',
+      student: 'Marga Calumpiano',
+      starttime: '3:00 PM',
+      endtime: '4:00 PM',
+      notiftime: '2 days ago',
+      status: 'Booked',
       icon: 'clock'
     },
     {
       id: 6,
-      title: 'System Maintenance',
-      time: '3 days ago',
+      student: 'Lowe Tubat',
+      starttime: '10:00 AM',
+      endtime: '11:00 AM',
+      notiftime: '3 days ago',
+      status: 'Cancelled',
       icon: 'clock'
     }
   ];
@@ -104,11 +122,25 @@ function StaffNotification() {
                 {/* Content */}
                 <div className="flex-1">
                   <p className="text-black text-sm font-bold mb-1" style={{ fontFamily: 'Inter' }}>
-                    {notification.title}
+                    {notification.student}
                   </p>
-                  <p className="text-black text-xs" style={{ fontFamily: 'Inter' }}>
-                    {notification.time}
+                  <p className="text-black text-xs mb-1" style={{ fontFamily: 'Inter' }}>
+                    {notification.starttime} - {notification.endtime}
                   </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-gray-500 text-xs" style={{ fontFamily: 'Inter' }}>
+                      {notification.notiftime}
+                    </p>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      notification.status === 'Booked' ? 'bg-blue-100 text-blue-800' :
+                      notification.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                      notification.status === 'Cancelled' ? 'bg-yellow-100 text-yellow-800' :
+                      notification.status === 'Declined' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`} style={{ fontFamily: 'Inter' }}>
+                      {notification.status}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
