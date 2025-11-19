@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 function BookedConsultation() {
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedConsultationId, setSelectedConsultationId] = useState(null);
   const [consultations, setConsultations] = useState([
     {
@@ -41,6 +42,17 @@ function BookedConsultation() {
       showButtons: false
     }
   ]);
+
+  const [rescheduleFormData, setRescheduleFormData] = useState({
+    office: '',
+    serviceType: '',
+    date: '',
+    startTime: '',
+    endTime: '',
+    topic: '',
+    groupMembers: '',
+    attachment: null
+  });
 
   const getStatusStyles = (status) => {
     switch (status) {
@@ -87,9 +99,63 @@ function BookedConsultation() {
     setSelectedConsultationId(null);
   };
 
+  const handleRescheduleInputChange = (field, value) => {
+    setRescheduleFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleRescheduleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Reschedule form submitted:', rescheduleFormData);
+    setShowRescheduleModal(false);
+    setSelectedConsultationId(null);
+    // Reset form
+    setRescheduleFormData({
+      office: '',
+      serviceType: '',
+      date: '',
+      startTime: '',
+      endTime: '',
+      topic: '',
+      groupMembers: '',
+      attachment: null
+    });
+  };
+
+  const handleRescheduleCancel = () => {
+    setShowRescheduleModal(false);
+    setSelectedConsultationId(null);
+    // Reset form
+    setRescheduleFormData({
+      office: '',
+      serviceType: '',
+      date: '',
+      startTime: '',
+      endTime: '',
+      topic: '',
+      groupMembers: '',
+      attachment: null
+    });
+  };
+
   const handleReschedule = (id) => {
-    // Handle reschedule logic here
-    console.log('Reschedule consultation:', id);
+    const consultation = consultations.find(c => c.id === id);
+    if (consultation) {
+      setRescheduleFormData({
+        office: consultation.office,
+        serviceType: consultation.service,
+        date: '',
+        startTime: '',
+        endTime: '',
+        topic: '',
+        groupMembers: '',
+        attachment: null
+      });
+      setSelectedConsultationId(id);
+      setShowRescheduleModal(true);
+    }
   };
 
   const renderGraduationIcon = () => (
@@ -356,6 +422,194 @@ function BookedConsultation() {
                     No
                   </span>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reschedule Modal */}
+        {showRescheduleModal && (
+          <div className="fixed bg-[#00000080] inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-[10px]! w-full max-w-200 max-h-165 overflow-y-auto relative flex flex-col shadow-2xl">
+              {/* Modal Header */}
+              <div className="bg-[#122141] rounded-t-[10px] px-12 py-5 shrink-0">
+                <h2 className="text-white text-lg font-bold" style={{ fontFamily: 'Inter' }}>
+                  Appointment Rescheduling
+                </h2>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 flex-1 overflow-y-auto ">
+                <form onSubmit={handleRescheduleSubmit} className="space-y-2 px-6 ">
+                  {/* Office Selection */}
+                  <div className="space-y-1 -pt-3">
+                    <label className="block text-black  text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                      Office <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={rescheduleFormData.office}
+                        onChange={(e) => handleRescheduleInputChange('office', e.target.value)}
+                        className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-[#FFFCFC] appearance-none"
+                        style={{ fontFamily: 'Inter' }}
+                        required
+                      >
+                        <option value="">Select Office</option>
+                        <option value="Prefect of Student and Services">Prefect of Student and Services</option>
+                        <option value="Guidance and Counseling">Guidance and Counseling</option>
+                        <option value="Medical and Dental Services">Medical and Dental Services</option>
+                        <option value="Sports Development and Management">Sports Development and Management</option>
+                        <option value="Student Assistance and Experiential Education">Student Assistance and Experiential Education</option>
+                        <option value="Student Discipline">Student Discipline</option>
+                        <option value="Student Internship">Student Internship</option>
+                        <option value="Student IT Support and Services">Student IT Support and Services</option>
+                        <option value="Student Organization A">Student Organization A</option>
+                        <option value="Student Publication">Student Publication</option>
+                      </select>
+                      
+                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <svg width="20" height="20" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13 16L17.5 20.5L22 16" stroke="#8C8B8B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Type of Service */}
+                  <div className="space-y-1">
+                    <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                      Type of Service <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={rescheduleFormData.serviceType}
+                        onChange={(e) => handleRescheduleInputChange('serviceType', e.target.value)}
+                        className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-[#FFFCFC] appearance-none"
+                        style={{ fontFamily: 'Inter' }}
+                        required
+                      >
+                        <option value="">Select Service Type</option>
+                        <option value="Individual Consultation">Individual Consultation</option>
+                        <option value="Group Consultation">Group Consultation</option>
+                        <option value="Emergency Consultation">Emergency Consultation</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className ="flex gap-3 flex-row">
+                      {/* Date */}
+                    <div className="space-y-1 flex-4">
+                      <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                        Date <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={rescheduleFormData.date}
+                          onChange={(e) => handleRescheduleInputChange('date', e.target.value)}
+                          className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm"
+                          style={{ fontFamily: 'Inter' }}
+                          required
+                        />
+                      </div>
+                    </div>
+                      {/* Time */}
+                    <div className="space-y-1 flex-2">
+                        <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                          Start Time <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative w-full">
+                          <input
+                            type="time"
+                            value={rescheduleFormData.startTime}
+                            onChange={(e) => handleRescheduleInputChange('startTime', e.target.value)}
+                            className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white "
+                            style={{ fontFamily: 'Inter' }}
+                            required
+                          />
+                        </div>
+                    </div>
+                    <div className="space-y-1 flex-2">
+                        <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                          End Time <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative w-full">
+                          <input
+                            type="time"
+                            value={rescheduleFormData.endTime}
+                            onChange={(e) => handleRescheduleInputChange('endTime', e.target.value)}
+                            className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white "
+                            style={{ fontFamily: 'Inter' }}
+                            required
+                          />
+                        </div>
+                    </div>
+
+                  </div>
+
+                  {/* Topic */}
+                  <div className="space-y-1">
+                    <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                      Topic <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={rescheduleFormData.topic}
+                      onChange={(e) => handleRescheduleInputChange('topic', e.target.value)}
+                      placeholder="Provide a brief overview of your concern."
+                      className="w-full h-12 px-6 py-3 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-[#FFFCFC] resize-none"
+                      style={{ fontFamily: 'Inter' }}
+                      required
+                    />
+                  </div>
+
+                  {/* Group Members (Optional) */}
+                  <div className="space-y-1">
+                    <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                      Group Members (Optional)
+                    </label>
+                    <textarea
+                      value={rescheduleFormData.groupMembers}
+                      onChange={(e) => handleRescheduleInputChange('groupMembers', e.target.value)}
+                      placeholder="Enter your group members' names."
+                      className="w-full h-[45px] px-6 py-3 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-[#FFFCFC] resize-none"
+                      style={{ fontFamily: 'Inter' }}
+                    />
+                  </div>
+
+                  {/* Attachment (Optional) */}
+                  <div className="space-y-1">
+                    <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
+                      Attachment (Optional)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        onChange={(e) => handleRescheduleInputChange('attachment', e.target.files[0])}
+                        className="w-full h-9 border border-[#9B9999] rounded-10 text-[#8C8B8B] text-sm bg-[#FFFCFC] file:mr-4 file:mt-2 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+                        style={{ fontFamily: 'Inter' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="flex justify-end gap-3 pt-4 sticky pb-2 rounded-b-[10px]! ">
+                    <button
+                      type="button"
+                      onClick={handleRescheduleCancel}
+                      className="border border-[#000000]! rounded-[10px] w-25 h-9 text-black! text-base font-medium bg-white! hover:bg-gray-50 transition-colors"
+                      style={{ fontFamily: 'Inter' }}
+                    >
+                     Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="justify-center items-center bg-[#155DFC]! rounded-[10px] w-35 h-9 text-white text-base font-medium hover:bg-[#0d47c4] transition-colors"
+                      style={{ fontFamily: 'Inter' }}
+                    >
+                      Reschedule
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
