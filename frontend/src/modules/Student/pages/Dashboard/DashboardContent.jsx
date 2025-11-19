@@ -395,14 +395,14 @@ function DashboardContent() {
                         type="date"
                         value={formData.date}
                         onChange={(e) => handleInputChange('date', e.target.value)}
-                        className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm [&::-webkit-calendar-picker-indicator]:filter-[invert(50)]"
+                        className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm"
                         style={{ fontFamily: 'Inter' }}
                         required
                       />
                     </div>
                   </div>
                     {/* Time */}
-                  <div className="space-y-1 flex-1">
+                  <div className="space-y-1 flex-2">
                       <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
                         Start Time <span className="text-red-500">*</span>
                       </label>
@@ -411,7 +411,7 @@ function DashboardContent() {
                           type="time"
                           value={formData.startTime}
                           onChange={(e) => handleInputChange('startTime', e.target.value)}
-                          className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                          className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white "
                           style={{ fontFamily: 'Inter' }}
                           required
                         />
@@ -426,7 +426,7 @@ function DashboardContent() {
                           type="time"
                           value={formData.endTime}
                           onChange={(e) => handleInputChange('endTime', e.target.value)}
-                          className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                          className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white "
                           style={{ fontFamily: 'Inter' }}
                           required
                         />
@@ -473,7 +473,7 @@ function DashboardContent() {
                     <input
                       type="file"
                       onChange={(e) => handleInputChange('attachment', e.target.files[0])}
-                      className="w-full h-9 border border-[#9B9999] rounded-10 text-[#8C8B8B] text-sm bg-[#FFFCFC] file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      className="w-full h-9 border border-[#9B9999] rounded-10 text-[#8C8B8B] text-sm bg-[#FFFCFC] file:mr-4 file:mt-2 file:px-3 file:rounded-full file:border-0 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
                       style={{ fontFamily: 'Inter' }}
                     />
                   </div>
