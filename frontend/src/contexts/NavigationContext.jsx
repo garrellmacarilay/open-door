@@ -23,7 +23,7 @@ export const NavigationProvider = ({ children, module = 'Student' }) => {
       'FAQs': 'Frequently Asked Questions'
     },
     Staff: {
-      'Dashboard': 'Staff Dashboard',
+      'Dashboard': 'Office Dashboard',
       'ConsultationSummary': 'Consultation Summary'
     },
     Admin_PSAS: {
