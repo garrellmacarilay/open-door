@@ -132,82 +132,88 @@ function BookingHistory() {
           {/* Booking History Cards */}
           <div className="space-y-4 md:space-y-8">
             {bookingHistory.map((booking, index) => (
-              <div key={booking.id} className="w-full max-w-full overflow-hidden">
-                {/* Card Container */}
-                <div className={`relative bg-white rounded-[10px] border-[0.5px] border-[#BDBDBD] w-full max-w-full transition-all duration-300 overflow-hidden`}
-                     style={{
-                       height: booking.hasFeedback ? '213px' : '123px'
-                     }}>
+              <div key={booking.id} className="w-full max-w-full overflow-auto">
+                {/* Card Container - Flex Layout */}
+                <div className={`flex flex-col bg-white rounded-[10px] border border-[#E7E7E7] w-full transition-all duration-300 overflow-hidden ${booking.hasFeedback ? 'min-h-[220px]' : 'h-[154px]'}`}>
                 
-                {/* Status Badge */}
-                <div className="absolute top-5 right-7 w-[70px] h-[25px] bg-[#87B7FF] rounded-[5px] flex items-center justify-center">
-                  <span className="text-black text-[10px] font-semibold leading-tight tracking-[-0.02em] font-inter">
-                    {booking.status}
-                  </span>
-                </div>
+                {/* Main Content Row */}
+                <div className="flex justify-between items-start pt-[25px] px-8 pb-4">
+                  {/* Booking Details - Flex Layout */}
+                  <div className="flex flex-col items-start flex-1">
+                    {/* Student Name */}
+                    <div className="text-black text-[14px] font-medium leading-[17px] font-inter mb-3">
+                      {booking.studentName}
+                    </div>
 
-                {/* Student Name */}
-                <div className="absolute left-8 top-5 text-black text-[14px] font-medium leading-[17px] font-inter">
-                  {booking.studentName}
-                </div>
+                    {/* Office */}
+                    <div className="text-black text-[14px] font-medium leading-[17px] font-inter mb-2.5">
+                      {booking.office}
+                    </div>
 
-                {/* Office */}
-                <div className="absolute left-8 top-12 text-black text-[14px] font-medium leading-[17px] font-inter">
-                  {booking.office}
-                </div>
+                    {/* Purpose */}
+                    <div className="text-black text-[14px] font-medium leading-[17px] font-inter mb-3">
+                      {booking.purpose}
+                    </div>
 
-                {/* Purpose */}
-                <div className="absolute left-8 top-19 text-black text-[14px] font-medium leading-[17px] font-inter">
-                  {booking.purpose}
-                </div>
+                    {/* Date */}
+                    <div className="text-black text-[14px] font-medium leading-[17px] font-inter">
+                      {booking.date}
+                    </div>
+                  </div>
 
-                {/* Date */}
-                <div className="absolute left-8 top-26 text-black text-[14px] font-medium leading-[17px] font-inter pb-5!">
-                  {booking.date}
+                  {/* Right Side - Button and Status */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    {/* Add Feedback Button (only for cards without feedback) */}
+                    {!booking.hasFeedback && (
+                      <div 
+                        className="w-[134px] h-[29px] bg-[#1156E8] hover:bg-[#0d47d1] rounded-[5px] flex items-center justify-center gap-2.5 cursor-pointer transition-colors px-[5px]"
+                        onClick={() => handleAddFeedback(booking.id)}
+                      >
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 15 15"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M7.5 3V12M3 7.5H12"
+                            stroke="white"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <span className="text-white text-[12px] font-semibold leading-[14.52px] tracking-[-0.02em] font-inter">
+                          Add Feedback
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Status Badge */}
+                    <div className="w-[98px] h-[29px] bg-[#87B7FF] rounded-[5px] flex items-center justify-center">
+                      <span className="text-[#002374] text-[14px] font-medium font-poppins leading-[21px]">
+                        {booking.status}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Feedback Section - Only for cards with feedback */}
                 {booking.hasFeedback && (
-                  <>
+                  <div className="flex flex-col px-8 pb-6">
                     {/* Separator Line */}
-                    <div className="absolute left-8 right-8 top-34 border-t border-[#BFBFBF]" />
+                    <div className="border-t border-[#BFBFBF] mb-4" />
 
                     {/* Feedback Text */}
-                    <div className="absolute left-8 right-8 top-36 text-black text-[14px] font-normal leading-[17px] text-center font-inter px-4">
+                    <div className="text-black text-[14px] font-normal leading-[17px] text-center font-inter mb-4 pr-22">
                       {booking.feedback}
                     </div>
 
                     {/* Star Rating */}
-                    <div className="absolute left-8 bottom-4">
+                    <div className="flex justify-start">
                       {renderStars(booking.rating)}
                     </div>
-                  </>
-                )}
-
-                {/* Add Feedback Button - Only for cards without feedback */}
-                {!booking.hasFeedback && (
-                  <div 
-                    className="absolute right-7 bottom-5 w-[134px] h-[29px] bg-[#1156E8] hover:bg-[#0d47d1] rounded-[5px] flex items-center justify-center gap-2.5 cursor-pointer transition-colors"
-                    onClick={() => handleAddFeedback(booking.id)}
-                  >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 15 15"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M7.5 3V12M3 7.5H12"
-                        stroke="white"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <span className="text-white text-[12px] font-semibold leading-tight tracking-[-0.02em] font-inter">
-                      Add Feedback
-                    </span>
                   </div>
                 )}
               </div>
@@ -216,7 +222,7 @@ function BookingHistory() {
           </div>
         </div>
 
-        {/* Feedback Modal */}
+        {/* Add Feedback Modal */}
         {showFeedbackModal && (
           <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-50">
             <div 
@@ -240,7 +246,7 @@ function BookingHistory() {
               </div>
 
               {/* Modal Content */}
-              <div className="p-11">
+              <div className="p-11 ">
                 {/* Rating Section */}
                 <div className="mb-4 -mt-2.5">
                   <h3 className="text-black text-[14px] font-medium font-inter mb-4">
@@ -266,15 +272,15 @@ function BookingHistory() {
                 <div className="flex justify-end gap-3 item-center">
                   <button
                     onClick={handleCancelFeedback}
-                    className="px-3 pb-10! border bg-white! justify-center item-center rounded-lg text-[#0F172B] text-3 font-medium font-inter hover:bg-gray-50 transition-colors shadow-sm"
-                    style={{ height: '20px' }}
+                    className="px-5 border bg-white! justify-center item-center rounded-lg text-[#0F172B] text-3 font-medium font-inter hover:bg-gray-50 transition-colors shadow-sm"
+                    style={{ height: '40px' }}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSubmitFeedback}
-                    className="px-3 pb-10! bg-[#155DFC]! justify-center item-center rounded-lg text-[#F8FAFC] text-[14px] font-medium font-inter hover:bg-[#0d47c4] transition-colors"
-                    style={{ height: '20px' }}
+                    className="px-5 bg-[#155DFC]! justify-center item-center rounded-lg text-[#F8FAFC] text-[14px] font-medium font-inter hover:bg-[#0d47c4] transition-colors"
+                    style={{ height: '40px' }}
                   >
                     Submit Feedback
                   </button>
