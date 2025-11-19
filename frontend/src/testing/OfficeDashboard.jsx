@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 
 import OfficeHeader from '../office_components/OfficeHeader'
@@ -20,6 +21,7 @@ export default function OfficeDashboard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [user, setUser] = useState(null)
+    const navigate = useNavigate()
 
     const fetchUser = async () => {
         try {
@@ -85,15 +87,15 @@ export default function OfficeDashboard() {
 
     const handleLogout = async () => {
         try {
-            const res = await api.post('/logout')
-            if (res.data.success) {
-                localStorage.removeItem("token");
-                navigate("/login");
-            }
+            await api.post('/logout');
         } catch (err) {
-            alert('Failed to log out')
+            console.warn('Logout request failed', err.response?.data || err);
+        } finally {
+            // Clear token and navigate regardless of API response
+            localStorage.removeItem("token");
+            navigate("/login");
         }
-    }
+    };
 
     useEffect(() =>{
         (async () => {

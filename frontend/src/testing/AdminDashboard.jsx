@@ -13,6 +13,7 @@ import AdminEvents from "../admin_components/AdminEvents.jsx";
 import AppointmentRequests from "../components/AppointmentRequests.jsx";
 import AdminConsultationSummary from "../admin_components/AdminConsultationSummary.jsx";
 import AdminAnalytics from "../admin_components/AdminAnalytics.jsx";
+import AdminOfficeManagement from "../admin_components/AdminOfficeManagement.jsx";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -175,6 +176,8 @@ export default function AdminDashboard() {
         {activePage === "consultation_summary" && <AdminConsultationSummary />}
 
         {activePage === "analytics" && <AdminAnalytics />}
+
+        {activePage === "office_management" && <AdminOfficeManagement />}
       </main>
       
       {selectedBookingId && (

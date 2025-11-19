@@ -26,7 +26,7 @@ export default function EventList({ events = [], isAdmin, isStaff, onCreateEvent
         <h2 className="text-xl font-semibold">Upcoming Events</h2>
 
         {/* ✅ Show Create Event button only for Admin */}
-        {isAdmin || isStaff && (
+        {(isAdmin || isStaff) && (
           <button
             onClick={onCreateEvent}
             className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
