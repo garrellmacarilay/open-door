@@ -10,6 +10,8 @@ use App\Models\Staff;
 
 class Feedback extends Model
 {
+    protected $table = 'feedbacks';
+
     protected $fillable = [
         'booking_id',
         'student_id',

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\AdminEventController;
 use App\Http\Controllers\Api\Admin\AdminBookingController;
 use App\Http\Controllers\Api\Admin\AdminOfficeController;
+use App\Http\Controllers\Api\FeedbackController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -67,6 +68,8 @@ Route::middleware(['auth:sanctum', 'student'])->group(function() {
     Route::get('/bookings/history', [BookingController::class, 'history']);
     Route::get('/bookings/recent', [BookingController::class, 'recent']);
 
+    Route::post('/feedback/store', [FeedbackController::class, 'feedBack']);
+
 });
 
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
@@ -92,7 +95,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     Route::get('/admin/offices', [AdminOfficeController::class, 'show']);
     Route::post('/admin/office/create', [AdminOfficeController::class, 'store']);
-    Route::patch('/admin/office/store/{id}', [AdminOfficeController::class, 'update']);
+    Route::patch('/admin/office/update/{id}', [AdminOfficeController::class, 'update']);
     Route::delete('/admin/office/delete/{id}', [AdminOfficeController::class, 'delete']);
 
     Route::get('/admin/analytics/stats', [AnalyticsController::class, 'consultationStats']);
