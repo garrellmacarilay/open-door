@@ -150,9 +150,113 @@ export function useRecent() {
     return { recentBookings, fetchRecentBookings}
 }
 
-export function useProfile () {
-    
+export function useHistory() {
+    const [bookings, setBookings] = useState([])
+
+    const fetchHistoryBookings = async () => {
+        try {
+            const res = await api.get('/bookings/history')
+            setBookings(res.data.bookings)
+        }catch (err) {
+            console.error(err)
+            alert('Failed to fetch booking history')
+        }
+    }
+
+    useEffect(() => {
+        fetchHistoryBookings()
+    }, [])
+
+    return { bookings, fetchHistoryBookings }
 }
 
+export function useProfile () {
+   const [user, setUser] = useState({})
+   const [fullName, setFullName] = useState('')
+   const [profilePicture, setProfilePicture] = useState(null)
+   const [preview, setPreview] = useState(null)
+   const [message, setMessage] = useState('')
+
+   useEffect(() => {
+    const fetchUser = async () => {
+        const res = await api.get('/profile')
+        setUser(res.data.user)
+        setFullName(res.data.user.full_name);
+        setPreview(res.data.user.profile_picture_url || null);
+    }
+    fetchUser()
+   }, [])
+
+   const handleSubmit = async (e) => {
+    e.preventDefault()
+    setMessage('')
+    
+    const formData = new FormData()
+    formData.append('full_name', fullName);
+
+    if (profilePicture) {
+        formData.append('profile_picture', profilePicture);   
+    }
+
+    try {
+        const res = await api.post('/user/profile', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+
+        if (res.data.success) {
+            setMessage('Profile updated successfully')
+            setUser(res.data.user)
+
+            if (res.data.user.profile_picture_url) {
+                setPreview(res.data.user.profile_picture_url);
+            }
+        }
+    } catch (err) {
+        if (err.response && err.response.status === 422) {
+            const errors = err.response.data.errors
+            const errorMessages = Object.values(errors)
+                .flat()
+                .join(' | ')
+            console.error('Validation errors:', errors)
+            setMessage(`Validation failed: ${errorMessages}`);
+        } else {
+            console.error('Profile update failed:', err)
+            setMessage('Profile update failed. Please try again.')
+        }
+    }
+   }
+
+   return { user, setProfilePicture, preview, message, handleSubmit }
+}
+
+export function useFeedback() {
+    const [rating, setRating] = useState('')
+    const [comment, setComment] = useState('')
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        
+        try {
+            const res = await api.post('/feedback/store', {
+                booking_id: booking.id,
+                student_id: booking.student_id,
+                office_id: booking.office_id,
+                rating,
+                comment
+            })
+
+            if (res.data.success) {
+                return res.data
+            }
+        } catch (err) {
+            console.error('Failed to submit feedback', err)
+            throw err
+        }
+    }
+    
+    return { rating, comment, setComment, setRating, handleSubmit }
+}
 
 

@@ -3,7 +3,7 @@ import { NavigationProvider, useNavigation } from '../../../../contexts/Navigati
 import StudentNav from './StudentNav';
 import Header from './Header';
 import DashboardContent from './DashboardContent';
-import { useRecent } from '../../../../hooks/studentDashboard.js';
+import { useRecent } from '../../../../hooks/studentHooks.js';
 
 // Import the other page components
 import BookedConsultation from '../../pages/Booked Consultation/BookedConsultation';

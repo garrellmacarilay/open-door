@@ -3,7 +3,7 @@ import CalendarHeader from './CalendarHeader';
 import UpcomingAppointments from './UpcomingAppointments';
 import UpcomingEvents from './UpcomingEvents';
 import Calendar from './Calendar';
-import { useAppointments, useEvents, useBooking, useRecent } from '../../../../hooks/studentDashboard'
+import { useAppointments, useEvents, useBooking, useRecent } from '../../../../hooks/studentHooks'
 import { useBookingModal } from '../../../../hooks/bookingModal'
 import BookConsultationModal from '../Booking_Consultation_Form/BookConsultationModal'
 import BookingReminderModal from '../Booking_Consultation_Form/BookingReminderModal'
