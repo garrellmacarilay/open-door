@@ -120,6 +120,7 @@ export default function AdminDashboard() {
       const res = await api.post("/logout");
       if (res.data.success) {
         localStorage.removeItem("token");
+        alert('Loggoed out successfully!')
         navigate("/login");
       }
     } catch {

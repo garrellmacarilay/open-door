@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import api from "../utils/api";
 
 import OfficeTable from "../components/OfficeTable";
+import OfficeCreate from "../components/OfficeCreate";
+import OfficeEdit from "../components/OfficeEdit";
+import OfficeDelete from "../components/OfficeDelete";
 
 export default function AdminOfficeManagement() {
     const [offices, setOffices] = useState()
@@ -63,6 +66,26 @@ export default function AdminOfficeManagement() {
                 loading={loading}
                 onEdit={openEditModal}
                 onDelete={openDeleteModal}
+            />
+
+            <OfficeCreate 
+                isOpen={isCreateOpen}
+                onClose={() => setIsCreateOpen(false)}
+                onCreate={fetchOffices}
+            />
+
+            <OfficeEdit
+                isOpen={isEditOpen}
+                onClose={() => setIsEditOpen(false)}
+                office={selectedOffice}
+                onUpdate={fetchOffices}
+            />
+
+            <OfficeDelete
+                isOpen={isDeleteOpen}
+                onClose={() => setIsDeleteOpen(false)}
+                office={selectedOffice}
+                onDelete={fetchOffices}
             />
         </div>
     )

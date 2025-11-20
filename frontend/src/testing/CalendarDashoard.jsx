@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import Sidebar from '../components/SideBar.jsx';
 import MainContent from '../components/MainContent.jsx';
@@ -17,9 +18,7 @@ export default function CalendarDashboard() {
   const [events, setEvents] = useState([])
   const [activePage, setActivePage] = useState('calendar')
 
-   if (localStorage.getItem("SessionExpired") === "true") {
-    return null; // Stop everything — modal handles redirect
-  }
+  const navigate = useNavigate()
 
   // Fetch user info
   useEffect(() => {
@@ -69,7 +68,8 @@ export default function CalendarDashboard() {
       if (res.data.success) {
         localStorage.removeItem('token');
         alert('Logged out successfully!');
-        window.location.href = '/login';
+        navigate('/login')
+        
       }
     } catch (err) {
       console.error(err);

@@ -143,17 +143,25 @@ class BookingController extends Controller
 
         $bookings = Booking::where('student_id', $student->id)
             ->whereIn('status', ['declined', 'completed', 'cancelled'])
-            ->with('student.user')
+            ->with('student.user', 'feedback', 'office')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($booking){
                 return [
+                    'id' => $booking->id,
+                    'student_id' => $booking->student_id,
+                    'office_id' => $booking->office_id,
                     'reference_code' => $booking->reference_code,
                     'student_name' => $booking->student->user->full_name ?? 'Unknown',
+                    'office_name' => $booking->office->office_name ?? 'Unknown',
                     'service_type' => $booking->service_type,
                     'concern_description' => $booking->concern_description,
                     'consultation_date' => $booking->consultation_date,
-                    'status' => ucfirst($booking->status),
+                    'feedback' => $booking->feedback ? [
+                        'rating' => $booking->feedback->rating,
+                        'comment' => $booking->feedback->comment,
+                    ]: null,
+                    'status' => $booking->status,
                     'created_at' => $booking->created_at->toDayDateTimeString(),
                 ];
             });
