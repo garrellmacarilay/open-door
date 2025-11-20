@@ -3,17 +3,46 @@ import LoadingBlock from '../../../../loading/LoadingBlock';
 
 function BookedConsultation({ recentBookings }) {
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedConsultationId, setSelectedConsultationId] = useState(null);
-
-  const consultations = (recentBookings || []).map((b, index) => ({
-    id: index + 1,
-    studentName: b.student_name,
-    office: b.office,
-    service: b.service || "Consultation",
-    date: b.consultation_date,
-    status: 'New Appointment',
-    showButtons: true
-  }));
+  const [consultations, setConsultations] = useState([
+    {
+      id: 1,
+      studentName: 'Garrell Macarilay',
+      office: 'Medical and Dental Services',
+      service: 'Medical Checkup',
+      date: 'October 17, 2025',
+      status: 'New Appointment',
+      showButtons: true
+    },
+    {
+      id: 2,
+      studentName: 'Garrell Macarilay',
+      office: 'Medical and Dental Services',
+      service: 'Medical Checkup',
+      date: 'October 17, 2025',
+      status: 'Cancelled',
+      showButtons: false
+    },
+    {
+      id: 3,
+      studentName: 'Garrell Macarilay',
+      office: 'Medical and Dental Services',
+      service: 'Medical Checkup',
+      date: 'October 17, 2025',
+      status: 'Completed',
+      showButtons: false
+    },
+    {
+      id: 4,
+      studentName: 'Garrell Macarilay',
+      office: 'Medical and Dental Services',
+      service: 'Medical Checkup',
+      date: 'October 17, 2025',
+      status: 'Completed',
+      showButtons: false
+    }
+  ]);
 
   const getStatusStyles = (status) => {
     switch (status) {
@@ -48,7 +77,49 @@ function BookedConsultation({ recentBookings }) {
     setSelectedConsultationId(null);
   };
 
+  const handleRescheduleInputChange = (field, value) => {
+    setRescheduleFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleRescheduleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Reschedule form submitted:', rescheduleFormData);
+    setShowRescheduleModal(false);
+    setSelectedConsultationId(null);
+    // Reset form
+    setRescheduleFormData({
+      office: '',
+      serviceType: '',
+      date: '',
+      startTime: '',
+      endTime: '',
+      topic: '',
+      groupMembers: '',
+      attachment: null
+    });
+  };
+
+  const handleRescheduleCancel = () => {
+    setShowRescheduleModal(false);
+    setSelectedConsultationId(null);
+    // Reset form
+    setRescheduleFormData({
+      office: '',
+      serviceType: '',
+      date: '',
+      startTime: '',
+      endTime: '',
+      topic: '',
+      groupMembers: '',
+      attachment: null
+    });
+  };
+
   const handleReschedule = (id) => {
+    // Handle reschedule logic here
     console.log('Reschedule consultation:', id);
   };
 
@@ -167,6 +238,96 @@ function BookedConsultation({ recentBookings }) {
             )}
           </div>
         </div>
+
+        {/* Cancel Confirmation Modal */}
+        {showCancelModal && (
+          <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-50">
+            <div 
+              className="bg-white rounded-2xl shadow-lg"
+              style={{
+                width: '600px',
+                height: '320px'
+              }}
+            >
+              {/* Modal Content */}
+              <div className="relative w-full h-full">
+                {/* Title */}
+                <div 
+                  className="absolute text-black text-[30px] font-bold text-center"
+                  style={{
+                    fontFamily: 'Roboto',
+                    left: '162px',
+                    top: '58px',
+                    width: '285px',
+                    height: '16px',
+                    lineHeight: '0.53em'
+                  }}
+                >
+                  Confirm Cancellation
+                </div>
+
+                {/* Message */}
+                <div 
+                  className="absolute text-black text-[25px] font-normal text-center"
+                  style={{
+                    fontFamily: 'Roboto',
+                    left: '50px',
+                    top: '144px',
+                    width: '509px',
+                    height: '16px',
+                    lineHeight: '0.64em'
+                  }}
+                >
+                  Are you sure you want to cancel your request?
+                </div>
+
+                {/* Yes Button */}
+                <div 
+                  className="absolute bg-[#2ECC71] rounded-lg flex items-center justify-center cursor-pointer hover:bg-[#27ae60] transition-colors"
+                  style={{
+                    left: '115px',
+                    top: '240px',
+                    width: '174px',
+                    height: '48px'
+                  }}
+                  onClick={confirmCancellation}
+                >
+                  <span 
+                    className="text-white text-[20px] font-bold text-center"
+                    style={{
+                      fontFamily: 'Roboto',
+                      lineHeight: '0.8em'
+                    }}
+                  >
+                    Yes
+                  </span>
+                </div>
+
+                {/* No Button */}
+                <div 
+                  className="absolute bg-[#FF4A4A] rounded-lg flex items-center justify-center cursor-pointer hover:bg-[#e74c3c] transition-colors"
+                  style={{
+                    left: '311px',
+                    top: '240px',
+                    width: '174px',
+                    height: '48px'
+                  }}
+                  onClick={cancelCancellation}
+                >
+                  <span 
+                    className="text-white text-[20px] font-bold text-center"
+                    style={{
+                      fontFamily: 'Roboto',
+                      lineHeight: '0.8em'
+                    }}
+                  >
+                    No
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

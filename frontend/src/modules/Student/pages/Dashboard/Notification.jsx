@@ -8,60 +8,62 @@ function Notification() {
   const [open, setOpen] = useState(false)
 
   // Sample notification data
-  // const notifications = [
-  //   {
-  //     id: 1,
-  //     title: 'New Consultation Schedule',
-  //     time: '2 hours ago',
-  //     icon: 'clock'
-  //   },
-  //   {
-  //     id: 2,
-  //     title: 'Booking Confirmed',
-  //     time: '3 hours ago',
-  //     icon: 'clock'
-  //   },
-  //   {
-  //     id: 3,
-  //     title: 'Reminder: Upcoming Meeting',
-  //     time: '5 hours ago',
-  //     icon: 'clock'
-  //   },
-  //   {
-  //     id: 4,
-  //     title: 'Schedule Updated',
-  //     time: '1 day ago',
-  //     icon: 'clock'
-  //   },
-  //   {
-  //     id: 5,
-  //     title: 'New Message',
-  //     time: '2 days ago',
-  //     icon: 'clock'
-  //   },
-  //   {
-  //     id: 6,
-  //     title: 'System Maintenance',
-  //     time: '3 days ago',
-  //     icon: 'clock'
-  //   }
-  // ];
-  useEffect(() => {
-    if (open) fetchNotifications()
-  }, [open])
-  const fetchNotifications = async () => {
-    try {
-      const res = await api.get('/notifications')
-
-      if (res.data.success) {
-        setNotifications(res.data.notifications)
-      }
-    } catch (err) {
-      console.error('Error fetching notifications', err)
-    } finally {
-      setLoading(false)
+  const notifications = [
+    {
+      id: 1,
+      office: 'Student Organization',
+      starttime: '11:00 AM',
+      endtime: '12:00 PM',
+      notiftime: '2 hours ago',
+      status: 'Approved',
+      icon: 'clock'
+    },
+    {
+      id: 2,
+      office: 'Studen Discipline',
+      starttime: '1:00 PM',
+      endtime: '2:00 PM',
+      notiftime: '3 hours ago',
+      status: 'Approved',
+      icon: 'clock'
+    },
+    {
+      id: 3,
+      office: 'Student Publication',
+      starttime: '2:30 PM',
+      endtime: '3:30 PM',
+      notiftime: '5 hours ago',
+      status: 'Declined',
+      icon: 'clock'
+    },
+    {
+      id: 4,
+      office: 'Student Internship',
+      starttime: '9:00 AM',
+      endtime: '10:00 AM',
+      notiftime: '1 day ago',
+      status: 'Declined',
+      icon: 'clock'
+    },
+    {
+      id: 5,
+      office: 'Sports Development and Management',
+      starttime: '3:00 PM',
+      endtime: '4:00 PM',
+      notiftime: '2 days ago',
+      status: 'Approved',
+      icon: 'clock'
+    },
+    {
+      id: 6,
+      office: 'Student IT Support and Services',
+      starttime: '10:00 AM',
+      endtime: '11:00 AM',
+      notiftime: '3 days ago',
+      status: 'Approved',
+      icon: 'clock'
     }
-  }
+  ];
 
   const handleNotificationClick = () => {
     setShowNotificationModal(!showNotificationModal);
@@ -123,11 +125,23 @@ function Notification() {
                 {/* Content */}
                 <div className="flex-1">
                   <p className="text-black text-sm font-bold mb-1" style={{ fontFamily: 'Inter' }}>
-                    {notification.title}
+                    {notification.office}
                   </p>
-                  <p className="text-black text-xs" style={{ fontFamily: 'Inter' }}>
-                    {notification.time}
+                  <p className="text-black text-xs mb-1" style={{ fontFamily: 'Inter' }}>
+                    {notification.starttime} - {notification.endtime}
                   </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-gray-500 text-xs" style={{ fontFamily: 'Inter' }}>
+                      {notification.notiftime}
+                    </p>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      notification.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                      notification.status === 'Declined' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`} style={{ fontFamily: 'Inter' }}>
+                      {notification.status}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}

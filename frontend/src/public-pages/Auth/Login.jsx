@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { ArrowLeft } from "lucide-react"; // optional, for the back icon
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react"; // optional, for the back icon
 import Login_img from "../../components/global-img/LVCC-Gate.jpg";
 import PSAS_Logo from "../../components/global-img/PSAS-Logo.png";
 import api from "../../utils/api";
@@ -7,55 +8,34 @@ import { useNavigate } from 'react-router-dom'
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState('')
-  const navigate = useNavigate()
-
-  const handleLogin = async (e) => {
-    e.preventDefault()
-
-    setMessage('Login in progress..')
-
-    try {
-      const res = await api.post('/login', { email, password })
-      console.log('Login in progress...')
-
-      const { success, access_token, message, user} = res.data
-      const finalToken = access_token
-
-      if (success && finalToken) {
-        localeStorage.setItem('token', finalToken)
-
-        if (user?.role) {
-        localStorage.setItem('user', JSON.stringify(user))
-        }
-
-        setMessage('Login successful! Redirecting...')
-
-        // if (user?.role === 'admin') {
-        //   navigate('/admin/dashboard');
-        // } else if (user?.role === 'staff') {
-        //   navigate('/staff/dashboard')
-        // } else {
-        //   navigate('/dashboard');
-        // }
-        navigate('/dashboard');
-      } else {
-        setMessage(message || 'Login failed. Please try again.');
-      }
-            
-    } catch (err) {
-      console.error('Login Error:', error.response?.data || error.message);
-      setMessage(error.response?.data?.message || 'Something went wrong.');
-    }
-  }
-
-  const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_APP_API_URL}/auth/google`
-  }
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Basic validation
+    if (!email || !password) {
+      alert("Please fill in all fields");
+      return;
+    }
+    
+    // Here you would normally make an API call to authenticate
     console.log("Login submitted", { email, password });
+    
+    // For now, navigate to admin dashboard (replace with your actual route)
+    navigate("/admin");
+  };
+
+  const handleGoogleLogin = () => {
+    // Here you would implement Google OAuth
+    console.log("Google login clicked");
+    alert("Google login functionality would be implemented here");
+    // For demo purposes, navigate to admin (replace with actual Google OAuth)
+    // navigate("/admin");
+  };
+
+  const handleBackClick = () => {
+    navigate("/"); // Navigate back to landing page
   };
   return (
     <div className="flex items-center justify-center min-h-screen min-w-screen bg-linear-to-b bg-[#1F3463]! ">
@@ -64,7 +44,10 @@ export default function LoginPage() {
         
         <div className="w-full md:w-1/2 p-10 pt-6 relative flex flex-col justify-center content-center">
           {/* Back Arrow */}
-          <button className="absolute top-6 left-6 text-black bg-white! p-2 rounded-full  hover:bg-gray-100 transition">
+          <button 
+            onClick={handleBackClick}
+            className="absolute top-6 left-6 text-black bg-white p-2 rounded-full hover:bg-gray-100 transition"
+          >
             <ArrowLeft size={24} />
           </button>
           {/* Logo */}
@@ -81,7 +64,7 @@ export default function LoginPage() {
           
          </div>
       
-          <form className="flex flex-col gap-4 mt-8">
+          <form className="flex flex-col gap-4 mt-8" onSubmit={handleSubmit}>
             <div>
                 <input
                   type="email"
@@ -91,26 +74,33 @@ export default function LoginPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-md text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent transition"
                 />
             </div>
-            <div>
+            <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "password" : "text"}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent transition"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-800 focus:border-transparent transition"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
             </div>
 
 
             <button
-              onClick={handleLogin}
-              className="w-full bg-[#1e3a8a]! hover:bg-[#1e40af] text-white font-semibold py-3 rounded-md transition duration-200 shadow-md hover:shadow-lg"
+              type="submit"
+              className="w-full bg-[#1e3a8a] hover:bg-[#1e40af] text-white font-semibold py-3 rounded-md transition duration-200 shadow-md hover:shadow-lg"
             >
               Log In
             </button>
 
             <div className="flex items-center my-4">
-              <div className="grow border-t border-gray-300"></div>~
+              <div className="grow border-t border-gray-300"></div>
               <span className="mx-2 text-gray-500 text-sm">or</span>
               <div className="grow border-t border-gray-300"></div>
             </div>
@@ -118,7 +108,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="flex items-center justify-center gap-2 py-3 rounded-md transition bg-white! hover:bg-blue-700 text-black border-gray-600!"
+              className="flex items-center justify-center gap-2 py-3 rounded-md transition bg-white hover:bg-gray-50 text-black border border-gray-300 hover:border-blue-500"
             >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"

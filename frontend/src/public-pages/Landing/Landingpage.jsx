@@ -13,9 +13,14 @@ import Footer from "./Footer.jsx";
 
 export const FrameLandingPage = () => {
   const [showContactModal, setShowContactModal] = useState(false);
-  const [modalPosition, setModalPosition] = useState({ top: -40, right: 0 });
+  const [modalPosition, setModalPosition] = useState({ top: 1000, right: 0 });
+  const [loginButtonVisible, setLoginButtonVisible] = useState(true);
   const contactButtonRef = useRef(null);
+<<<<<<< HEAD
   const navigate = useNavigate()
+=======
+  const aboutUsRef = useRef(null);
+>>>>>>> c4e0a9e09c6d895de58dc98733473b0386699d03
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -89,20 +94,37 @@ export const FrameLandingPage = () => {
     }
   };
 
-  const handleContactUs = (contactButtonElement) => {
-    if (contactButtonElement) {
-      const rect = contactButtonElement.getBoundingClientRect();
-      setModalPosition({
-        top: rect.top - 20, // Position slightly above the button
-        right: window.innerWidth - rect.right + 10 // Position to the right with small margin
+  const handleContactUs = () => {
+    setShowContactModal(true);
+  };
+
+  const handleAboutUsClick = () => {
+    if (aboutUsRef.current) {
+      aboutUsRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
       });
     }
-    setShowContactModal(true);
   };
 
   const closeModal = () => {
     setShowContactModal(false);
   };
+
+  // Handle scroll effect for login button
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      // Hide button when scrolled more than 50% of viewport height
+      setLoginButtonVisible(scrollY < viewportHeight * 0.5);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -119,17 +141,27 @@ export const FrameLandingPage = () => {
   }, [showContactModal]);
 
   return (
-    <div className="flex flex-col bg-[#1f3463]">
-      <section
-      className="relative flex flex-col justify-center items-start text-white bg-center px-6 md:px-16 py-32 min-h-screen"
+    <>
+       <section
+      // Landing Page 1st Modal
+      className="relative flex flex-col justify-center items-start text-white px-6 md:px-16 py-32 min-h-screen"
       style={{ 
           backgroundImage: `url(${landingBg})`,
-          minHeight: '100vh'
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          backgroundAttachment: 'fixed',
+          minHeight: '100vh',
+          height: '100vh'
         }}
       > 
           
-          {/* Login button overlaid on the left */}
-          <div className="absolute left-6 md:left-16 top-[70%] z-20 transform -translate-y-1/2">
+          {/* Login button overlaid on the left - hides when scrolled */}
+          <div className={`fixed left-6 md:left-16 top-[70%] z-10 transform -translate-y-1/2 transition-all duration-500 ease-in-out ${
+            loginButtonVisible 
+              ? 'opacity-100 translate-x-0' 
+              : 'opacity-0 -translate-x-full pointer-events-none'
+          }`}>
             <a
               onClick={handleLoginPage}
               className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-[#1e3a8a] hover:bg-[#1e40af] text-white! font-semibold transition duration-200 shadow-md hover:shadow-lg"
@@ -137,9 +169,11 @@ export const FrameLandingPage = () => {
           </div>
           
       </section>
+      {/* Landing Page Body */}
+      <div className="flex flex-col bg-[#1f3463] relative z-20">
 
       {/* About Us */}
-      <section className="bg-[#1f3463] text-white flex flex-col-reverse md:flex-row items-center justify-between gap-10 p-8 md:p-16">
+      <section ref={aboutUsRef} className="aboutus bg-[#1f3463] text-white flex flex-col-reverse md:flex-row items-center justify-between gap-10 p-8 md:p-16">
         <div className="flex-1 space-y-4">
           <h2 className="text-4xl md:text-5xl font-semibold">About Us</h2>
           <p className="text-lg leading-relaxed">
@@ -187,7 +221,7 @@ export const FrameLandingPage = () => {
 
       {/* Holistic Education */}
       <section className="bg-[#1f3463]! mb-20 flex flex-col items-center text-center gap-8 p-8 md:p-16">
-        <h2 className="text-4xl font-semibold">Holistic Education</h2>
+        <h2 className="text-4xl text-white font-semibold">Holistic Education</h2>
         <p className="max-w-3xl text-lg text-white leading-relaxed">
           Beyond academics, LVCC emphasizes Christian values, character
           formation, moral discipline, and community service. Students are
@@ -207,29 +241,25 @@ export const FrameLandingPage = () => {
       </section>
 
       {/* Footer */}
-       <Footer onContactUsClick={handleContactUs} />
+      <Footer onContactUsClick={handleContactUs} onAboutUsClick={handleAboutUsClick} />
 
       {/* Contact Us Modal */}
       {showContactModal && (
         <>
           
-          
           {/* Modal */}
-          <div 
-            className="overlap absolute bg-white rounded-2xl shadow-lg w-96 z-50"
-            style={{
-              top: `2200px`,
-              left: `350px`,
-              maxHeight: '500px'
-            }}
-          >
-            {/* Close Button */}
-            <button
-              onClick={closeModal}
-              className=" top-4 right-4 bg-white! text-black! hover:bg-gray-700 text-xl font-bold z-10"
+          <div className="absolute top-350 right-192 flex items-center justify-center z-50 p-4">
+            <div 
+              className="contact-modal bg-white rounded-2xl shadow-lg w-full max-w-md mx-auto"
+              style={{ maxHeight: '80vh' }}
             >
-              ×
-            </button>
+              {/* Close Button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-7 right-8 bg-transparent text-gray-600 hover:text-black1000 w-8 h-8 rounded-full flex items-center justify-center text-xl font-bold z-10 transition-colors"
+              >
+                ×
+              </button>
 
             {/* Modal Header */}
             <div className="p-4 border-b">
@@ -239,12 +269,12 @@ export const FrameLandingPage = () => {
             </div>
 
             {/* Contact List */}
-            <div className="p-4 space-y-1 max-h-80 overflow-y-auto">
+            <div className="p-4 space-y-1 max-h-96 overflow-y-auto border-white!">
               {contactInfo.map((contact) => (
                 <div
                   key={contact.id}
                   onClick={() => handleEmailClick(contact.email)}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors border border-gray-100 hover:border-blue-200 group"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors border-transparent! hover:border-blue-200 group"
                   title={`Click to send email to ${contact.email}`}
                 >
                   {/* Avatar/Icon */}
@@ -276,16 +306,19 @@ export const FrameLandingPage = () => {
             {/* Modal Footer */}
             <div className="p-4 border-t text-center bg-gray-50">
               <p className="text-xs text-gray-600 mb-1" style={{ fontFamily: 'Poppins' }}>
-                📧 Click on any contact to send an email
+                 Click on any contact to send an email
               </p>
               <p className="text-xs text-gray-500" style={{ fontFamily: 'Poppins' }}>
-                Opens your default email client (Gmail, Outlook, etc.)
+               
               </p>
+            </div>
             </div>
           </div>
         </>
       )}
     </div>
+    </>
+    
   );
 };
 
