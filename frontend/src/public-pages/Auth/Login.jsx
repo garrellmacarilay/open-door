@@ -4,12 +4,15 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react"; // optional, for the back
 import Login_img from "../../components/global-img/LVCC-Gate.jpg";
 import PSAS_Logo from "../../components/global-img/PSAS-Logo.png";
 import api from "../../utils/api";
-import { useNavigate } from 'react-router-dom'
+import { useGoogleLogin } from '../../hooks/authHooks'
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  const { handleGoogleLogin } = useGoogleLogin()
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -26,13 +29,13 @@ export default function LoginPage() {
     navigate("/admin");
   };
 
-  const handleGoogleLogin = () => {
-    // Here you would implement Google OAuth
-    console.log("Google login clicked");
-    alert("Google login functionality would be implemented here");
-    // For demo purposes, navigate to admin (replace with actual Google OAuth)
-    // navigate("/admin");
-  };
+  // const handleGoogleLogin = () => {
+  //   // Here you would implement Google OAuth
+  //   console.log("Google login clicked");
+  //   alert("Google login functionality would be implemented here");
+  //   // For demo purposes, navigate to admin (replace with actual Google OAuth)
+  //   // navigate("/admin");
+  // };
 
   const handleBackClick = () => {
     navigate("/"); // Navigate back to landing page
