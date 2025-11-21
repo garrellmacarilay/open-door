@@ -263,7 +263,7 @@ function BookedConsultation() {
               return (
                 <div key={consultation.id} className="w-full max-w-full overflow-hidden">
                   {/* Card Container */}
-                  <div className="relative bg-white rounded-[10px] border-[0.5px] border-[#BDBDBD] w-full max-w-full h-[167px] overflow-hidden">
+                  <div className="relative bg-white rounded-[10px] border-[0.5px] border-[#BDBDBD] w-full max-w-full h-[167px] overflow-hidden pt-8!">
                     
                     {/* Status Badge */}
                     <div 
