@@ -30,14 +30,14 @@ function AdminCalendarFilter({
   return (
     <div className="relative w-full mx-0 mt-2">
       {/* Main Filter Container */}
-      <div className="bg-white border border-[#C6C6C6] rounded-[10px] w-full h-13 flex items-center justify-end pr-5">
+      <div className="rounded-[10px] w-full h-13 flex items-center justify-end pr-5">
         
         {/* Dropdown Container */}
         <div className="relative">
           {/* Dropdown Button */}
           <button
             onClick={toggleDropdown}
-            className="bg-[#d7d7d7]! rounded-[10px] w-[201px] h-[34px] flex items-center justify-center gap-[65px] px-2.5 hover:bg-gray-200 transition-colors"
+            className="bg-[#d7d7d7]! rounded-[10px] w-[290px]! h-[34px] flex items-center justify-center gap-[65px] px-2.5 hover:bg-gray-200 transition-colors"
           >
             <span 
               className="text-[#848484]! font-medium text-[15px] flex-1 text-left whitespace-nowrap overflow-hidden"

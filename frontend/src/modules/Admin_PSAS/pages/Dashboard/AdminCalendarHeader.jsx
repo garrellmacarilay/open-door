@@ -1,12 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 function AdminCalendarHeader({ 
   currentDate, 
   isAnimating, 
   navigateMonth, 
   setShowReminderModal,
-  goToToday
+  goToToday,
+  selectedOffice = "All Offices",
+  onOfficeChange,
+  offices = [
+    "All Offices",
+    "Communications",
+    "Guidance and Counseling", 
+    "Medical and Dental Services",
+    "Sports Development and Management",
+    "Student Assistance and Experiential Education",
+    "Student Discipline",
+    "Student Internship",
+    "Student IT Support and Services",
+    "Student Organization",
+    "Student Publication"
+  ]
 }) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   const getMonthName = (date) => {
     const monthNames = [
       'January', 'February', 'March', 'April', 'May', 'June',
@@ -14,24 +31,27 @@ function AdminCalendarHeader({
     ];
     return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
   };
+
+  const handleOfficeSelect = (office) => {
+    onOfficeChange?.(office);
+    setIsDropdownOpen(false);
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   return (
     /* Calendar Header - Following Figma Design */
-    <div className="bg-[#142240] mx-0 my-2 text-white rounded-[10px] border border-[#ffffff] flex h-12">
-      {/* Today Button - Left */}
-      {/* <button onClick={goToToday} className="flex items-center justify-center gap-2 border border-white! bg-[#142240]! rounded-[10px] px-4 py-2 h-[30px] text-white font-semibold text-[16px] transition-all duration-200 hover:bg-white/10 active:scale-95" style={{ fontFamily: 'Poppins', lineHeight: '1.5em' }}>
-        <div className="w-[18px] h-5 flex items-center justify-center">
-          <svg width="18" height="18" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2V6M4 2V6M1 10H17M3 4H15C16.1046 4 17 4.89543 17 6V16C17 17.1046 16.1046 18 15 18H3C1.89543 18 1 17.1046 1 16V6C1 4.89543 1.89543 4 3 4Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        </div>
-        <span className='text-[13px]'>Today</span>
-      </button> */}
-
-      {/* Month Navigation - Center */}
-      <div className="flex ml-3 items-center gap-80 justify-center">
+    <div className="bg-[#142240] my-2 text-white rounded-[10px] border border-[#ffffff] flex h-12 items-center">
+      
+      {/* Left Section - Month Navigation */}
+      <div className="flex-1 flex items-center justify-start relative pl-2 gap-42">
         {/* Left Button */}
         <button 
           onClick={() => navigateMonth('prev')}
           disabled={isAnimating}
-          className={`text-white text-base font-bold transition-all duration-150 bg-transparent! border-transparent! whitespace-nowrap overflow-hidden ${
+          className={`text-white text-base font-bold transition-all duration-150 whitespace-nowrap overflow-hidden ${
             isAnimating ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
           }`}
         >
@@ -55,8 +75,71 @@ function AdminCalendarHeader({
           Next  ›
         </button>
       </div>
-      
-     
+
+      {/* Right Section - Office Filter */}
+      <div className="flex-1 flex items-center justify-end relative pr-2">
+        {/* Dropdown Container */}
+        <div className="relative">
+          {/* Dropdown Button */}
+          <button
+            onClick={toggleDropdown}
+            className="bg-[#d7d7d7]! rounded-[10px] w-[282px]! h-[34px] flex items-center justify-center gap-[65px] px-2.5 hover:bg-gray-200 transition-colors"
+          >
+            <span 
+              className="text-[#848484]! font-medium text-[15px] flex-1 text-left whitespace-nowrap overflow-hidden"
+              style={{ fontFamily: 'Inter', lineHeight: '1.21em' }}
+            >
+              {selectedOffice}
+            </span>
+            
+            {/* Chevron Icon */}
+            <svg 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+            >
+              <path 
+                d="M7 10L12 15L17 10" 
+                stroke="#848484" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          {/* Dropdown Menu */}
+          {isDropdownOpen && (
+            <div className="absolute top-[38px] left-0 w-55 bg-white border border-[#C6C6C6] rounded-[10px] shadow-lg z-50 max-h-[300px] overflow-y-auto">
+              {offices.map((office, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleOfficeSelect(office)}
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 ${
+                    office === selectedOffice ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                  } ${index === 0 ? 'rounded-t-[10px]' : ''} ${index === offices.length - 1 ? 'rounded-b-[10px]' : ''}`}
+                  style={{ fontFamily: 'Inter' }}
+                >
+                  <span className="text-[12px] font-medium whitespace-nowrap overflow-hidden text-ellipsis block">
+                    {office}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Overlay to close dropdown when clicking outside */}
+        {isDropdownOpen && (
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsDropdownOpen(false)}
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import AdminCalendarFilter from './AdminCalendarFilter';
 import AdminDynamicStats from './AdminDynamicStats';
 import AdminCalendarHeader from './AdminCalendarHeader';
 import AdminUpcomingAppointments from './AdminUpcomingAppointments';
@@ -9,6 +8,7 @@ import AdminCalendar from './AdminCalendar';
 function AdminDashboardContent() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isAnimating, setIsAnimating] = useState(false);
+    const [selectedOffice, setSelectedOffice] = useState("All Offices");
     
     // Staff-specific appointments (consultations they need to handle)
     const [AdminConsultations, setAdminConsultations] = useState([
@@ -120,8 +120,6 @@ function AdminDashboardContent() {
           <div className="flex-1 min-w-0 flex flex-col min-h-0">
             {/* Dynamic Stats */}
             <AdminDynamicStats />
-            {/* Calendar Filter */}
-            <AdminCalendarFilter className="m-4" />
             {/* Calendar Header */}
             <AdminCalendarHeader 
                 currentDate={currentDate}
@@ -129,6 +127,8 @@ function AdminDashboardContent() {
                 setShowReminderModal={() => {}} // Add placeholder function
                 goToToday={goToToday}
                 isAnimating={isAnimating}
+                selectedOffice={selectedOffice}
+                onOfficeChange={setSelectedOffice}
             />
             {/* Admin Calendar */}
             <AdminCalendar 
