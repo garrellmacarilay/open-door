@@ -33,6 +33,7 @@ export function useAppointments() {
         fetchAppointments()
     }, [])
 
+    //for calendar hover
     const upcomingAppointments = appointments
         .filter(a => a.date instanceof Date && a.date >= new Date())
         .sort((a,b) => a.date - b.date)
@@ -68,7 +69,7 @@ export function useEvents() {
     return {events, fetchEvents}
 }
 
-export function useBooking() {
+export function useBooking(e, onSuccess) {
     const [offices, setOffices] = useState([])
     const [errors, setErrors] = useState({})
     const [form, setForm] = useState({
@@ -81,7 +82,6 @@ export function useBooking() {
         group_members: '' 
     })
 
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 
     useEffect(() => {
@@ -114,10 +114,8 @@ export function useBooking() {
             })
 
             if (response.data.success) {
-                setShowSuccessModal(true);
+                return { success: true }
             }
-
-            return { success: true }
 
         } catch (err) {
             if (err.response?.data?.errors) {
@@ -128,7 +126,7 @@ export function useBooking() {
         }
     }
 
-    return { form, setForm, errors, offices, showSuccessModal, setShowSuccessModal, handleSubmit }
+    return { form, setForm, errors, offices, handleSubmit }
 }
 
 export function useRecent() {
