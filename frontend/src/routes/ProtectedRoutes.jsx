@@ -1,17 +1,16 @@
-// components/ProtectedRoute.jsx
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-function ProtectedRoute({ children }) {
-  // Check if user is logged in (you'll have your own logic here)
-  const isAuthenticated = localStorage.getItem('token'); // or use Context/Redux
-  
-  if (!isAuthenticated) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/login" replace />;
-  }
-  
-  // If authenticated, show the protected content
-  return children;
-}
+const ProtectedRoute = ({ children, roles }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>; // or spinner while fetching user
+
+  if (!user) return <Navigate to="/login" />; // not logged in
+
+  if (roles && !roles.includes(user.role)) return <Navigate to="/unauthorized" />; // role not allowed
+
+  return children; // user logged in and role allowed
+};
 
 export default ProtectedRoute;
