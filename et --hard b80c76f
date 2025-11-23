@@ -1,0 +1,198 @@
+[33mb80c76f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: checkout: moving from backend to main
+[33m8ce58c6[m[33m ([m[1;31morigin/backend[m[33m, [m[1;32mbackend[m[33m)[m HEAD@{1}: reset: moving to HEAD
+[33m8ce58c6[m[33m ([m[1;31morigin/backend[m[33m, [m[1;32mbackend[m[33m)[m HEAD@{2}: checkout: moving from main to backend
+[33mb80c76f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{3}: reset: moving to HEAD
+[33mb80c76f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{4}: commit: hooks modified
+[33meda5964[m HEAD@{5}: commit: fixed Login
+[33mae97a14[m HEAD@{6}: commit: done with student api
+[33m08de703[m HEAD@{7}: commit (merge): accepted pulls
+[33m80134fd[m HEAD@{8}: commit: fetched backend logics for main
+[33m7d8829a[m HEAD@{9}: checkout: moving from backend to main
+[33m8ce58c6[m[33m ([m[1;31morigin/backend[m[33m, [m[1;32mbackend[m[33m)[m HEAD@{10}: commit: added feedback and office management, ready to push for deployment
+[33me551894[m HEAD@{11}: commit: made the office management in admn
+[33mb41229d[m HEAD@{12}: commit: Dockerfile changes
+[33mc4c534c[m HEAD@{13}: commit: added updates on bookings for deployment
+[33me873eee[m HEAD@{14}: checkout: moving from main to backend
+[33m7d8829a[m HEAD@{15}: commit: changes in the backend
+[33m568663a[m HEAD@{16}: commit: fixed bug on book a consultation not opening
+[33m973b1d6[m HEAD@{17}: checkout: moving from backend to main
+[33me873eee[m HEAD@{18}: checkout: moving from main to backend
+[33m973b1d6[m HEAD@{19}: pull origin main: Merge made by the 'ort' strategy.
+[33mc00e991[m HEAD@{20}: commit: added hooks, utils and loading
+[33mdaa16b4[m HEAD@{21}: checkout: moving from backend to main
+[33me873eee[m HEAD@{22}: checkout: moving from main to backend
+[33mdaa16b4[m HEAD@{23}: reset: moving to HEAD
+[33mdaa16b4[m HEAD@{24}: checkout: moving from backend to main
+[33me873eee[m HEAD@{25}: reset: moving to HEAD
+[33me873eee[m HEAD@{26}: checkout: moving from main to backend
+[33mdaa16b4[m HEAD@{27}: reset: moving to HEAD
+[33mdaa16b4[m HEAD@{28}: commit (merge): made separation of concern in booking form
+[33ma04ff0c[m HEAD@{29}: reset: moving to HEAD
+[33ma04ff0c[m HEAD@{30}: commit: separation of concern on book a consultation
+[33m7cbcb3e[m HEAD@{31}: commit: Debugging the login route
+[33m62b646e[m HEAD@{32}: commit: Debugging the login route
+[33m8a85e9f[m HEAD@{33}: commit: fixed callback
+[33m13ab00f[m HEAD@{34}: commit: making fillables for the deployed main
+[33m1655a74[m HEAD@{35}: commit: composer merged
+[33me87f9c0[m HEAD@{36}: commit: merged dockerfile
+[33m9bf42d7[m HEAD@{37}: commit: fix landing
+[33mf5fbfc4[m HEAD@{38}: checkout: moving from backend to main
+[33me873eee[m HEAD@{39}: checkout: moving from main to backend
+[33mf5fbfc4[m HEAD@{40}: commit: auth callback added
+[33m0dc15a7[m HEAD@{41}: checkout: moving from backend to main
+[33me873eee[m HEAD@{42}: commit: configuring dockerfile test 4
+[33m999dc0c[m HEAD@{43}: commit: configuring dockerfile
+[33m8e0bf47[m HEAD@{44}: commit: configuring dockerfile
+[33me5895ec[m HEAD@{45}: commit: configuring composer
+[33m58c9d82[m HEAD@{46}: commit: configuring composer
+[33mea2d38f[m HEAD@{47}: commit: configuring composer
+[33ma215d0e[m HEAD@{48}: commit: changing dockerfile for prod
+[33mcec5d76[m HEAD@{49}: commit: changing dockerfile for prod
+[33mae2f067[m HEAD@{50}: commit: added dockerfile
+[33m9d8070e[m HEAD@{51}: commit: added dockerfile
+[33m1dda4f4[m HEAD@{52}: commit: added dockerfile
+[33ma620f46[m HEAD@{53}: commit: added dockerfile
+[33m1a5642c[m HEAD@{54}: commit: added dockerfile
+[33m41d49ba[m HEAD@{55}: commit: added dockerfile
+[33ma049999[m HEAD@{56}: checkout: moving from main to backend
+[33m0dc15a7[m HEAD@{57}: reset: moving to HEAD
+[33m0dc15a7[m HEAD@{58}: commit: merged backend from the backend branch
+[33m712775b[m HEAD@{59}: pull origin main: Merge made by the 'ort' strategy.
+[33m3445b4d[m HEAD@{60}: reset: moving to HEAD
+[33m3445b4d[m HEAD@{61}: checkout: moving from backend to main
+[33ma049999[m HEAD@{62}: commit: added what needs to be added
+[33m4b54a53[m HEAD@{63}: commit: Added edit profile and office consultation summary
+[33m00cb592[m HEAD@{64}: commit: added middleware for staff and admin
+[33mcc2dc90[m HEAD@{65}: commit: Added edit profile
+[33m2f86f5e[m HEAD@{66}: commit: updated office controller
+[33m6d377b8[m HEAD@{67}: commit: Added office management controller
+[33mee56315[m HEAD@{68}: checkout: moving from main to backend
+[33m3445b4d[m HEAD@{69}: reset: moving to HEAD
+[33m3445b4d[m HEAD@{70}: reset: moving to HEAD
+[33m3445b4d[m HEAD@{71}: commit: auth callback
+[33m81d540a[m HEAD@{72}: commit: environment for deployment and changes in Login page
+[33mb2d57ea[m HEAD@{73}: checkout: moving from backend to main
+[33mee56315[m HEAD@{74}: commit: Configuring Office Dashboard
+[33m859fb76[m HEAD@{75}: checkout: moving from main to backend
+[33mb2d57ea[m HEAD@{76}: commit: api in the backend
+[33mf227076[m HEAD@{77}: reset: moving to HEAD
+[33mf227076[m HEAD@{78}: commit (merge): merged backend to main
+[33m6a4ed99[m HEAD@{79}: checkout: moving from backend to main
+[33m859fb76[m HEAD@{80}: commit: Done with analytics
+[33mbc8797d[m HEAD@{81}: commit: changes in docker
+[33ma6d13c2[m HEAD@{82}: commit: changes in docker
+[33mde42dba[m HEAD@{83}: commit: fixed notifications
+[33m89ce944[m HEAD@{84}: commit: fixed modal notification table
+[33mddf4ce5[m HEAD@{85}: commit: commenting the session modal first since its not fixed
+[33m79db44e[m HEAD@{86}: commit: few changes in the docker file
+[33m1d3dfba[m HEAD@{87}: commit: added dependencies for icon
+[33md4a84bb[m HEAD@{88}: commit: changes in the frontend routes
+[33m1c0f1db[m HEAD@{89}: commit: fix failed in session expired modal and will retry again
+[33mcc92941[m HEAD@{90}: commit: added changes to the controllers especially on the notification modal
+[33md47bdcd[m HEAD@{91}: commit: added appointment request for clickable notification and edited other components
+[33m60628d9[m HEAD@{92}: commit: added consultation summary and edited changes to the other components
+[33mf64aee1[m HEAD@{93}: commit: added routes for admin
+[33md4f56d5[m HEAD@{94}: commit: edited changes in the migrations
+[33m6b577cb[m HEAD@{95}: commit: added notifications
+[33mc6a9fd3[m HEAD@{96}: commit: added resources for clean coding
+[33mf60b8f0[m HEAD@{97}: commit: Updated booking controller, notification controller, and admin controllers
+[33m04c385d[m HEAD@{98}: commit: fixed middleware in student
+[33m3bface5[m HEAD@{99}: commit: updated dockerfile
+[33m15dde90[m HEAD@{100}: commit: changing the dockerfile again
+[33mfc0b8bd[m HEAD@{101}: commit: added student middleware
+[33ma6759ed[m HEAD@{102}: commit: changing the dockerfile again
+[33m2891622[m HEAD@{103}: commit: changing the dockerfile again
+[33m1ef3e00[m HEAD@{104}: commit: changing the dockerfile again
+[33m98d13ac[m HEAD@{105}: commit: changing something for testing
+[33m0d0b6fb[m HEAD@{106}: commit: changing seeder to use for testing in production
+[33ma50781e[m HEAD@{107}: commit: added admin seeder to use for testing in production
+[33mdab77ae[m HEAD@{108}: commit: added admin seeder to use for testing in production
+[33mcb75eea[m HEAD@{109}: commit: added admin seeder to use for testing in production
+[33m66c95f7[m HEAD@{110}: commit: added the web.php for now
+[33mafa7c42[m HEAD@{111}: commit: fixed docker
+[33m890d435[m HEAD@{112}: commit: made changes in the routing
+[33m3c7c19d[m HEAD@{113}: commit: added session expiratin modal while updating the api
+[33mc0e4f4b[m HEAD@{114}: commit: made changes in the dashboard
+[33m89e71f2[m HEAD@{115}: commit: added the EventList and updating the AppointmentList
+[33m04d71cf[m HEAD@{116}: commit: added Admin Event for making events and updated admin actions and admin calendar
+[33mfbf9cb6[m HEAD@{117}: commit: changes in the controller for booking, calendar, and google
+[33m3eef62c[m HEAD@{118}: commit: Added event controller in admin
+[33m696b0ad[m HEAD@{119}: commit: added Event model
+[33mbce9343[m HEAD@{120}: commit: deleting unnecessary middlewares
+[33md2afdb1[m HEAD@{121}: commit: added migration for events
+[33mae6bb4b[m HEAD@{122}: commit: changes in routing
+[33m63a1354[m HEAD@{123}: commit: made changes to others
+[33m715d69b[m HEAD@{124}: commit: done with the testing pages
+[33m63bd8d6[m HEAD@{125}: commit: for frontend use
+[33m54064fc[m HEAD@{126}: commit: created student components
+[33mc61e90e[m HEAD@{127}: commit: created admin components
+[33me310ce0[m HEAD@{128}: commit: updated controllers
+[33m665a2d3[m HEAD@{129}: commit: edited the docker file
+[33m442c70d[m HEAD@{130}: commit: fixing error in deploy
+[33m3deab27[m HEAD@{131}: commit: fixing docker
+[33m5e79ef3[m HEAD@{132}: commit: updated booking
+[33mad0efc0[m HEAD@{133}: commit: fixed bug on frontend routes
+[33m8be4a18[m HEAD@{134}: commit: adding admin dashboard and notification modal while adding changes to the remaining components
+[33m8dd8890[m HEAD@{135}: commit: changes in api.php
+[33m460c28a[m HEAD@{136}: commit: changes in student migration
+[33m9c2baa1[m HEAD@{137}: commit: changes in Student.php
+[33mb5beeaa[m HEAD@{138}: commit: changes for booking and google while adding admin and notificatiom
+[33m696f256[m HEAD@{139}: commit: testing to see if auto-deploy is working per commits
+[33m8d57e5a[m HEAD@{140}: commit: Booked Consultation done
+[33m9bc0d23[m HEAD@{141}: commit: changes for deployment
+[33m4247b59[m HEAD@{142}: commit: configuring...
+[33m2b3aab8[m HEAD@{143}: commit: configuring...
+[33m1ee6d96[m HEAD@{144}: checkout: moving from 2459c3e0f80d27f4672c318a76556449e1087608 to backend
+[33m2459c3e[m HEAD@{145}: commit: configuring...
+[33m2a07d9d[m HEAD@{146}: rebase (start): checkout 2a07d9d
+[33m1ee6d96[m HEAD@{147}: rebase (finish): returning to refs/heads/backend
+[33m1ee6d96[m HEAD@{148}: rebase (pick): Restore env.production.example with placeholders
+[33maa22608[m HEAD@{149}: rebase (pick): docker configuration
+[33m285eda6[m HEAD@{150}: commit (amend): fixing setup for deployment
+[33m58bcca3[m HEAD@{151}: commit (amend): fixing setup for deployment
+[33mfcb2016[m HEAD@{152}: reset: moving to 2a07d9d13ef^
+[33m3d48d13[m HEAD@{153}: revert: Revert "docker configuration"
+[33m12ce656[m HEAD@{154}: commit: Remove .env.production.example
+[33me3153b2[m HEAD@{155}: commit: fixing env example
+[33m2a07d9d[m HEAD@{156}: rebase (start): checkout 2a07d9d
+[33m528c124[m HEAD@{157}: commit: Restore env.production.example with placeholders
+[33md42c901[m HEAD@{158}: commit: docker configuration
+[33mb2ee897[m HEAD@{159}: revert: Revert "docker configuration"
+[33m2a07d9d[m HEAD@{160}: commit: docker configuration
+[33mfcb2016[m HEAD@{161}: commit: fixing setup for deployment
+[33md854d76[m HEAD@{162}: commit: revert all back
+[33m9cc520c[m HEAD@{163}: commit: set up for deployment
+[33m353923f[m HEAD@{164}: commit: fixed dynamic port for laravel
+[33m49892b5[m HEAD@{165}: commit: for deployment
+[33ma733637[m HEAD@{166}: commit: testing
+[33m45a5052[m HEAD@{167}: commit: set up for deployment
+[33mf46ff7a[m HEAD@{168}: commit: set up for deployment
+[33m735f307[m HEAD@{169}: commit: set up for deployment
+[33m1465d41[m HEAD@{170}: commit: fixed redundant code
+[33m12e73d2[m HEAD@{171}: commit: Fixed bug
+[33m4eeacd4[m HEAD@{172}: commit: 65% of the history model has been completed, proceeding with debugging....
+[33meeabe5a[m HEAD@{173}: commit: finished debugging booking consultation modal, will add other missing elements for the form in the time being...
+[33m83e0602[m HEAD@{174}: commit: added the modal and tweaked the App.jsx
+[33m7f12690[m HEAD@{175}: commit: made changes in the controller
+[33m8ac030f[m HEAD@{176}: commit: purely for testing so i made it nullable
+[33mdbb5c70[m HEAD@{177}: commit: changes in the routes
+[33mcf312dc[m HEAD@{178}: commit: changes in the environment
+[33m62724ee[m HEAD@{179}: commit: json and lock changes
+[33m94ca5d9[m HEAD@{180}: commit: changes in redirectoring
+[33m158d50f[m HEAD@{181}: commit: added google env
+[33m9272628[m HEAD@{182}: commit: changes for the frontend api
+[33mbea3905[m HEAD@{183}: commit: configuration in user model
+[33m64de41a[m HEAD@{184}: commit: done with login
+[33m0e5bf77[m HEAD@{185}: commit: homepage calendar done but not applicable for testing yet
+[33m6a4ed99[m HEAD@{186}: checkout: moving from main to backend
+[33m6a4ed99[m HEAD@{187}: merge backend: Fast-forward
+[33m55d6da8[m HEAD@{188}: checkout: moving from backend to main
+[33m6a4ed99[m HEAD@{189}: commit: api configuration
+[33m039b323[m HEAD@{190}: commit: api configuration
+[33m55d6da8[m HEAD@{191}: checkout: moving from main to backend
+[33m55d6da8[m HEAD@{192}: merge backend: Fast-forward
+[33md52b106[m HEAD@{193}: checkout: moving from backend to main
+[33m55d6da8[m HEAD@{194}: commit: calendar controller
+[33md52b106[m HEAD@{195}: checkout: moving from backend to backend
+[33md52b106[m HEAD@{196}: checkout: moving from main to backend
+[33md52b106[m HEAD@{197}: clone: from github.com:garrellmacarilay/open-door.git

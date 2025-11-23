@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import UplaodIcon from "../../../../components/global-img/upload.svg";
+import userProfile from '../../../../components/global-img/user.png';
 
 function EditProfile({ 
   showEditProfileModal, 
@@ -57,12 +58,13 @@ function EditProfile({
           <form onSubmit={handleEditProfileSubmit} className="space-y-6">
             {/* Profile Picture Section */}
             <div className="flex flex-col items-center space-y-4">
-              {/* Profile Picture */}
-              <div className="w-25 h-25 bg-gray-300 rounded-full border-3 border-[#D0D0D0] bg-cover bg-center overflow-hidden mt-6"
-                   style={{
-                     backgroundImage: `url(${imageToShow})`
-                   }}>
-              </div>
+                {/* Profile Picture */}
+                <img
+                  src={imageToShow}
+                  alt="Profile"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = userProfile; }}
+                  className="w-25 h-25 bg-gray-300 rounded-full border-3 border-[#D0D0D0] object-cover overflow-hidden mt-6"
+                />
               
               {/* Hidden File Input */}
               <input

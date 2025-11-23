@@ -32,17 +32,17 @@ function Profile({ setShowEditProfileModal, profileImageUrl, fullName, email }) 
 
   return (
     <div className="relative">
-      <button 
-        onClick={handleProfileClick}
-        className="profile-button flex items-center gap-4 bg-white! p-1"
-      >
-        {/* User Icon */}
-        <div 
-          className="w-10 h-10 bg-gray-300 rounded-full bg-cover bg-center" 
-          style={{
-            backgroundImage: `url(${imageToShow})`
-          }}
-        ></div>
+        <button 
+          onClick={handleProfileClick}
+          className="profile-button flex items-center gap-4 bg-white! p-1"
+        >
+          {/* User Icon */}
+          <img
+            src={imageToShow}
+            alt="Profile"
+            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = userProfile; }}
+            className="w-10 h-10 rounded-full object-cover"
+          />
         <svg width="10" height="5" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1 1L5 4L9 1" stroke="#0A090B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -56,14 +56,12 @@ function Profile({ setShowEditProfileModal, profileImageUrl, fullName, email }) 
             {/* User Info */}
             <div className="flex flex-row items-center p-4">
             {/* User Icon */}
-            <div 
-              className="w-10 ml-1 h-10 bg-gray-300 rounded-full overflow-hidden" 
-              style={{
-                backgroundImage: `url(${imageToShow})`,
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center'
-              }}
-            ></div>
+            <img
+              src={imageToShow}
+              alt="Profile"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = userProfile; }}
+              className="w-10 ml-1 h-10 bg-gray-300 rounded-full overflow-hidden object-cover"
+            />
             {/* User Info */}
               <div className="flex ml-2 flex-col">
                 <p className="font-normal text-xs text-white" style={{ fontFamily: 'Poppins' }}>{fullName || "No Name Set"}</p>
