@@ -247,9 +247,9 @@ export function useProfile() {
                 base = (apiBase || '').replace(/\/api\/?$/, '').replace(/\/$/, '') || window.location.origin;
             }
 
-            const url = res.data.user.profile_picture
-                ? `${base}/storage/${res.data.user.profile_picture}`
-                : null;
+            // Prefer the backend-provided `profile_picture_url` when available
+            const url = res.data.user.profile_picture_url
+                || (res.data.user.profile_picture ? `${base}/storage/${res.data.user.profile_picture}` : null);
 
             setPreview(url);
             setProfileImageUrl(url);
@@ -288,9 +288,8 @@ export function useProfile() {
                 } catch (e) {
                     base = (apiBase || '').replace(/\/api\/?$/, '').replace(/\/$/, '') || window.location.origin;
                 }
-                const url = res.data.user.profile_picture
-                    ? `${base}/storage/${res.data.user.profile_picture}`
-                    : null;
+                const url = res.data.user.profile_picture_url
+                    || (res.data.user.profile_picture ? `${base}/storage/${res.data.user.profile_picture}` : null);
 
                 setPreview(url); // set final server URL
         setProfileImageUrl(url);
