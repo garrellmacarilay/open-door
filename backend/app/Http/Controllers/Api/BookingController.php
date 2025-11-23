@@ -22,18 +22,22 @@ class BookingController extends Controller
         $user = Auth::user();
 
         $bookings = Booking::with(['student.user', 'office', 'staff'])
-            ->whereIn('status', ['approved', 'pending'])
-            ->whereHas('student', function ($query) use ($user) {
+            ->whereIn('status', ['approved', 'pending', 'rescheduled'])
+            ->whereHas('student.user', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-            ->get();
+            ->orderBy('consultation_date', 'asc')
+            ->orderBy('id', 'asc')
+            ->paginate(5);
+
 
         $appointments = $bookings->map(function ($booking) {
+            $date = Carbon::parse($booking->consultation_date);
             return [
                 'id' => $booking->id,
                 'title' => $booking->student->user->full_name ?? 'Unknown',
-                'start' => $booking->consultation_date,
-                'end' => $booking->consultation_date,
+                'start' => $date->format('c'),
+                'end' => $date->format('c'),
                 'color' => $booking->getStatusColor($booking->status),
                 'details' => [
                     'student' => $booking->student->user->full_name ?? 'Unknown',
@@ -48,7 +52,11 @@ class BookingController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $appointments
+            'data' => $appointments,
+            'meta' => [
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+            ]
         ]);
     }
 
@@ -76,6 +84,12 @@ class BookingController extends Controller
 
                     if ($consultationDate->lessThan($minDate)) {
                         $fail('You can only book a consultation at least 2 days in advance.');
+                    }
+
+                    $hour = $consultationDate->hour;
+
+                    if ($hour < 8 || $hour >= 17) {
+                        $fail('Booking time must be between 8:00 AM and 5:00 PM.');
                     }
                 }
             ],
@@ -142,7 +156,7 @@ class BookingController extends Controller
         }
 
         $bookings = Booking::where('student_id', $student->id)
-            ->whereIn('status', ['declined', 'completed', 'cancelled'])
+            ->whereIn('status', ['completed'])
             ->with('student.user', 'feedback', 'office')
             ->orderBy('created_at', 'desc')
             ->get()
@@ -158,9 +172,13 @@ class BookingController extends Controller
                     'concern_description' => $booking->concern_description,
                     'consultation_date' => $booking->consultation_date,
                     'feedback' => $booking->feedback ? [
-                        'rating' => $booking->feedback->rating,
-                        'comment' => $booking->feedback->comment,
-                    ]: null,
+                            'rating' => $booking->feedback->rating,
+                            'comment' => $booking->feedback->comment,
+                        ]: null,
+                    // Convenience top-level fields for frontend compatibility
+                    'hasFeedback' => $booking->feedback ? true : false,
+                    'rating' => $booking->feedback ? $booking->feedback->rating : null,
+                    'comment' => $booking->feedback ? $booking->feedback->comment : null,
                     'status' => $booking->status,
                     'created_at' => $booking->created_at->toDayDateTimeString(),
                 ];
@@ -185,16 +203,20 @@ class BookingController extends Controller
 
         $recentBookings = Booking::where('student_id', $student->id)
             ->orderBy('created_at', 'desc')
-            ->whereIn('status', ['approved', 'pending'])
-            ->take(11)
+            ->whereIn('status', ['approved', 'pending', 'rescheduled', 'cancelled'])
             ->get()
             ->map(function ($booking) {
                 return [
+                    'id' => $booking->id,
                     'student_name' => $booking->student->user->full_name ?? "Unknown",
                     'office' => $booking->office->office_name,
                     'reference_code' => $booking->reference_code,
                     'service_type' => $booking->service_type,
+                    'concern_description' => $booking->concern_description,
+                    'group_members' => $booking->group_members,
+                    'attachments' => $booking->uploaded_file_url,
                     'consultation_date' => $booking->consultation_date,
+                    'status' => $booking->status
                 ];
             });
 
@@ -202,5 +224,77 @@ class BookingController extends Controller
                 'success' => true,
                 'bookings' => $recentBookings
             ]);
+    }
+
+    public function reschedule(Request $request, $id)
+    {
+        $request->validate([
+            'consultation_date' => [
+                'required',
+                'date_format:Y-m-d\TH:i',
+                function ($_, $value, $fail) {
+                    $consultationDate = Carbon::parse($value);
+                    $minDate = Carbon::now()->addDays(2)->startOfDay();
+
+                    if ($consultationDate->lessThan($minDate)) {
+                        $fail('You can only reschedule a consultation at least 2 days ahead.');
+                    }
+                }
+            ],
+            'uploaded_file_url' => 'nullable|file|mimes:pdf,jpg,png|max:5120'
+        ]);
+
+        $booking = Booking::findOrFail($id);
+
+        $consultationDay = Carbon::parse($request->consultation_date)->toDateString();
+
+        $eventExists = Event::where('event_date', $consultationDay)->exists();
+
+        if ($eventExists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Rescheduling not allowed. There is an event scheduled for this date.'
+            ], 422);
+        }
+
+        $updated = [
+            'consultation_date' => $request->consultation_date,
+            'status' => 'rescheduled',
+        ];
+
+        if ($request->hasFile('uploaded_file_url')) {
+            $path = $request->file('uploaded_file_url')->store('attachments', 'public');
+            $updated['uploaded_file_url'] = '/storage/' . $path;
+        } else {
+            // If no new file uploaded, keep the existing one
+            $updated['uploaded_file_url'] = $booking->uploaded_file_url;
+        }
+
+        $booking->update($updated);
+
+        return response()->json([
+            'success' => 'Booking successfully rescheduled',
+            'booking' => $booking
+        ]);
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        if ($booking->status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This booked appointment has already been cancelled'
+            ], 422);
+        }
+
+        $booking->update(['status' => 'cancelled']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'booking successfully cancelled',
+            'booking' => $booking
+        ]);
     }
 }
