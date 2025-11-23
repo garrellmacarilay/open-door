@@ -1,6 +1,6 @@
 FROM php:8.3.11-fpm
 
-# Install system dependencies
+# Install system dependencies for PHP and Puppeteer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl unzip libsqlite3-dev libonig-dev libzip-dev libpq-dev zip git bash \
     gnupg2 ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 \
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /var/www
 
-# Copy composer files first
+# Copy composer files first for caching
 COPY composer.json composer.lock /var/www/
 
 # Install Composer
@@ -23,34 +23,29 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 # Copy the rest of the app
 COPY . /var/www
 
-# Run artisan package discovery
-RUN php artisan package:discover
+# Ensure storage & cache directories exist and have correct permissions
+RUN mkdir -p storage bootstrap/cache public/storage \
+    && chown -R www-data:www-data storage bootstrap/cache public \
+    && chmod -R 775 storage bootstrap/cache public
 
-# Ensure storage/cache/database directories exist
-RUN mkdir -p storage bootstrap/cache database \
-    && chown -R www-data:www-data storage bootstrap/cache database \
-    && chmod -R 775 storage bootstrap/cache database
-
-# Create SQLite file (if using SQLite)
-RUN touch database/database.sqlite
-
-# Install Node.js & Puppeteer
+# Install Node.js & Puppeteer for Browsershot
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && npm install puppeteer
 
+# Run artisan commands as root to avoid permission issues
+USER root
+
+RUN php artisan config:clear \
+    && php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache \
+    && php artisan migrate:fresh --seed --force \
+    && php artisan storage:link
+
+# Switch back to www-data for security
 USER www-data
+
 EXPOSE ${PORT:-10000}
 
-# -------------------------------
-# CMD runs on container start
-# -------------------------------
-CMD bash -c "\
-    php artisan config:clear && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache && \
-    php artisan storage:link && \
-    php artisan migrate:fresh --seed --force && \
-    php artisan serve --host=0.0.0.0 --port=${PORT:-10000} \
-"
+CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
