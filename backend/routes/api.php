@@ -17,9 +17,7 @@ use App\Http\Controllers\Api\Admin\AdminBookingController;
 use App\Http\Controllers\Api\Admin\AdminOfficeController;
 use App\Http\Controllers\Api\FeedbackController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+
 
 // Route::middleware(['auth:sanctum'])->group(function () {
 //     Route::get('/calendar/events', [CalendarController::class, 'index']);
@@ -46,7 +44,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware(['auth:sanctum'])->group(function() {
-    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::get('/show/user', [ProfileController::class, 'show']);
 
     Route::get('/calendar/appointments', [CalendarController::class, 'index']);
     Route::get('/offices', function() {
@@ -70,6 +68,8 @@ Route::middleware(['auth:sanctum', 'student'])->group(function() {
 
     Route::post('/feedback/store', [FeedbackController::class, 'feedBack']);
 
+    Route::patch('/reschedule/booking/{id}', [BookingController::class, 'reschedule']);
+    Route::patch('/cancel/booking/{id}', [BookingController::class, 'cancel']);
 });
 
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
