@@ -15,9 +15,14 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        $user->profile_picture_url = $user->profile_picture
-            ? asset('storage/' . $user->profile_picture)
-            : null;
+        // Only return a storage URL if the file actually exists on the public disk.
+        // If the file is missing on the server (common in ephemeral deployments),
+        // return null so the frontend will fall back to a generated avatar.
+        if ($user->profile_picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_picture)) {
+            $user->profile_picture_url = asset('storage/' . $user->profile_picture);
+        } else {
+            $user->profile_picture_url = null;
+        }
 
         return response()->json([
             'success' => true,
