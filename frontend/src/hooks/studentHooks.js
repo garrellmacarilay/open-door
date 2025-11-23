@@ -257,4 +257,58 @@ export function useFeedback() {
     return { rating, comment, setComment, setRating, handleSubmit }
 }
 
+export function useReschedule() {
+    const [isRescheduling, setIsRescheduling] = useState(false);
+
+    const rescheduleBooking = async (id, newDateTime, newFile = null) => {
+            if (!(typeof newDateTime === 'string')) {
+                throw new Error("newDateTime must be a string in YYYY-MM-DDTHH:mm format");
+            }
+        const formData = new FormData();
+        formData.append('consultation_date', newDateTime);
+
+        if (newFile) {
+            formData.append('uploaded_file_url', newFile);
+        }
+
+        formData.append('_method', 'PATCH');
+
+        try {
+            const res = await api.post(`/reschedule/booking/${id}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+            console.log('Rescheduled Successfully')
+            return res.data;
+        } catch (err) {
+            console.error("Reschedule failed:", err.response?.data || err);
+            throw err;
+        } finally {
+            setIsRescheduling(false);
+        }
+    };
+
+    return { isRescheduling, rescheduleBooking };
+}
+
+export function useCancel() {
+    const [isCancelling, setIsCancelling] = useState(false)
+
+    const cancelBooking = async (id) => {
+        setIsCancelling(true)
+
+        try {
+            const res = await api.patch(`/cancel/booking/${id}`)
+            console.log('Cancelled successfully', res.data)
+            return res.data
+        } catch (err) {
+            console.error('Cancel failed:', err)
+        } finally {
+            setIsCancelling(false)
+        }
+    }
+
+    return { isCancelling, cancelBooking}
+}
+
+
 

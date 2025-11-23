@@ -18,3 +18,7 @@ export function useBookingModal() {
         closeSuccess: () => setShowSuccessModal(false),
     };
 }
+
+export function useRescheduleModal() {
+    
+}
