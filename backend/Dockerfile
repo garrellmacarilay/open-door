@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /var/www
 
-# Copy composer files first for caching
+# Copy composer files for caching
 COPY composer.json composer.lock /var/www/
 
 # Install Composer
@@ -23,29 +23,23 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 # Copy the rest of the app
 COPY . /var/www
 
-# Ensure storage & cache directories exist and have correct permissions
+# Ensure storage & cache directories exist
 RUN mkdir -p storage bootstrap/cache public/storage \
     && chown -R www-data:www-data storage bootstrap/cache public \
     && chmod -R 775 storage bootstrap/cache public
 
-# Install Node.js & Puppeteer for Browsershot
+# Install Node.js & Puppeteer
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && npm install puppeteer
 
-# Run artisan commands as root to avoid permission issues
-USER root
-
-RUN php artisan config:clear \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache \
-    && php artisan migrate:fresh --seed --force \
-    && php artisan storage:link
-
-# Switch back to www-data for security
+# Use www-data for runtime
 USER www-data
 
 EXPOSE ${PORT:-10000}
 
-CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
+# Use an entrypoint script to run migrations, seeding, storage:link, then serve
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+CMD ["docker-entrypoint.sh"]
