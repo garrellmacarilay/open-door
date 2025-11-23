@@ -33,13 +33,14 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && npm install puppeteer
 
+# Use an entrypoint script to run migrations, seeding, storage:link, then serve
+# Copy and make it executable while still root
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Use www-data for runtime
 USER www-data
 
 EXPOSE ${PORT:-10000}
-
-# Use an entrypoint script to run migrations, seeding, storage:link, then serve
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 CMD ["docker-entrypoint.sh"]
