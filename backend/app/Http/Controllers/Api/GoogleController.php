@@ -30,17 +30,19 @@ class GoogleController extends Controller
                 'full_name' => $googleUser->getName(),
                 'email' => $googleUser->getEmail(),
                 'google_id' => $googleUser->getId(),
-                'password' => Hash::make(Str::random(16)),                
+                'password' => Hash::make(Str::random(16)),
             ]);
 
             if ($googleUser->getAvatar()) {
                 $avatarUrl = $googleUser->getAvatar();
                 $avatarContents = Http::get($avatarUrl)->body();
 
-                // Generate unique filename
-                $avatarFilename = 'profile_pictures/' . uniqid('google_') . '.jpg';
+                // Generate unique filename under avatars directory
+                $avatarFilename = 'avatars/profile_pictures/' . uniqid('google_') . '.jpg';
 
+                // Store the file in the public disk and ensure it's publicly visible
                 Storage::disk('public')->put($avatarFilename, $avatarContents);
+                Storage::disk('public')->setVisibility($avatarFilename, 'public');
 
                 $user->profile_picture = $avatarFilename;
                 $user->save();

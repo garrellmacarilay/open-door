@@ -15,11 +15,15 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
+        $user->profile_picture_url = $user->profile_picture
+            ? asset('storage/' . $user->profile_picture)
+            : null;
+
         return response()->json([
             'success' => true,
             'user' => $user
-        ]); 
-    } 
+        ]);
+    }
 
     public function updateProfile(Request $request) {
         $user = Auth::user();
@@ -51,7 +55,7 @@ class ProfileController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Profile updated successfully',
-            'user' => $user
+            'user' => $user->toArray()
         ]);
     }
 }
