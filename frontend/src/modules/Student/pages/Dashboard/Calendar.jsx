@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import GradIcon from '../../../../components/global-img/graduation-cap.svg';
 
 function Calendar({ 
@@ -9,6 +9,43 @@ function Calendar({
 }) {
   const [showAppointmentHoverModal, setShowAppointmentHoverModal] = useState(false);
   const [hoveredAppointment, setHoveredAppointment] = useState(null);
+
+  // Precompute normalized appointments grouped by local date key to avoid remapping in each cell
+  const apptsByDate = useMemo(() => {
+    const map = {};
+    const dateKey = (d) => `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+
+    (bookedAppointments || []).forEach((appointment) => {
+      const apptDate = appointment.date instanceof Date ? appointment.date : new Date(appointment.date);
+      const localDate = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate());
+      const key = dateKey(localDate);
+
+      const student = appointment.studentName || appointment.student || appointment.student_name || '';
+      const office = appointment.office || appointment.office_name || appointment.officeName || '';
+      const service = appointment.service_type || appointment.service || appointment.serviceType || '';
+      const time = appointment.time || (apptDate instanceof Date ? apptDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
+
+      const normalized = {
+        ...appointment,
+        dateObj: apptDate,
+        student,
+        office,
+        service,
+        time,
+        dateString: localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+      };
+
+      if (!map[key]) map[key] = [];
+      map[key].push(normalized);
+    });
+
+    // sort each day's appointments by time
+    Object.keys(map).forEach(k => {
+      map[k].sort((a, b) => a.dateObj - b.dateObj);
+    });
+
+    return map;
+  }, [bookedAppointments]);
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -29,6 +66,9 @@ function Calendar({
     const totalCells = 42;
     const daysArray = [];
 
+    // helper to create a date key (local y-m-d) for map lookups
+    const dateKey = (d) => `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+
     // Fill the array with 42 cells
     for (let i = 0; i < totalCells; i++) {
       const dayNumber = i - firstDay + 1;
@@ -44,15 +84,14 @@ function Calendar({
                        today.getMonth() === currentMonth && 
                        today.getFullYear() === currentYear;
         
-        // Get all appointments for this day
-        const dayAppointments = bookedAppointments.filter(appointment => {
-          return appointment.date.getDate() === dayNumber &&
-                 appointment.date.getMonth() === currentMonth &&
-                 appointment.date.getFullYear() === currentYear;
-        });
+        // Lookup appointments for this day from the precomputed map
+        const cellDate = new Date(currentYear, currentMonth, dayNumber);
+        const dayKey = dateKey(cellDate);
+        const dayAppointments = apptsByDate[dayKey] || [];
 
         const hasAppointments = dayAppointments.length > 0;
         const maxVisible = 2;
+        // pre-sorted when grouping; visible ones are earliest
         const visibleAppointments = dayAppointments.slice(0, maxVisible);
         const hasMoreAppointments = dayAppointments.length > maxVisible;
         
@@ -71,12 +110,11 @@ function Calendar({
             
             {/* Appointment Indicators */}
             {hasAppointments && (
-              <div className="absolute bottom-1 left-1 right-1 space-y-0.5">
-                {/* Visible appointment indicators */}
-                {visibleAppointments.map((appointment, index) => (
-                  <div 
-                    key={`appointment-${index}`}
-                    className="bg-[#FF9500] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
+              <div className="absolute inset-x-1 bottom-2 flex flex-col items-center gap-1 px-1 pb-2 pointer-events-auto z-20">
+                {visibleAppointments.map((appointment) => (
+                  <div
+                    key={appointment.id || `${appointment.office}-${appointment.time}`}
+                    className="bg-[#FDE68A] rounded-[10px] px-3 py-1 flex items-center justify-center cursor-pointer z-10 shadow-sm w-[86%] max-w-full overflow-hidden"
                     onMouseEnter={(e) => {
                       setHoveredAppointment({
                         ...appointment,
@@ -88,17 +126,17 @@ function Calendar({
                       setShowAppointmentHoverModal(false);
                       setHoveredAppointment(null);
                     }}
+                    title={`${appointment.student || appointment.studentName || appointment.student_name} • ${appointment.time} • ${appointment.service_type || appointment.service || appointment.office || appointment.office_name || 'Appointment Schedule'}`}
                   >
-                    <span className="text-white text-[10px] font-bold leading-none" style={{ fontFamily: 'Poppins' }}>
-                      {appointment.office}
+                    <span className="text-[#9A5A00] text-[12px] font-semibold leading-none truncate" style={{ fontFamily: 'Poppins' }}>
+                      {appointment.service_type || appointment.service || appointment.office || appointment.office_name || 'Appointment Schedule'}
                     </span>
                   </div>
                 ))}
-                
-                {/* View all indicator */}
+
                 {hasMoreAppointments && (
-                  <div 
-                    className="bg-[#122141] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
+                  <div
+                    className="bg-[#122141] rounded-[8px] px-3 py-1 flex items-center justify-center cursor-pointer z-10 w-[86%] shadow-sm"
                     onMouseEnter={(e) => {
                       setHoveredAppointment({
                         allAppointments: dayAppointments,
