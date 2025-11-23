@@ -1,6 +1,8 @@
 FROM php:8.3.11-fpm
 
-# Install system dependencies for PHP and Puppeteer
+# -------------------------------
+# Install system dependencies
+# -------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl unzip libsqlite3-dev libonig-dev libzip-dev libpq-dev zip git bash \
     gnupg2 ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 \
@@ -12,39 +14,47 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /var/www
 
-# Copy composer files first for caching
-COPY composer.json composer.lock /var/www/
-
+# -------------------------------
 # Install Composer
+# -------------------------------
+COPY composer.json composer.lock /var/www/
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 ENV COMPOSER_MEMORY_LIMIT=-1
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
-# Copy the rest of the app
+# -------------------------------
+# Copy the rest of the application
+# -------------------------------
 COPY . /var/www
 
-# Run artisan commands
-RUN php artisan package:discover
-
+# -------------------------------
 # Ensure storage & cache directories exist
+# -------------------------------
 RUN mkdir -p storage bootstrap/cache database \
     && chown -R www-data:www-data storage bootstrap/cache database \
     && chmod -R 775 storage bootstrap/cache database
 
-# Install Node.js & Puppeteer for Browsershot
+# -------------------------------
+# Install Node.js & Puppeteer
+# -------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && npm install puppeteer
 
+# -------------------------------
+# Run migrations, seeders, storage link as root
+# -------------------------------
+RUN php artisan migrate:fresh --force \
+    && php artisan db:seed --force \
+    && php artisan storage:link
+
+# -------------------------------
+# Switch to www-data user for running the app
+# -------------------------------
 USER www-data
 EXPOSE ${PORT:-10000}
 
-CMD bash -c "\
-    php artisan config:clear && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache && \
-    php artisan migrate:fresh --seed --force && \
-    php artisan storage:link && \
-    php artisan serve --host=0.0.0.0 --port=${PORT:-10000} \
-"
+# -------------------------------
+# Start Laravel server
+# -------------------------------
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
