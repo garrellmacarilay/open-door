@@ -1,7 +1,7 @@
 FROM php:8.3.11-fpm
 
 # -------------------------------
-# Install system dependencies
+# Install system dependencies for PHP and Puppeteer
 # -------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl unzip libsqlite3-dev libonig-dev libzip-dev libpq-dev zip git bash \
@@ -12,49 +12,72 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-install -j$(nproc) pdo_mysql pdo_pgsql pdo_sqlite mbstring zip opcache bcmath exif \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# -------------------------------
+# Set working directory
+# -------------------------------
 WORKDIR /var/www
+
+# -------------------------------
+# Copy composer files first for caching
+# -------------------------------
+COPY composer.json composer.lock /var/www/
 
 # -------------------------------
 # Install Composer
 # -------------------------------
-COPY composer.json composer.lock /var/www/
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 ENV COMPOSER_MEMORY_LIMIT=-1
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
 # -------------------------------
-# Copy the rest of the application
+# Copy application files
 # -------------------------------
 COPY . /var/www
 
 # -------------------------------
-# Ensure storage & cache directories exist
+# Run artisan package discovery
+# -------------------------------
+RUN php artisan package:discover
+
+# -------------------------------
+# Ensure directories exist
 # -------------------------------
 RUN mkdir -p storage bootstrap/cache database \
     && chown -R www-data:www-data storage bootstrap/cache database \
     && chmod -R 775 storage bootstrap/cache database
 
 # -------------------------------
-# Install Node.js & Puppeteer
+# Create SQLite database file if using SQLite
+# -------------------------------
+RUN touch database/database.sqlite
+
+# -------------------------------
+# Install Node.js & Puppeteer for Browsershot
 # -------------------------------
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && npm install puppeteer
 
 # -------------------------------
-# Run migrations, seeders, storage link as root
-# -------------------------------
-RUN php artisan migrate:fresh --force \
-    && php artisan db:seed --force \
-    && php artisan storage:link
-
-# -------------------------------
-# Switch to www-data user for running the app
+# Switch to www-data user
 # -------------------------------
 USER www-data
+
+# -------------------------------
+# Expose port
+# -------------------------------
 EXPOSE ${PORT:-10000}
 
 # -------------------------------
-# Start Laravel server
+# Run migrations, seeders, storage link, and serve
 # -------------------------------
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
+CMD bash -c "\
+    php artisan config:clear && \
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache && \
+    php artisan migrate:fresh --force && \
+    php artisan db:seed --force && \
+    php artisan storage:link && \
+    php artisan serve --host=0.0.0.0 --port=${PORT:-10000} \
+"
