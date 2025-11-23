@@ -1,53 +1,108 @@
 import api from "../utils/api"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 
 //student's appointmeents
 export function useAppointments() {
-    const [appointments, setAppointments] = useState([])
+    const [appointments, setAppointments] = useState([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loading, setLoading] = useState(false);
 
-    const fetchAppointments = async () => {
+    // Stable function: depends only on hasMore & loading
+    const fetchAppointments = useCallback(async (pageToLoad) => {
+        if (loading || !hasMore) return;
+
+        setLoading(true);
+
         try {
-            const res = await api.get('/my-bookings')
+            const res = await api.get(`/my-bookings?page=${pageToLoad}`);
+
             if (res.data.success) {
                 const converted = (res.data.data || []).map((a) => {
-                    const d = new Date(a.consultation_date)
-                    const localDate = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+                    const d = new Date(a.start);
+                    // normalize to a date object at local midnight for calendar comparisons
+                    const localDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
                     return {
                         ...a,
                         date: localDate,
-                        time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        office: a.office_name || a.office || '',
-                        student: a.student_name || a.student || ''
-                    }
-                })
+                        dateString: d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                        time: d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }),
+                        office: a.details?.office_name || a.office || "",
+                        student: a.details?.student_name || a.student || "",
+                    };
+                });
 
-                setAppointments(converted)
+                setAppointments(prev => {
+                    const merged = [...prev, ...converted];
+                    const unique = Array.from(new Map(merged.map(a => [a.id, a])).values());
+                    return unique;
+                });
+
+                const meta = res.data.meta;
+
+                // Stop loading if last page is reached
+                if (meta.current_page >= meta.last_page) {
+                    setHasMore(false);
+                } else {
+                    // Only increment page after successful load
+                    setPage((prev) => prev + 1);
+                }
             }
         } catch (err) {
-            console.error('Failed to fetch appointments:', err)
+            console.error("Failed to fetch appointments:", err);
         }
-    }
 
+        setLoading(false);
+    }, [hasMore, loading]);
+
+
+    // Load first page ONCE on mount
     useEffect(() => {
-        fetchAppointments()
-    }, [])
+        fetchAppointments(1);
+    }, []);
 
-    //for calendar hover
+
+    // Optional: Call this to load more pages (e.g., infinite scroll)
+    const loadMore = () => {
+        if (!loading && hasMore) {
+            fetchAppointments(page);
+        }
+    };
+
+
+    // For calendar hover
     const upcomingAppointments = appointments
-        .filter(a => a.date instanceof Date && a.date >= new Date())
-        .sort((a,b) => a.date - b.date)
         .map(a => ({
-            id: a.id,
-            date: a.date,
-            dateString: a.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-            studentName: a.student_name,
-            office: a.office_name,
-            time: a.time
+            ...a,
+            // ensure we have a Date object
+            _dateObj: a.date instanceof Date ? a.date : new Date(a.date)
         }))
+        .filter(a => a._dateObj >= new Date(new Date().setHours(0,0,0,0)))
+        .sort((a, b) => a._dateObj - b._dateObj)
+        .map((a) => ({
+            id: a.id,
+            date: a._dateObj,
+            dateString: a.dateString || a._dateObj.toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+            }),
+            studentName: a.student || a.studentName || a.student_name,
+            office: a.office || a.office_name,
+            time: a.time,
+        }));
 
-    return {appointments, upcomingAppointments, fetchAppointments}
+
+    return {
+        appointments,
+        upcomingAppointments,
+        fetchAppointments: loadMore, // expose as loadMore
+        hasMore,
+        loading,
+    };
 }
+
 
 //school events
 export function useEvents() {
@@ -168,74 +223,117 @@ export function useHistory() {
     return { bookings, fetchHistoryBookings }
 }
 
-export function useProfile () {
-   const [user, setUser] = useState({})
-   const [fullName, setFullName] = useState('')
-   const [profilePicture, setProfilePicture] = useState(null)
-   const [preview, setPreview] = useState(null)
-   const [message, setMessage] = useState('')
 
-   useEffect(() => {
+export function useProfile() {
+  const [user, setUser] = useState({});
+  const [fullName, setFullName] = useState('');
+  const [profilePicture, setProfilePicture] = useState(null); // File
+  const [preview, setPreview] = useState(null); // Full URL
+  const [profileImageUrl, setProfileImageUrl] = useState(null); // Full URL
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
     const fetchUser = async () => {
-        const res = await api.get('/profile')
-        setUser(res.data.user)
-        setFullName(res.data.user.full_name);
-        setPreview(res.data.user.profile_picture_url || null);
-    }
-    fetchUser()
-   }, [])
+      const res = await api.get('/show/user');
+      setUser(res.data.user);
+      setFullName(res.data.user.full_name);
 
-   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setMessage('')
-    
-    const formData = new FormData()
+            // Build image URL using API origin (strip any `/api` path). Fallback to window.location.origin.
+            const apiBase = api?.defaults?.baseURL || window.location.origin;
+            let base;
+            try {
+                base = new URL(apiBase).origin;
+            } catch (e) {
+                base = (apiBase || '').replace(/\/api\/?$/, '').replace(/\/$/, '') || window.location.origin;
+            }
+
+            const url = res.data.user.profile_picture
+                ? `${base}/storage/${res.data.user.profile_picture}`
+                : null;
+
+            setPreview(url);
+            setProfileImageUrl(url);
+    };
+    fetchUser();
+  }, []);
+
+  const setProfileAndPreview = (file) => {
+    setProfilePicture(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target.result); // immediate preview
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage('');
+
+    const formData = new FormData();
     formData.append('full_name', fullName);
-
-    if (profilePicture) {
-        formData.append('profile_picture', profilePicture);   
-    }
+    if (profilePicture) formData.append('profile_picture', profilePicture);
 
     try {
-        const res = await api.post('/user/profile', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        })
+      const res = await api.post('/user/profile', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
-        if (res.data.success) {
-            setMessage('Profile updated successfully')
-            setUser(res.data.user)
+      if (res.data.success) {
+                // Build final image URL using API origin (strip any `/api` path). Fallback to window.location.origin.
+                const apiBase = api?.defaults?.baseURL || window.location.origin;
+                let base;
+                try {
+                    base = new URL(apiBase).origin;
+                } catch (e) {
+                    base = (apiBase || '').replace(/\/api\/?$/, '').replace(/\/$/, '') || window.location.origin;
+                }
+                const url = res.data.user.profile_picture
+                    ? `${base}/storage/${res.data.user.profile_picture}`
+                    : null;
 
-            if (res.data.user.profile_picture_url) {
-                setPreview(res.data.user.profile_picture_url);
-            }
-        }
+                setPreview(url); // set final server URL
+        setProfileImageUrl(url);
+        setUser(res.data.user);
+        setProfilePicture(null);
+      }
     } catch (err) {
-        if (err.response && err.response.status === 422) {
-            const errors = err.response.data.errors
-            const errorMessages = Object.values(errors)
-                .flat()
-                .join(' | ')
-            console.error('Validation errors:', errors)
-            setMessage(`Validation failed: ${errorMessages}`);
-        } else {
-            console.error('Profile update failed:', err)
-            setMessage('Profile update failed. Please try again.')
-        }
+      if (err.response?.status === 422) {
+        const errors = err.response.data.errors;
+        setMessage(Object.values(errors).flat().join(' | '));
+      } else {
+        setMessage('Profile update failed. Please try again.');
+      }
     }
-   }
+  };
 
-   return { user, setProfilePicture, preview, message, handleSubmit }
+  return {
+    user,
+    fullName,
+    setFullName,
+        setProfilePicture,
+    profileImageUrl,
+    setProfileAndPreview, // use this to handle file selection
+    preview,
+    message,
+    handleSubmit
+  };
 }
 
-export function useFeedback() {
-    const [rating, setRating] = useState('')
-    const [comment, setComment] = useState('')
+
+export function useFeedback(booking) {
+    const [rating, setRating] = useState('');
+    const [comment, setComment] = useState('');
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
-        
+        // allow calling with or without an event (parent may handle preventDefault)
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+        if (!booking) {
+            console.error("No booking passed to useFeedback");
+            return { success: false, message: 'No booking provided' };
+        }
+
         try {
             const res = await api.post('/feedback/store', {
                 booking_id: booking.id,
@@ -243,19 +341,29 @@ export function useFeedback() {
                 office_id: booking.office_id,
                 rating,
                 comment
-            })
+            });
 
             if (res.data.success) {
-                return res.data
+                // keep rating/comment in hook state — parent can read them after this resolves
+                return res.data;
             }
+            return res.data || { success: false };
         } catch (err) {
-            console.error('Failed to submit feedback', err)
-            throw err
+            console.error('Failed to submit feedback', err);
+            throw err;
         }
-    }
-    
-    return { rating, comment, setComment, setRating, handleSubmit }
+    };
+
+    return {
+        rating,
+        comment,
+        setRating,
+        setComment,
+        handleSubmit
+    };
 }
+
+
 
 export function useReschedule() {
     const [isRescheduling, setIsRescheduling] = useState(false);
