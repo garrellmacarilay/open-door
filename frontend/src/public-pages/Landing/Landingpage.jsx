@@ -16,11 +16,8 @@ export const FrameLandingPage = () => {
   const [modalPosition, setModalPosition] = useState({ top: 1000, right: 0 });
   const [loginButtonVisible, setLoginButtonVisible] = useState(true);
   const contactButtonRef = useRef(null);
-<<<<<<< HEAD
-  const navigate = useNavigate()
-=======
   const aboutUsRef = useRef(null);
->>>>>>> c4e0a9e09c6d895de58dc98733473b0386699d03
+  const navigate = useNavigate()
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
