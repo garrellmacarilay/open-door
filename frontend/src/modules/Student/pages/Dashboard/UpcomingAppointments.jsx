@@ -1,8 +1,16 @@
 import React from 'react';
 import GradIcon from '../../../../components/global-img/graduation-cap.svg';
 
-function UpcomingAppointments({ upcomingEvents }) {
+function UpcomingAppointments({ upcomingEvents, fetchMore, hasMore }) {
   const eventsArray = Array.isArray(upcomingEvents) ? upcomingEvents : [];
+
+
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollTop + clientHeight >= scrollHeight - 50) {
+      if (hasMore) fetchMore();
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm flex flex-col h-[270px]">
@@ -14,7 +22,7 @@ function UpcomingAppointments({ upcomingEvents }) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-200">
+      <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-200" onScroll={handleScroll}>
         {eventsArray.map((event) => (
           <div
             key={event.id}
@@ -66,7 +74,7 @@ function UpcomingAppointments({ upcomingEvents }) {
                 <path d="M9 1V5M5 1V5M1 7H13" stroke="#360055" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>
-                {event.start || event.date}
+                {event.dateString || (event.date instanceof Date ? event.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : event.date) || 'N/A'}
               </span>
             </div>
 
@@ -89,7 +97,7 @@ function UpcomingAppointments({ upcomingEvents }) {
                 />
               </svg>
               <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>
-                {event.details?.time || event.time || 'N/A'}
+                {event.time || 'N/A'}
               </span>
             </div>
 
