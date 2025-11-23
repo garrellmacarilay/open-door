@@ -1,19 +1,25 @@
 import React from 'react';
+import { useState } from 'react';
 import { useNavigation } from '../../../../contexts/NavigationContext';
 import Notification from './Notification';
 import Profile from './Profile';
 import EditProfile from './EditProfile';
+import { useProfile } from '../../../../hooks/studentHooks';
 
-function Header({ 
-  showEditProfileModal, 
-  setShowEditProfileModal, 
-  editProfileData, 
-  handleEditProfileSubmit,
-  handleEditProfileCancel,
-  handleEditProfileChange,
-  profileImageUrl 
-}) {
+function Header() {
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false)
   const { getCurrentPageTitle } = useNavigation();
+
+  const {
+    user,
+    fullName,
+    setFullName,
+    setProfileAndPreview,
+    preview,
+    profileImageUrl,
+    message,
+    handleSubmit
+  } = useProfile()
 
   return (
     <>
@@ -29,7 +35,9 @@ function Header({
           {/* Profile Component */}
           <Profile 
             setShowEditProfileModal={setShowEditProfileModal} 
-            profileImageUrl={profileImageUrl}
+            profileImageUrl={profileImageUrl || preview}
+            fullName={fullName}
+            email={user?.email}
           />
         </div>
       </header>
@@ -37,10 +45,17 @@ function Header({
       {/* Edit Profile Modal Component */}
       <EditProfile 
         showEditProfileModal={showEditProfileModal}
-        editProfileData={editProfileData}
-        handleEditProfileSubmit={handleEditProfileSubmit}
-        handleEditProfileCancel={handleEditProfileCancel}
-        handleEditProfileChange={handleEditProfileChange}
+        editProfileData={{
+          username: fullName,
+          email: user?.email,
+          profileImage: preview // live preview
+        }}
+        handleEditProfileSubmit={handleSubmit}
+        handleEditProfileCancel={() => setShowEditProfileModal(false)}
+        handleEditProfileChange={(field, value) => {
+          if (field === 'username') setFullName(value);
+          if (field === 'profileImage') setProfileAndPreview(value); // <-- use the new function
+        }}
       />
     </>
   );
