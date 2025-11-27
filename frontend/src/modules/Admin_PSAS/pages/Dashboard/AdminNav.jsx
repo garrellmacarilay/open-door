@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNavigation } from '../../../../contexts/NavigationContext';
 import PSASLogo from '../../../Student/components/img/PSAS-Logo.png';
+import { useLogin } from '../../../../hooks/authHooks';
 
 function AdminNav() {
   const navigate = useNavigate();
@@ -11,14 +12,7 @@ function AdminNav() {
     navigateToPage(page);
   };
 
-  const handleLogout = () => {
-    // Clear any user session data if needed
-    // localStorage.removeItem('userToken'); // Uncomment if using localStorage
-    // sessionStorage.clear(); // Uncomment if using sessionStorage
-    
-    // Navigate to landing page using React Router
-    navigate('/');
-  };
+  const {handleLogout} = useLogin()
 
   return (
     <div className="w-[250px] bg-[#122141] text-white flex flex-col shrink-0 relative">

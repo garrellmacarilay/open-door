@@ -3,18 +3,22 @@ import { useNavigation } from '../../../../contexts/NavigationContext';
 import AdminNotification from './AdminNotification';
 import AdminProfile from './AdminProfile';
 import AdminEditProfile from './AdminEditProfile';
-
-function AdminHeader({ 
-  showEditProfileModal, 
-  setShowEditProfileModal, 
-  editProfileData, 
-  handleEditProfileSubmit,
-  handleEditProfileCancel,
-  handleEditProfileChange,
-  profileImageUrl 
-}) {
+import { useProfile } from '../../../../hooks/globalHooks';
+import { useState } from 'react';
+function AdminHeader() {
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false)
   const { getCurrentPageTitle } = useNavigation();
-
+  const {
+      user,
+      fullName,
+      setFullName,
+      setProfileAndPreview,
+      preview,
+      profileImageUrl,
+      message,
+      handleSubmit
+  } = useProfile()
+  
   return (
     <>
       {/* Header */}
@@ -29,7 +33,9 @@ function AdminHeader({
           {/* Profile Component */}
           <AdminProfile 
             setShowEditProfileModal={setShowEditProfileModal} 
-            profileImageUrl={profileImageUrl}
+            profileImageUrl={profileImageUrl || preview}
+            fullName={fullName}
+            email={user?.email}
           />
         </div>
       </header>
@@ -37,10 +43,17 @@ function AdminHeader({
       {/* Edit Profile Modal Component */}
       <AdminEditProfile 
         showEditProfileModal={showEditProfileModal}
-        editProfileData={editProfileData}
-        handleEditProfileSubmit={handleEditProfileSubmit}
-        handleEditProfileCancel={handleEditProfileCancel}
-        handleEditProfileChange={handleEditProfileChange}
+        editProfileData={{
+          username: fullName,
+          email: user?.email,
+          profileImage: preview // live preview
+        }}
+        handleEditProfileSubmit={handleSubmit}
+        handleEditProfileCancel={() => setShowEditProfileModal(false)}
+        handleEditProfileChange={(field, value) => {
+          if (field === 'username') setFullName(value);
+          if (field === 'profileImage') setProfileAndPreview(value); // <-- use the new function
+        }}
       />
     </>
   );

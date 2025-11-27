@@ -1,12 +1,38 @@
 import React, { useState } from 'react';
 import GradIcon from '../../../../components/global-img/graduation-cap.svg';
+import { useUpdateAppointmentStatus } from '../../../../hooks/adminHooks';
 
 function AdminUpcomingAppointments({ upcomingEvents }) {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
+  const { loading, error, success, updateStatus } = useUpdateAppointmentStatus()
+
   const handleAppointmentClick = (appointment) => {
-    setSelectedAppointment(appointment);
+    const details = appointment.details || appointment.details || {}; 
+    // depending how your data arrives, but your sample uses appointment.details
+
+    setSelectedAppointment({
+      id: appointment.id,
+      studentName: details.student || 'Unknown Student',
+      office: details.office || 'Unknown Office',
+      serviceType: details.service_type || details.serviceType || 'Unknown Service',
+      status: details.status || 'Pending',
+      date: new Date(appointment.start).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }),
+      time: new Date(appointment.start).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      attachedFile: details.attachment
+        ? details.attachment.split("/").pop()
+        : 'No File',
+      referenceCode: details.reference_code || '',
+    });
+
     setShowModal(true);
   };
 
@@ -17,15 +43,27 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
 
   const handleApprove = () => {
     // Handle approve logic here
-    console.log('Approved appointment:', selectedAppointment);
+    if (!selectedAppointment) return;
+    updateStatus(selectedAppointment.id, "approved");
     handleCloseModal();
   };
 
   const handleDecline = () => {
-    // Handle decline logic here
-    console.log('Declined appointment:', selectedAppointment);
+    if (!selectedAppointment) return;
+    updateStatus(selectedAppointment.id, "declined");
     handleCloseModal();
   };
+
+  const formatDateTime = (datetime) => {
+    if (!datetime) return { date: 'Unknown Date', time: 'Unknown Time' };
+    const dateObj = new Date(datetime);
+
+    return {
+      date: dateObj.toLocaleDateString(),
+      time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-sm flex flex-col h-full">
       {/* Header */}
@@ -35,62 +73,69 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-200 min-h-0">
-        {upcomingEvents?.slice(0, 2).map((event, index) => (
-          <div 
-            key={`${event?.studentName || 'unknown'}-${event?.time || 'unknown'}-${index}`} 
-            className="border border-gray-400 rounded-[5px] p-3 pb-0 mb-4 bg-white relative cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => handleAppointmentClick(event)}
-          >
+        {upcomingEvents.map((event) => {
+          const { date, time } = formatDateTime(event.start);
+          const { student, office, status, reference_code } = event.details || {};
+
+          return (  
+            <div
+              key={reference_code}
+              className="border border-gray-400 rounded-[5px] p-3 pb-0 mb-4 bg-white relative cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => handleAppointmentClick(event)}            
+            >
+
             {/* Student Info Row */}
             <div className="flex items-center gap-2 mb-2 pr-10!">
               <img src={GradIcon} alt="Graduation Cap" className="w-5 h-5 pr-0" />
-              <span className="font-semibold text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.studentName || 'Unknown Student'}</span>
+              <span className="font-semibold text-xs text-black" style={{ fontFamily: 'Inter' }}>{student || 'Unknown Student'}</span>
             </div>
 
             {/* Office Row */}
-            <div className="flex items-center gap-2 mb-2">
-              <svg width="14" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 5L8 1L15 5V12C15 12.2652 14.8946 12.5196 14.7071 12.7071C14.5196 12.8946 14.2652 13 14 13H2C1.73478 13 1.48043 12.8946 1.29289 12.7071C1.10536 12.5196 1 12.2652 1 12V5Z" stroke="#0059FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.office || 'Unknown Office'}</span>
-            </div>
+              <div className="flex items-center gap-2 mb-2">
+                <svg width="14" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 5L8 1L15 5V12C15 12.2652 14.8946 12.5196 14.7071 12.7071C14.5196 12.8946 14.2652 13 14 13H2C1.73478 13 1.48043 12.8946 1.29289 12.7071C1.10536 12.5196 1 12.2652 1 12V5Z" stroke="#0059FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{office || 'Unknown Office'}</span>
+              </div>
 
             {/* Date Row */}
-            <div className="flex items-center gap-2 mb-2">
-              <svg width="14" height="14" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 3H3C1.89543 3 1 3.89543 1 5V13C1 14.1046 1.89543 15 3 15H11C12.1046 15 13 14.1046 13 13V5C13 3.89543 12.1046 3 11 3Z" fill="white"/>
-                <path d="M9 1V5M5 1V5M1 7H13" stroke="#360055" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.date || 'Unknown Date'}</span>
-            </div>
+              <div className="flex items-center gap-2 mb-2">
+                <svg width="14" height="14" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11 3H3C1.89543 3 1 3.89543 1 5V13C1 14.1046 1.89543 15 3 15H11C12.1046 15 13 14.1046 13 13V5C13 3.89543 12.1046 3 11 3Z" fill="white"/>
+                  <path d="M9 1V5M5 1V5M1 7H13" stroke="#360055" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{date}</span>
+              </div>
 
             {/* Time Row */}
-            <div className="flex items-center gap-2 mb-3">
-              <svg width="14.5" height="14.5" viewBox="0 0 14.5 14.5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="7.25" cy="7.25" r="6.25" stroke="#9D4400" strokeWidth="2"/>
-                <path d="M7.25 3.625V7.25L9.625 9.625" stroke="#9D4400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.time || 'Unknown Time'}</span>
-            </div>
+              <div className="flex items-center gap-2 mb-3">
+                <svg width="14.5" height="14.5" viewBox="0 0 14.5 14.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="7.25" cy="7.25" r="6.25" stroke="#9D4400" strokeWidth="2"/>
+                  <path d="M7.25 3.625V7.25L9.625 9.625" stroke="#9D4400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{time}</span>
+              </div> 
 
-            {/* Status Badge */}
-            <div className="absolute top-3 right-3">
-              <div className={`px-3 py-1 rounded-[5px] ${
-                event?.status === 'Pending' ? 'bg-[#FFE168]' :
-                event?.status === 'Approved' ? 'bg-[#9EE2AA]' :
-                'bg-red-200'
-              }`}>
-                <span className={`text-base font-medium items-center  ${
-                  event?.status === 'Pending' ? 'text-[#9D6B00]' :
-                  event?.status === 'Approved' ? 'text-[#009812]' :
-                  'text-red-700'
-                }`} style={{ fontFamily: 'Poppins' , fontSize: '10px' }}>
-                  {event?.status || 'Unknown'}
-                </span>
+              {/* Status Badge */}
+              <div className="absolute top-3 right-3">
+                <div className={`px-3 py-1 rounded-[5px] ${
+                  event?.status === 'Pending' ? 'bg-[#FFE168]' :
+                  event?.status === 'Approved' ? 'bg-[#9EE2AA]' :
+                  'bg-red-200'
+                }`}>
+                  <span className={`text-base font-medium items-center  ${
+                    event?.status === 'Pending' ? 'text-[#9D6B00]' :
+                    event?.status === 'Approved' ? 'text-[#009812]' :
+                    'text-red-700'
+                  }`} style={{ fontFamily: 'Poppins' , fontSize: '10px' }}>
+                    {status || 'Unknown'}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        } 
+        )}
       </div>
 
       {/* Appointment Details Modal */}
@@ -135,7 +180,7 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
                   </div>
                   <div className="ml-6">
                     <span className="text-sm text-black" style={{ fontFamily: 'Inter' }}>
-                      {selectedAppointment?.studentName || 'Unknown Student'}
+                      {selectedAppointment.studentName}
                     </span>
                   </div>
                 </div>
@@ -150,7 +195,7 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
                   </div>
                   <div className="ml-6">
                     <span className="text-sm text-black" style={{ fontFamily: 'Inter' }}>
-                      {selectedAppointment?.office || 'Medical and Dental Services'}
+                      {selectedAppointment.office}
                     </span>
                   </div>
                 </div>

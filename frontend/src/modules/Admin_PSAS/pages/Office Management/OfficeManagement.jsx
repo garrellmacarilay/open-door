@@ -1,94 +1,84 @@
 import React, { useState } from 'react';
+import { useAdminOffices, useCreateOffice, useUpdateOffice, useDeleteOffice } from '../../../../hooks/adminHooks';
 
 function OfficeManagement() {
   const [showAddOfficeModal, setShowAddOfficeModal] = useState(false);
+  const [showEditOfficeModal, setShowEditOfficeModal] = useState(false);
   const [newOffice, setNewOffice] = useState({
     name: '',
     email: '',
     status: 'available'
   });
+  const [editOffice, setEditOffice] = useState({
+    id: null,
+    name: '',
+    email: '',
+    status: 'available'
+  });
   
-  const [offices, setOffices] = useState([
-    {
-      id: 1,
-      name: 'Student IT Support and Services',
-      email: 'prefect.its@laverdad.edu.ph',
-      status: 'available'
-    },
-    {
-      id: 2,
-      name: 'Guidance and Counseling',
-      email: 'student.organization.office@laverdad.edu.ph',
-      status: 'available'
-    },
-    {
-      id: 3,
-      name: 'Medical and Dental Services',
-      email: 'student.organization.office@laverdad.edu.ph',
-      status: 'available'
-    },
-    {
-      id: 4,
-      name: 'Sports Development and Management',
-      email: 'student.organization.office@laverdad.edu.ph',
-      status: 'available'
-    },
-    {
-      id: 5,
-      name: 'Assistance and Experiential Education',
-      email: 'student.organization.office@laverdad.edu.ph',
-      status: 'available'
-    },
-    {
-      id: 6,
-      name: 'Student Discipline',
-      email: 'student.organization.office@laverdad.edu.ph',
-      status: 'available'
-    },
-    {
-      id: 7,
-      name: 'Student Organization',
-      email: 'student.organization.office@laverdad.edu.ph',
-      status: 'available'
-    },
-    {
-      id: 8,
-      name: 'Student Internship',
-      email: 'student.organization.office@laverdad.edu.ph',
-      status: 'available'
-    },
-    {
-      id: 9,
-      name: 'Student Publication',
-      email: 'student.organization.office@laverdad.edu.ph',
-      status: 'available'
-    }
-  ]);
+  const { offices, loading, error, refetch } = useAdminOffices();
+  const { createOffice } = useCreateOffice();
+  const { updateOffice } = useUpdateOffice();
+  const { deleteOffice } = useDeleteOffice();
 
-  const handleAddOffice = () => {
+  const handleAddOffice = async () => {
     setShowAddOfficeModal(true);
   };
 
-  const handleSaveOffice = () => {
-    if (newOffice.name && newOffice.email) {
-      const newId = Math.max(...offices.map(o => o.id)) + 1;
-      setOffices([...offices, { ...newOffice, id: newId }]);
-      setNewOffice({ name: '', email: '', status: 'available' });
+  const handleSaveOffice = async () => {
+    const created = await createOffice({
+      office_name: newOffice.name,
+      contact_email: newOffice.email,   
+      status: newOffice.status 
+    });
+
+    if (created) {
+      refetch();
       setShowAddOfficeModal(false);
+      setNewOffice({ name: "", email: "", status: "active" });
     }
   };
 
   const handleCancelAdd = () => {
-    setNewOffice({ name: '', email: '', status: 'available' });
+    setNewOffice({ name: '', email: '', status: 'active' });
     setShowAddOfficeModal(false);
   };
 
-  const handleEditOffice = (officeId) => {
-    console.log('Edit office:', officeId);
+  const handleEditOffice = (id) => {
+    const office = offices.find(o => o.id === id);
+    
+    if (!office) return
+    
+    setEditOffice({
+      id: office.id,
+      name: office.office_name,
+      email: office.contact_email,
+      status: office.status
+    })
+
+    setShowEditOfficeModal(true)
   };
 
-  const handleDeleteOffice = (officeId) => {
-    setOffices(offices.filter(office => office.id !== officeId));
+  const handleSaveEditOffice = async () => {
+    const updated = await updateOffice(editOffice.id, {
+      office_name: editOffice.name,        
+      contact_email: editOffice.email,     
+      status: editOffice.status 
+    });
+
+    if (updated) {
+      refetch();
+      setShowEditOfficeModal(false);
+    }
+  };
+  const handleCancelEdit = () => {
+    setEditOffice({ id: null, name: '', email: '', status: 'available' });
+    setShowEditOfficeModal(false);
+  };
+
+  const handleDeleteOffice = async (id) => {
+    const res = await deleteOffice(id)
+    if (res) refetch()
   };
 
   return (
@@ -113,28 +103,28 @@ function OfficeManagement() {
           
           {/* Table Header */}
           <div className="bg-[#122141] border border-[#BDBDBD] rounded-t-[5px] h-[65px] flex items-center">
-            <div className="flex w-full">
-              <div className="w-[37px] flex items-center justify-center">
+            <div className="flex w-full items-center">
+              <div className="w-12 flex items-center justify-center shrink-0">
                 <span className="text-white text-[16px] font-bold" style={{ fontFamily: 'Inter' }}>
                   #
                 </span>
               </div>
-              <div className="flex-1 px-4">
+              <div className="flex-1 px-4 min-w-0">
                 <span className="text-white text-[16px] font-bold" style={{ fontFamily: 'Inter' }}>
                   Office
                 </span>
               </div>
-              <div className="w-[376px] px-4">
+              <div className="flex-1 px-4 min-w-0">
                 <span className="text-white text-[16px] font-bold" style={{ fontFamily: 'Inter' }}>
                   Contact Info
                 </span>
               </div>
-              <div className="w-[200px] px-4">
+              <div className="w-24 px-2 shrink-0">
                 <span className="text-white text-[16px] font-bold" style={{ fontFamily: 'Inter' }}>
                   Status
                 </span>
               </div>
-              <div className="w-[150px] px-4 text-center">
+              <div className="w-20 px-2 text-center shrink-0">
                 <span className="text-white text-[16px] font-bold" style={{ fontFamily: 'Inter' }}>
                   Actions
                 </span>
@@ -149,49 +139,49 @@ function OfficeManagement() {
                 key={office.id}
                 className={`${
                   index % 2 === 0 ? 'bg-[#F0F0F0]' : 'bg-white'
-                } border-l border-r border-b border-[#BDBDBD] h-[60px] flex items-center ${
+                } border-l border-r border-b border-[#BDBDBD] min-h-[60px] flex items-center ${
                   index === offices.length - 1 ? 'rounded-b-[5px]' : ''
-                }`}
+                } py-2`}
               >
                 <div className="flex w-full items-center">
-                  <div className="w-[37px] flex items-center justify-center">
+                  <div className="w-12 flex items-center justify-center shrink-0">
                     <span className="text-black text-[16px] font-semibold" style={{ fontFamily: 'Inter' }}>
                       {index + 1}
                     </span>
                   </div>
-                  <div className="flex-1 px-4">
-                    <span className="text-black text-[16px] font-semibold" style={{ fontFamily: 'Inter' }}>
-                      {office.name}
+                  <div className="flex-1 px-4 min-w-0">
+                    <span className="text-black text-[16px] font-semibold wrap-break-word" style={{ fontFamily: 'Inter' }}>
+                      {office.office_name}
                     </span>
                   </div>
-                  <div className="w-[376px] px-4">
-                    <span className="text-black text-[16px] font-semibold" style={{ fontFamily: 'Inter' }}>
-                      {office.email}
+                  <div className="flex-1 px-4 min-w-0">
+                    <span className="text-black text-[16px] font-semibold break-all" style={{ fontFamily: 'Inter' }}>
+                      {office.contact_email}
                     </span>
                   </div>
-                  <div className="w-[200px] px-4">
-                    <div className="bg-[#ABFFAC] rounded-[5px] px-2.5 py-2.5 w-[93px] h-[25px] flex items-center justify-center">
-                      <span className="text-[#006928] text-[14px] font-medium" style={{ fontFamily: 'Poppins' }}>
+                  <div className="w-24 px-2 shrink-0">
+                    <div className="bg-[#ABFFAC] rounded-[5px] px-2 py-1 flex items-center justify-center">
+                      <span className="text-[#006928] text-[12px] font-medium whitespace-nowrap" style={{ fontFamily: 'Poppins' }}>
                         {office.status}
                       </span>
                     </div>
                   </div>
-                  <div className="w-[150px] mb- px-5 flex items-center justify-center gap-4">
+                  <div className="w-20 px-2 flex items-center justify-center gap-2 shrink-0">
                     {/* Edit Button */}
                     <button
                       onClick={() => handleEditOffice(office.id)}
-                      className="w-6 h-6 hover:opacity-75 transition-opacity bg-transparent!"
+                      className="w-6 h-6 hover:opacity-75 transition-opacity bg-transparent! shrink-0"
                     >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="2" y="2" width="20" height="20" rx="10" fill="black"/>
-                        <path d="M12 8V16M8 12H16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 16H4L13.5 6.5C13.8978 6.10217 14.1213 5.56261 14.1213 5C14.1213 4.43739 13.8978 3.89783 13.5 3.5C13.1022 3.10217 12.5626 2.87868 12 2.87868C11.4374 2.87868 10.8978 3.10217 10.5 3.5L1 13V16Z" stroke="#008CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10.5 3.5L13.5 6.5" stroke="#008CFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
                     
                     {/* Delete Button */}
                     <button
                       onClick={() => handleDeleteOffice(office.id)}
-                      className="w-6 h-6 hover:opacity-75 transition-opacity bg-transparent!"
+                      className="w-6 h-6 hover:opacity-75 transition-opacity bg-transparent! shrink-0"
                     >
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M4 7H20M10 11V17M14 11V17M5 7L6 19C6 19.5304 6.21071 20.0391 6.58579 20.4142C6.96086 20.7893 7.46957 21 8 21H16C16.5304 21 17.0391 20.7893 17.4142 20.4142C17.7893 20.0391 18 19.5304 18 19L19 7M9 7V4C9 3.73478 9.10536 3.48043 9.29289 3.29289C9.48043 3.10536 9.73478 3 10 3H14C14.2652 3 14.5196 3.10536 14.7071 3.29289C14.8946 3.48043 15 3.73478 15 4V7" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -260,8 +250,8 @@ function OfficeManagement() {
                     className="w-full h-10 px-4 border border-gray-300 rounded-[5px] text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     style={{ fontFamily: 'Inter' }}
                   >
-                    <option value="available">Available</option>
-                    <option value="unavailable">Unavailable</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
                   </select>
                 </div>
               </div>
@@ -281,6 +271,168 @@ function OfficeManagement() {
                   style={{ fontFamily: 'Inter' }}
                 >
                   Add Office
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Office Modal - Exact Figma Design */}
+        {showEditOfficeModal && (
+          <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-50 p-4">
+            <div 
+              className="bg-white rounded-[10px] shadow-[0px_4px_50px_10px_rgba(125,125,125,0.25)] relative"
+              style={{ width: '534px', height: '500px' }}
+            >
+              
+              {/* Modal Header - Exact Figma Positioning */}
+              <div 
+                className="bg-[#122141] rounded-t-[10px] flex items-center"
+                style={{ width: '534px', height: '81px' }}
+              >
+                <h3 
+                  className="text-white text-[20px] font-bold"
+                  style={{ 
+                    fontFamily: 'Inter', 
+                    lineHeight: '1.21em',
+                    marginLeft: '46px',
+                    marginTop: '30px'
+                  }}
+                >
+                  Edit Office
+                </h3>
+              </div>
+
+              {/* Modal Content - Exact Figma Layout */}
+              <div className="relative">
+                
+                {/* Office Input - Positioned according to Figma */}
+                <div 
+                  className="absolute"
+                  style={{ 
+                    left: '46px', 
+                    top: '47px',
+                    width: '443px', 
+                    height: '67px' 
+                  }}
+                >
+                  <label 
+                    className="block text-black text-[16px] font-semibold mb-2" 
+                    style={{ fontFamily: 'Inter', lineHeight: '1.21em' }}
+                  >
+                    Office *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={editOffice.name}
+                      onChange={(e) => setEditOffice({ ...editOffice, name: e.target.value })}
+                      className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-[14px] text-[#BCBABA] focus:outline-none focus:border-blue-500"
+                      style={{ fontFamily: 'Inter', lineHeight: '1.21em' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Email Address Input - Positioned according to Figma */}
+                <div 
+                  className="absolute"
+                  style={{ 
+                    left: '46px', 
+                    top: '147px',
+                    width: '443px', 
+                    height: '67px' 
+                  }}
+                >
+                  <label 
+                    className="block text-black text-[16px] font-semibold mb-2" 
+                    style={{ fontFamily: 'Inter', lineHeight: '1.21em' }}
+                  >
+                    Email Address *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      value={editOffice.email}
+                      onChange={(e) => setEditOffice({ ...editOffice, email: e.target.value })}
+                      className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-[14px] text-[#BCBABA] focus:outline-none focus:border-blue-500"
+                      style={{ fontFamily: 'Inter', lineHeight: '1.21em' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Status Dropdown - Positioned according to Figma */}
+                <div 
+                  className="absolute"
+                  style={{ 
+                    left: '46px', 
+                    top: '246px',
+                    width: '443px', 
+                    height: '67px' 
+                  }}
+                >
+                  <label 
+                    className="block text-black text-[16px] font-semibold mb-2" 
+                    style={{ fontFamily: 'Inter', lineHeight: '1.21em' }}
+                  >
+                    Status *
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={editOffice.status}
+                      onChange={(e) => setEditOffice({ ...editOffice, status: e.target.value })}
+                      className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-[14px] text-[#BCBABA] focus:outline-none focus:border-blue-500 appearance-none"
+                      style={{ fontFamily: 'Inter', lineHeight: '1.21em' }}
+                    >
+                      <option value="active">active</option>
+                      <option value="inactive">inactive</option>
+                    </select>
+                    
+                    {/* Chevron Icon - Positioned according to Figma */}
+                    <div 
+                      className="absolute pointer-events-none"
+                      style={{ right: '19px', top: '8px' }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 10L12 15L17 10" stroke="#BCBABA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Actions - Positioned according to Figma */}
+              <div 
+                className="absolute flex gap-2.5"
+                style={{ 
+                  right: '45px', 
+                  bottom: ' 35px'
+                }}
+              >
+                <button
+                  onClick={handleCancelEdit}
+                  className="bg-white border-2 border-[#EDEDED] rounded-[5px] text-black font-bold text-[12px] hover:bg-gray-50 transition-colors flex items-center justify-center"
+                  style={{ 
+                    fontFamily: 'Poppins', 
+                    lineHeight: '1.5em',
+                    width: '127px',
+                    height: '35.23px',
+                    padding: '10px 10px 10px 8px'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEditOffice}
+                  className="bg-[#155DFC] hover:bg-blue-700 rounded-[5px] text-white font-bold text-[12px] transition-colors flex items-center justify-center"
+                  style={{ 
+                    fontFamily: 'Poppins', 
+                    lineHeight: '1.5em',
+                    width: '127px',
+                    height: '35.23px',
+                    padding: '10px 10px 10px 8px'
+                  }}
+                >
+                  Save
                 </button>
               </div>
             </div>
