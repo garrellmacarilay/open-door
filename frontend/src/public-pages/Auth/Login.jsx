@@ -4,7 +4,7 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react"; // optional, for the back
 import Login_img from "../../components/global-img/LVCC-Gate.jpg";
 import PSAS_Logo from "../../components/global-img/PSAS-Logo.png";
 import api from "../../utils/api";
-import { useGoogleLogin } from '../../hooks/authHooks'
+import { useGoogleLogin, useLogin } from '../../hooks/authHooks'
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,8 +13,10 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   const { handleGoogleLogin } = useGoogleLogin()
+  const { handleLogin, loading, message } = useLogin()
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Basic validation
     if (!email || !password) {
@@ -22,11 +24,7 @@ export default function LoginPage() {
       return;
     }
     
-    // Here you would normally make an API call to authenticate
-    console.log("Login submitted", { email, password });
-    
-    // For now, navigate to admin dashboard (replace with your actual route)
-    navigate("/admin");
+    await handleLogin(email, password)
   };
 
   // const handleGoogleLogin = () => {
@@ -99,7 +97,7 @@ export default function LoginPage() {
               type="submit"
               className="w-full bg-[#1e3a8a] hover:bg-[#1e40af] text-white font-semibold py-3 rounded-md transition duration-200 shadow-md hover:shadow-lg"
             >
-              Log In
+              {loading ? "Logging in..." : "Log In"}
             </button>
 
             <div className="flex items-center my-4">
