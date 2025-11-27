@@ -119,36 +119,7 @@ function EditProfile({
                 className="w-full h-10 px-3 border border-[#E2E8F0] rounded-md text-sm text-[#020618] bg-white"
                 style={{ fontFamily: 'Inter' }}
                 placeholder="Enter email address"
-              />
-            </div>
-
-            {/* Change Password Field */}
-            <div className="space-y-0 m-2">
-              <label className="block text-black text-sm font-medium" style={{ fontFamily: 'Inter' }}>
-                Change Password
-              </label>
-              <input
-                type="password"
-                value={editProfileData.newPassword}
-                onChange={(e) => handleEditProfileChange('newPassword', e.target.value)}
-                className="w-full h-10 px-3 border border-[#E2E8F0] rounded-md text-sm text-[#62748E] bg-white"
-                style={{ fontFamily: 'Inter' }}
-                placeholder="Enter new password"
-              />
-            </div>
-
-            {/* Confirm Password Field */}
-            <div className="space-y-0 m-2">
-              <label className="block text-black text-sm font-medium" style={{ fontFamily: 'Inter' }}>
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={editProfileData.confirmPassword}
-                onChange={(e) => handleEditProfileChange('confirmPassword', e.target.value)}
-                className="w-full h-10 px-3 border border-[#E2E8F0] rounded-md text-sm text-[#62748E] bg-white"
-                style={{ fontFamily: 'Inter' }}
-                placeholder="Confirm new password"
+                disabled
               />
             </div>
 

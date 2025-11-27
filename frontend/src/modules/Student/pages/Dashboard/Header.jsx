@@ -4,7 +4,7 @@ import { useNavigation } from '../../../../contexts/NavigationContext';
 import Notification from './Notification';
 import Profile from './Profile';
 import EditProfile from './EditProfile';
-import { useProfile } from '../../../../hooks/studentHooks';
+import { useProfile } from '../../../../hooks/globalHooks';
 
 function Header() {
   const [showEditProfileModal, setShowEditProfileModal] = useState(false)
