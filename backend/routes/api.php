@@ -23,6 +23,13 @@ use App\Http\Controllers\Api\FeedbackController;
 //     Route::get('/calendar/events', [CalendarController::class, 'index']);
 // });
 
+
+
+Route::get('/test-cloudinary', function () {
+    return response()->json(config('cloudinary'));
+});
+
+
 Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/auth/google', [GoogleController::class, 'redirect']);

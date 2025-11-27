@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Models\ModalNotification;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use App\Notifications\ModalNotificationCreated;
 
 class BookingController extends Controller
@@ -110,8 +111,19 @@ class BookingController extends Controller
         }
 
         if ($request->hasFile('uploaded_file_url')) {
-            $path = $request->file('uploaded_file_url')->store('attachments', 'public');
-            $val['uploaded_file_url'] = '/storage/' . $path;
+            try {
+                $path = $request->file('uploaded_file_url')->getRealPath();
+                $options = ['folder' => 'attachments'];
+
+                $uploaded = Cloudinary::uploadApi()->upload($path, $options);
+
+                $val['uploaded_file_url'] = $uploaded['secure_url'] ?? $uploaded['url'] ?? null;
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File upload failed: ' . $e->getMessage()
+                ], 500);
+            }
         } else {
             $val['uploaded_file_url'] = null;
         }

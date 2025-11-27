@@ -25,3 +25,6 @@ Route::get('/{any}', function () {
 	}
 	abort(404);
 })->where('any', '^(?!api).*$');
+
+
+

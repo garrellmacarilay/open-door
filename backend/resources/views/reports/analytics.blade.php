@@ -2,39 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Consultation Report - {{ $monthYear }}</title>
+    <title>Consultation Report - {{ now()->format('F Y') }}</title>
     <style>
         body {
             font-family: sans-serif;
             font-size: 12px;
             color: #333;
+            margin: 0;
+            padding: 20px;
         }
-        h1, h2, h3 {
+        h1, h2 {
             text-align: center;
             margin-bottom: 10px;
         }
-        .summary {
+        .chart-container {
             display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 50px;
+            margin-top: 30px;
         }
-        .summary div {
-            text-align: center;
+        .pie-chart {
+            position: relative;
+            width: 300px;
+            height: 300px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
-        table, th, td {
-            border: 1px solid #888;
+        .legend div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
-        .page-break {
-            page-break-after: always;
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
         }
         .footer {
             text-align: center;
@@ -46,91 +52,56 @@
 </head>
 <body>
 
-<!-- ========================= PAGE 1: OVERALL SUMMARY ========================= -->
 <h1>Consultation Report</h1>
-<h2>{{ $monthYear }}</h2>
+<h2>{{ now()->format('F Y') }}</h2>
 
-<div class="summary">
-    <div>
-        <p><strong>Total Consultations</strong></p>
-        <p>{{ $total }}</p>
+@php
+    $totalConsultations = array_sum(array_column($officeBreakdown, 'total'));
+    $colors = ['#E3F2FD','#BBDEFB','#90CAF9','#64B5F6','#42A5F5','#2196F3','#1E88E5','#1976D2','#1565C0','#0D47A1','#0A3A8A'];
+    $radius = 100;
+    $circumference = 2 * pi() * $radius;
+    $startAngle = 0;
+@endphp
+
+<div class="chart-container">
+    <!-- Pie Chart -->
+    <div class="pie-chart">
+        <svg viewBox="0 0 250 250" width="250" height="250">
+            @foreach($officeBreakdown as $index => $office)
+                @php
+                    $slicePercent = $totalConsultations > 0 ? ($office['total'] / $totalConsultations) * 100 : 0;
+                    $sliceLength = ($slicePercent / 100) * $circumference;
+                    $dashOffset = $circumference - $sliceLength;
+                @endphp
+                <circle cx="125" cy="125" r="{{ $radius }}" fill="transparent"
+                    stroke="{{ $colors[$index % count($colors)] }}" stroke-width="50"
+                    stroke-dasharray="{{ $sliceLength }} {{ $circumference - $sliceLength }}"
+                    stroke-dashoffset="{{ $circumference - $startAngle }}"
+                    transform="rotate(-90 125 125)"/>
+                @php
+                    $startAngle += $sliceLength;
+                @endphp
+            @endforeach
+        </svg>
     </div>
-    <div>
-        <p><strong>Completed</strong></p>
-        <p>{{ $completed }}</p>
-    </div>
-    <div>
-        <p><strong>Cancelled</strong></p>
-        <p>{{ $cancelled }}</p>
+
+    <!-- Legend -->
+    <div class="legend">
+        @foreach($officeBreakdown as $index => $office)
+            @php
+                $slicePercent = $totalConsultations > 0 ? ($office['total'] / $totalConsultations) * 100 : 0;
+            @endphp
+            <div>
+                <div class="legend-color" style="background-color: {{ $colors[$index % count($colors)] }}"></div>
+                <span>{{ $office['name'] }} — {{ round($slicePercent,1) }}%</span>
+            </div>
+        @endforeach
     </div>
 </div>
-
-<h3>Service Distribution by Office</h3>
-<table>
-    <thead>
-        <tr>
-            <th>Office</th>
-            <th>Number of Consultations</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($distribution as $dist)
-        <tr>
-            <td>{{ $dist->office->office_name ?? 'Unknown' }}</td>
-            <td>{{ $dist->total }}</td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
 
 <div class="footer">
     Report generated on {{ now()->format('F d, Y H:i') }}
 </div>
-
-<div class="page-break"></div>
-
-<!-- ========================= PAGE 2+ : PER OFFICE BREAKDOWN ========================= -->
-@foreach($officeBreakdown as $office)
-    <h2>{{ $office['name'] }} Office Summary</h2>
-
-    <div class="summary">
-        <div>
-            <p><strong>Total</strong></p>
-            <p>{{ $office['total'] }}</p>
-        </div>
-        <div>
-            <p><strong>Completed</strong></p>
-            <p>{{ $office['completed'] }}</p>
-        </div>
-        <div>
-            <p><strong>Cancelled</strong></p>
-            <p>{{ $office['cancelled'] }}</p>
-        </div>
-    </div>
-
-    <h3>Consultation Breakdown</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Status</th>
-                <th>Count</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td>Completed</td><td>{{ $office['completed'] }}</td></tr>
-            <tr><td>Cancelled</td><td>{{ $office['cancelled'] }}</td></tr>
-        </tbody>
-    </table>
-
-    <div class="footer">
-        {{ $office['name'] }} — Report Page
-    </div>
-
-    @if(!$loop->last)
-        <div class="page-break"></div>
-    @endif
-
-@endforeach
 
 </body>
 </html>

@@ -3,16 +3,16 @@ set -e
 
 echo "[entrypoint] starting container entrypoint"
 
-# Run migrations and seed AFTER the database is ready
-echo "[entrypoint] running migrations (may fail if DB not ready)"
-php artisan migrate:fresh --seed --force || echo "[entrypoint] Migrations failed, maybe DB not ready yet"
+# Run migrations without resetting or seeding database
+echo "[entrypoint] running migrations"
+php artisan migrate --force || echo "[entrypoint] Migrations failed, maybe DB not ready yet"
 
 # Link storage (if not linked)
 echo "[entrypoint] ensuring storage symlink exists"
 if php artisan storage:link 2>/dev/null; then
-	echo "[entrypoint] storage:link created or already exists"
+    echo "[entrypoint] storage:link created or already exists"
 else
-	echo "[entrypoint] storage:link command failed or symlink exists"
+    echo "[entrypoint] storage:link command failed or symlink exists"
 fi
 
 # Log storage status for debugging
@@ -28,6 +28,5 @@ php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
 
-echo "[entrypoint] starting Laravel dev server"
-# Serve the app
+echo "[entrypoint] starting Laravel server"
 php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
