@@ -1,21 +1,22 @@
 <?php
 
 use App\Models\Office;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GoogleController;
 use App\Http\Controllers\Api\BookingController;
-use App\Http\Controllers\Api\CalendarController;
-use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\CalendarController;
+use App\Http\Controllers\Api\FeedbackController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Office\OfficeController;
 use App\Http\Controllers\Api\Admin\AnalyticsController;
 use App\Http\Controllers\Api\Admin\AdminEventController;
-use App\Http\Controllers\Api\Admin\AdminBookingController;
 use App\Http\Controllers\Api\Admin\AdminOfficeController;
-use App\Http\Controllers\Api\FeedbackController;
+use App\Http\Controllers\Api\Admin\AdminBookingController;
 
 
 
@@ -28,7 +29,9 @@ use App\Http\Controllers\Api\FeedbackController;
 Route::get('/test-cloudinary', function () {
     return response()->json(config('cloudinary'));
 });
-
+Route::get('/download/{booking}', function (Booking $booking) {
+    return redirect($booking->uploaded_file_url);
+});
 
 Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -51,6 +54,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware(['auth:sanctum'])->group(function() {
+    Route::get('/calendar/appointments', [CalendarController::class, 'index']);
     Route::get('/show/user', [ProfileController::class, 'show']);
 
     Route::get('/calendar/appointments', [CalendarController::class, 'index']);
@@ -87,9 +91,11 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'staffadmin'])->group(function () {
-    Route::get('/calendar/appointments', [CalendarController::class, 'index']);
     Route::post('/admin/events', [AdminEventController::class, 'storeEvents']);
     Route::put('/admin/events/{id}', [AdminEventController::class, 'updateEvent']);
+    Route::patch('/bookings/status/{id}', [AdminBookingController::class, 'updateStatus']);
+
+
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
@@ -97,7 +103,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     Route::get('/admin/bookings', [AdminBookingController::class, 'index']);
     Route::get('/admin/bookings/{id}', [AdminBookingController::class, 'show']);
-    Route::patch('/bookings/status/{id}', [AdminBookingController::class, 'updateStatus']);
+
 
 
     Route::get('/admin/offices', [AdminOfficeController::class, 'show']);

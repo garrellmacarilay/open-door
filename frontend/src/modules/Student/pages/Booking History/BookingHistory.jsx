@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { useHistory, useFeedback } from '../../../../hooks/studentHooks';
-
+import LoadingBlock from '../../../../loading/LoadingBlock';
 function BookingHistory() {
   const [selectedCard, setSelectedCard] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState(null);
 
-  const { bookings: historyBookings, fetchHistoryBookings } = useHistory();
+  const { bookings: historyBookings, fetchHistoryBookings, loading } = useHistory();
   const [bookings, setBookings ] = useState([])
+
+  React.useEffect(() => {
+    if (historyBookings.length === 0) {
+      fetchHistoryBookings();
+    }
+  }, []);
   
   React.useEffect(() => {
     setBookings(historyBookings);
@@ -124,6 +130,26 @@ function BookingHistory() {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex-1 h-screen overflow-hidden bg-[#E9E9E9] font-inter">
+        <div className="h-full p-4 md:p-8 overflow-y-auto">
+          <LoadingBlock />
+          <LoadingBlock />
+          <LoadingBlock />
+        </div>
+      </div>
+    );
+  }
+
+  if (bookings.length === 0) {
+    return (
+      <div className="flex-1 h-screen flex items-center justify-center bg-[#E9E9E9] font-inter">
+        <p className="text-gray-600 text-lg font-semibold">Booking not found</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 h-screen overflow-hidden bg-[#E9E9E9] font-inter">

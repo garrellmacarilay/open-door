@@ -13,39 +13,47 @@ function Calendar({
   // Precompute normalized appointments grouped by local date key to avoid remapping in each cell
   const apptsByDate = useMemo(() => {
     const map = {};
-    const dateKey = (d) => `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    const dateKey = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 
     (bookedAppointments || []).forEach((appointment) => {
-      const apptDate = appointment.date instanceof Date ? appointment.date : new Date(appointment.date);
+      // Parse date from 'start' (or 'end' if you prefer)
+      const apptDate = new Date(appointment.start);
+
       const localDate = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate());
       const key = dateKey(localDate);
 
-      const student = appointment.studentName || appointment.student || appointment.student_name || '';
-      const office = appointment.office || appointment.office_name || appointment.officeName || '';
-      const service = appointment.service_type || appointment.service || appointment.serviceType || '';
-      const time = appointment.time || (apptDate instanceof Date ? apptDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
+      const details = appointment.details || {};
 
+      // Normalize fields to your component's expected names
       const normalized = {
         ...appointment,
+        id: appointment.id,
         dateObj: apptDate,
-        student,
-        office,
-        service,
-        time,
-        dateString: localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        student: details.student || details.studentName || appointment.title || 'Unknown',
+        studentName: details.student || details.studentName || appointment.title || 'Unknown',
+        office: details.office || details.office_name || 'Unknown',
+        serviceType: details.service_type || details.service || 'Unknown',
+        time: apptDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: (details.status || 'pending').toLowerCase(), // normalize to lowercase
+        attachedFile: details.attachment || null,
+        concernDescription: details.concern_description || '',
+        staff: details.staff || 'Unassigned',
+        referenceCode: details.reference_code || '',
+        dateString: localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       };
 
       if (!map[key]) map[key] = [];
       map[key].push(normalized);
     });
 
-    // sort each day's appointments by time
+    // Sort each day's appointments by time
     Object.keys(map).forEach(k => {
       map[k].sort((a, b) => a.dateObj - b.dateObj);
     });
 
     return map;
   }, [bookedAppointments]);
+
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -126,7 +134,7 @@ function Calendar({
                       setShowAppointmentHoverModal(false);
                       setHoveredAppointment(null);
                     }}
-                    title={`${appointment.student || appointment.studentName || appointment.student_name} • ${appointment.time} • ${appointment.service_type || appointment.service || appointment.office || appointment.office_name || 'Appointment Schedule'}`}
+                    title={`${appointment.time} • ${appointment.service_type || appointment.service || appointment.office || appointment.office_name || 'Appointment Schedule'}`}
                   >
                     <span className="text-[#9A5A00] text-[12px] font-semibold leading-none truncate" style={{ fontFamily: 'Poppins' }}>
                       {appointment.service_type || appointment.service || appointment.office || appointment.office_name || 'Appointment Schedule'}
@@ -242,11 +250,6 @@ function Calendar({
               // Show all appointments when "View all" is hovered
               hoveredAppointment.allAppointments.map((appointment, index) => (
                 <div key={index} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
-                  {/* Name */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.studentName}</span>
-                  </div>
 
                   {/* Office */}
                   <div className="flex items-center gap-2 mb-1">
@@ -277,12 +280,6 @@ function Calendar({
             ) : (
               // Show single appointment details
               <>
-                {/* Name */}
-                <div className="flex items-center gap-2">
-                  <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
-                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.student}</span>
-                </div>
-
                 {/* Office */}
                 <div className="flex items-center gap-2">
                   <svg width="10" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">

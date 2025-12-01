@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNavigation } from '../../../../contexts/NavigationContext';
 import PSASLogo from '../../components/img/PSAS-Logo.png';
+import { useLogin } from '../../../../hooks/authHooks';
 
 import api from '../../../../utils/api';
 
-function StudentNav({ onLogout }) {
+function StudentNav() {
   const { activePage, navigateToPage } = useNavigation();
   const navigate = useNavigate();
+  const { handleLogout, loading } = useLogin()
 
   const handleNavigation = (page) => {
     navigateToPage(page);
@@ -193,10 +195,10 @@ function StudentNav({ onLogout }) {
       {/* Logout Section - Bottom */}
       <div className="bg-[#142240] h-[72px] flex items-center justify-center border-y-2 border-white">
         <button 
-          onClick={onLogout}
+          onClick={handleLogout}
           className="flex items-center gap-3 px-5 bg-[#142240]! hover:bg-[#122141] transition-colors rounded-lg py-2"
         >
-          <span className="font-bold text-[15px] text-white" style={{ fontFamily: 'Poppins', letterSpacing: '-0.02em', lineHeight: '1.5em' }}>Logout</span>
+          <span className="font-bold text-[15px] text-white" style={{ fontFamily: 'Poppins', letterSpacing: '-0.02em', lineHeight: '1.5em' }}>{loading ? "Logging out..." : "Logout"}</span>
           <div className="w-6 h-6 flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

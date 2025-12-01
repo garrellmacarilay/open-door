@@ -2,7 +2,8 @@ export default function BookConsultationModal({
   isOpen, 
   onCancel, 
   form, 
-  setForm, 
+  setForm,
+  errors, 
   handleSubmit, 
   offices = [] // offices from hook
 }) {
@@ -10,7 +11,7 @@ export default function BookConsultationModal({
 
   return (
     <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-50">
-      <div className="bg-white rounded-[10px]! w-full max-w-200 max-h-165 overflow-y-auto relative flex flex-col shadow-2xl">
+      <div className="bg-white rounded-[10px]! w-full max-w-200 max-h-300 overflow-y-auto relative flex flex-col shadow-2xl">
         
         {/* Header */}
         <div className="bg-[#122141] rounded-t-[10px] px-12 py-5 shrink-0">
@@ -45,7 +46,6 @@ export default function BookConsultationModal({
                 </select>
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
                     <svg width="20" height="20" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13 16L17.5 20.5L22 16" stroke="#8C8B8B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                 </div>
               </div>
@@ -59,7 +59,7 @@ export default function BookConsultationModal({
               <select
                 value={form.service_type}
                 onChange={(e) => setForm({ ...form, service_type: e.target.value })}
-                className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-[#FFFCFC] appearance-none"
+                className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-[#FFFCFC]"
                 required
               >
                 <option value="">Select Service Type</option>
@@ -81,7 +81,7 @@ export default function BookConsultationModal({
                         type="date"
                         value={form.date}
                         onChange={(e) => setForm( {...form, date: e.target.value })}
-                        className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm [&::-webkit-calendar-picker-indicator]:filter-[invert(50)]"
+                        className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white appearance-none relative"
                         style={{ fontFamily: 'Inter' }}
                         required
                       />
@@ -97,14 +97,16 @@ export default function BookConsultationModal({
                       type="time"
                       value={form.time}            
                       onChange={(e) => setForm( {...form, time: e.target.value })}
-                      className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white [&::-webkit-calendar-picker-indicator]:filter-[invert(1)]"
+                      className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white appearance-none relative"
                       style={{ fontFamily: 'Inter' }}
                       required
                     />
                   </div>
                 </div>
             </div>
-
+            {errors?.consultation_date && (
+                <p className="text-red-500 text-xs">{errors.consultation_date[0]}</p>
+            )}
 
             {/* Concern Description */}
             <div className="space-y-1">
@@ -145,6 +147,12 @@ export default function BookConsultationModal({
                 onChange={(e) => setForm({ ...form, uploaded_file_url: e.target.files[0] })}
                 className="w-full text-sm text-black border border-[#9B9999] rounded-[7px] bg-[#FFFCFC] file:px-3 file:py-1 file:border-0 file:rounded-full file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               />
+            </div>
+
+            <div className="space-y-1">
+              <span className="italic">
+                We only accept png, jpeg and jpg for now 
+              </span>
             </div>
 
             {/* Buttons */}

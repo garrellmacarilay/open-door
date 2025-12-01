@@ -27,7 +27,7 @@ class BookingController extends Controller
             ->whereHas('student.user', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
-            ->orderBy('consultation_date', 'asc')
+            ->orderBy('created_at', 'desc')
             ->orderBy('id', 'asc')
             ->paginate(5);
 
@@ -37,8 +37,8 @@ class BookingController extends Controller
             return [
                 'id' => $booking->id,
                 'title' => $booking->student->user->full_name ?? 'Unknown',
-                'start' => $date->format('c'),
-                'end' => $date->format('c'),
+                'start' => $date->format('Y-m-d\TH:i:s'),
+                'end' => $date->format('Y-m-d\TH:i:s'),
                 'color' => $booking->getStatusColor($booking->status),
                 'details' => [
                     'student' => $booking->student->user->full_name ?? 'Unknown',
@@ -63,7 +63,6 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
-
         $student = Student::where('user_id', $request->user()->id)->first();
 
         if (!$student) {
@@ -106,18 +105,28 @@ class BookingController extends Controller
         if ($eventExists) {
             return response()->json([
                 'success' => false,
-                'message' => 'Booking not allowed. There is an event scheduled for this date'
+                'errors' => [
+                    'consultation_date' => ['Booking not allowed. There is an event scheduled for this date']
+                ]
             ], 422);
         }
 
         if ($request->hasFile('uploaded_file_url')) {
             try {
-                $path = $request->file('uploaded_file_url')->getRealPath();
-                $options = ['folder' => 'attachments'];
+                $file = $request->file('uploaded_file_url');
+                $path = $file->getRealPath();
 
-                $uploaded = Cloudinary::uploadApi()->upload($path, $options);
+                $uploaded = Cloudinary::uploadApi()->upload($path, [
+                    'folder' => 'attachments',
+                    'resource_type' => 'auto',
+                    'access_mode' => 'public'
+                ]);
 
-                $val['uploaded_file_url'] = $uploaded['secure_url'] ?? $uploaded['url'] ?? null;
+                $val['uploaded_file_url'] = $uploaded['secure_url'];
+                $val['uploaded_file_name'] = $file->getClientOriginalName();
+                $val['uploaded_file_mime'] = $file->getMimeType();
+                $val['uploaded_file_size'] = $file->getSize();
+
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
@@ -126,6 +135,9 @@ class BookingController extends Controller
             }
         } else {
             $val['uploaded_file_url'] = null;
+            $val['uploaded_file_name'] = null;
+            $val['uploaded_file_mime'] = null;
+            $val['uploaded_file_size'] = null;
         }
 
         $office = Office::findOrFail($val['office_id']);
@@ -133,7 +145,7 @@ class BookingController extends Controller
         $booking = Booking::create(array_merge($val, [
             'student_id' => $student->id,
             'staff_id' => null, // Assign staff later
-            'office_id' => $office->id, //temporary for testing
+            'office_id' => $office->id,
             'reference_code' => Str::upper(Str::random(10)),
             'status' => 'pending',
         ]));

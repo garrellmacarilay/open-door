@@ -159,13 +159,24 @@ function OfficeManagement() {
                       {office.contact_email}
                     </span>
                   </div>
-                  <div className="w-24 px-2 shrink-0">
-                    <div className="bg-[#ABFFAC] rounded-[5px] px-2 py-1 flex items-center justify-center">
-                      <span className="text-[#006928] text-[12px] font-medium whitespace-nowrap" style={{ fontFamily: 'Poppins' }}>
+                 <div className="w-24 px-2 shrink-0">
+                    <div className={`rounded-[5px] px-2 py-1 flex items-center justify-center gap-1 ${
+                      office.status === 'inactive' ? 'bg-[#FF6B6B]' : 'bg-[#ABFFAC]'
+                    }`}>
+
+                      {loading && office.id === editOffice.id && (
+                        <div className="w-3 h-3 border-2 border-t-transparent rounded-full animate-spin"></div>
+                      )}
+
+                      <span className={`text-[12px] font-medium whitespace-nowrap ${
+                        office.status === 'inactive' ? 'text-[#a81818]' : 'text-[#006928]'
+                      }`} style={{ fontFamily: 'Poppins' }}>
                         {office.status}
                       </span>
+
                     </div>
                   </div>
+
                   <div className="w-20 px-2 flex items-center justify-center gap-2 shrink-0">
                     {/* Edit Button */}
                     <button

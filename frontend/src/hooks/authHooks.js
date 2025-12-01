@@ -1,6 +1,7 @@
 import api from "../utils/api";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from '../contexts/AuthContext.jsx'
 
 export function useGoogleLogin() {
   const navigate = useNavigate()
@@ -15,11 +16,12 @@ export function useGoogleLogin() {
 export function useLogin() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const { login, logout: contextLogout } = useAuth();
   const navigate = useNavigate()
 
   const handleLogin = async (email, password) => {
     setLoading(true)
-    setMessage('Login in progress')
+    setMessage('Logging in...')
 
     try {
       const res = await api.post('/login', { email, password })
@@ -27,8 +29,7 @@ export function useLogin() {
       const { success, access_token, message, user } = res.data;
 
       if (success && access_token) {
-        localStorage.setItem('token', access_token)
-        localStorage.setItem('user', JSON.stringify(user))
+        await login(access_token);
 
         setMessage('Login successful! redirecting...')
 
@@ -44,15 +45,17 @@ export function useLogin() {
 
   const handleLogout = async () => {
     try {
+      setLoading(true)
       const res = await api.post('/logout')
 
       if (res.data.success) {
-        localStorage.removeItem('token')
+        contextLogout()
         navigate('/')
       }
     } catch (err) {
       console.error(err)
       alert('Failed to log out')
+      setLoading(false)
     }
   }
 

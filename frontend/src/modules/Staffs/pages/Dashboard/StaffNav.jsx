@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useNavigation } from '../../../../contexts/NavigationContext';
 // import PSASLogo from "../../../Students/components/img/PSAS-Logo.png";
 import PSASLogo from "../../../../assets/img/PSAS-Logo.png";
+import { useLogin } from '../../../../hooks/authHooks';
+
 function StaffNav() {
     const navigate = useNavigate();
     const { activePage = 'Dashboard', navigateToPage } = useNavigation();
@@ -11,14 +13,7 @@ function StaffNav() {
         navigateToPage(page);
     };
 
-    const handleLogout = () => {
-        // Clear any user session data if needed
-        // localStorage.removeItem('userToken'); // Uncomment if using localStorage
-        // sessionStorage.clear(); // Uncomment if using sessionStorage
-        
-        // Navigate to landing page using React Router
-        navigate('/');
-    };
+    const { handleLogout, loading } = useLogin()
 
     return (
         <div className="w-[250px] bg-[#122141] text-white flex flex-col shrink-0 relative">
@@ -126,7 +121,7 @@ function StaffNav() {
             onClick={handleLogout}
             className="flex items-center gap-3 px-5 bg-[#142240]! hover:bg-[#122141] transition-colors rounded-lg py-2"
             >
-            <span className="font-bold text-[15px] text-white" style={{ fontFamily: 'Poppins', letterSpacing: '-0.02em', lineHeight: '1.5em' }}>Logout</span>
+            <span className="font-bold text-[15px] text-white" style={{ fontFamily: 'Poppins', letterSpacing: '-0.02em', lineHeight: '1.5em' }}>{loading ? "Logging out..." : "Logout"}</span>
             <div className="w-6 h-6 flex items-center justify-center">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

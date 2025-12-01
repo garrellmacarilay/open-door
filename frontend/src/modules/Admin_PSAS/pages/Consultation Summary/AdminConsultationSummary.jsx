@@ -179,9 +179,19 @@ function AdminConsultationSummary() {
 
                       {/* Date & Time column */}
                       <td className="p-4 border-b">
-                        <div className="text-gray-800">{datePart}</div> {/* ✅ DATE */}
+                        <div className="text-gray-800">                        
+                          {new Date(consultation.consultation_date).toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </div> {/* ✅ DATE */}
                         <div className="text-sm text-gray-500">
-                          {new Date("1970-01-01T" + timePart).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {new Date(consultation.consultation_date).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true, 
+                          })}
                         </div> {/* ✅ TIME */}
                       </td>
 

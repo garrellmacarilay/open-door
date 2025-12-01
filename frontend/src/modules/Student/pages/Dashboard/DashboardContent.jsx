@@ -3,15 +3,16 @@ import CalendarHeader from './CalendarHeader';
 import UpcomingAppointments from './UpcomingAppointments';
 import UpcomingEvents from './UpcomingEvents';
 import Calendar from './Calendar';
-import { useAppointments, useEvents, useBooking, useRecent } from '../../../../hooks/studentHooks'
+import { useAppointments, useEvents, useBooking, useRecent, useCalendarAppointments } from '../../../../hooks/studentHooks'
 import { useBookingModal } from '../../../../hooks/bookingModal'
 import BookConsultationModal from '../Booking_Consultation_Form/BookConsultationModal'
 import BookingReminderModal from '../Booking_Consultation_Form/BookingReminderModal'
 import SuccessModal from '../Booking_Consultation_Form/SuccessModal';
 
-function DashboardContent() {
+function DashboardContent({ refreshAppointments = 0 }) {
     
-    const { appointments, fetchAppointments, upcomingAppointments, hasMore } = useAppointments()
+    const { appointments, fetchAppointments, refreshNow, hasMore, loading} = useAppointments();;
+    const { calendarAppointments, error, refresh: fetchCalendarAppointments } = useCalendarAppointments()
     const { events, fetchEvents } = useEvents()
     const { form, setForm, errors, offices, handleSubmit } = useBooking()
     const { recentBookings, fetchRecentBookings } = useRecent() 
@@ -24,23 +25,24 @@ function DashboardContent() {
     const [bookedAppointments, setBookedAppointments] = useState([])
 
     useEffect(() => {
-      fetchAppointments()
-    }, [])
-
-  // Sync bookedAppointments state with upcomingAppointments
-    useEffect(() => {
-      if (upcomingAppointments.length > 0) {
-        const mappedAppointments = upcomingAppointments.map(a => ({
-          id: a.id,
-          date: a.date,
-          dateString: a.dateString,
-          studentName: a.student, // matches Calendar hover
-          office: a.office,
-          time: a.time
-        }));
-        setBookedAppointments(mappedAppointments);
+      if (
+        appointments.length === 0 &&
+        calendarAppointments.length === 0 &&
+        events.length === 0
+      ) {
+        fetchAppointments(1);
+        fetchCalendarAppointments();
+        fetchEvents();   
       }
-    }, [upcomingAppointments]);   
+    }, []);
+
+    // Refresh appointments when a new booking is created
+    useEffect(() => {
+      if (refreshAppointments > 0) {
+        fetchAppointments(1);
+        fetchCalendarAppointments();
+      }
+    }, [refreshAppointments])
   
     // Edit Profile form data
     const [editProfileData, setEditProfileData] = useState({
@@ -156,8 +158,8 @@ function DashboardContent() {
         <Calendar 
           currentDate={currentDate}
           isAnimating={isAnimating}
-          bookedAppointments={bookedAppointments}
-          setBookedAppointments={setBookedAppointments}
+          bookedAppointments={calendarAppointments}
+          setBookedAppointments={() => {}}
           
         />
 
@@ -176,12 +178,17 @@ function DashboardContent() {
         onCancel={closeBooking}
         form={form}
         setForm={setForm}
+        errors={errors}
         handleSubmit={async (e) => {
           const res = await handleSubmit(e)
 
           if (res.success) {
             closeBooking();
             openSuccess();
+
+            refreshNow();
+
+            fetchCalendarAppointments()
           }
         }}
         offices={offices}

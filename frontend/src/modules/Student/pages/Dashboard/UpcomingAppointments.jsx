@@ -102,14 +102,16 @@ function UpcomingAppointments({ upcomingEvents, fetchMore, hasMore }) {
             </div>
 
             {/* Status Badge */}
-            <div className="absolute top-3 right-3">
+            <div className="absolute top-2 right-3">
               <div
                 className={`px-3 py-1 rounded-[5px] ${
                   event.details?.status === 'pending'
                     ? 'bg-[#FFE168]'
                     : event.details?.status === 'approved'
                     ? 'bg-[#9EE2AA]'
-                    : 'bg-red-200'
+                    : event.details.status === 'rescheduled'
+                    ? 'bg-[#961bb5]'
+                    :'bg-red-200'
                 }`}
               >
                 <span
@@ -118,6 +120,8 @@ function UpcomingAppointments({ upcomingEvents, fetchMore, hasMore }) {
                       ? 'text-[#9D6B00]'
                       : event.details?.status === 'approved'
                       ? 'text-[#009812]'
+                      : event.details.status === 'rescheduled'
+                      ? 'bg-[#961bb5]'
                       : 'text-red-700'
                   }`}
                   style={{ fontFamily: 'Poppins', fontSize: '10px' }}

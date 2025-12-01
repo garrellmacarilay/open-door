@@ -7,11 +7,29 @@ function CalendarHeader({
   getMonthName, 
   openReminder 
 }) {
+  const handleTodayClick = () => {
+    const today = new Date();
+    const isCurrentMonth = today.getMonth() === currentDate.getMonth() && 
+                          today.getFullYear() === currentDate.getFullYear();
+    
+    if (!isCurrentMonth) {
+      // Navigate to today's month
+      while (currentDate.getMonth() !== today.getMonth() || currentDate.getFullYear() !== today.getFullYear()) {
+        if (currentDate < today) {
+          navigateMonth('next');
+        } else {
+          navigateMonth('prev');
+        }
+      }
+    }
+    // If already in current month, the calendar will show today's date highlighted
+  };
+
   return (
     /* Calendar Header - Following Figma Design */
     <div className="bg-[#142240] mx-4 my-2 text-white rounded-[10px] border border-[#ffffff] flex items-center justify-between h-[55px] px-8 shrink-0">
       {/* Today Button - Left */}
-      <button onClick={() => window.location.href = '/'} className="flex items-center justify-center gap-2 border border-white! bg-[#142240]! rounded-[10px] px-4 py-2 h-[30px] text-white font-semibold text-[16px] transition-all duration-200 hover:bg-white/10 active:scale-95" style={{ fontFamily: 'Poppins', lineHeight: '1.5em' }}>
+      <button onClick={handleTodayClick} className="flex items-center justify-center gap-2 border border-white! bg-[#142240]! rounded-[10px] px-4 py-2 h-[30px] text-white font-semibold text-[16px] transition-all duration-200 hover:bg-white/10 active:scale-95" style={{ fontFamily: 'Poppins', lineHeight: '1.5em' }}>
         <div className="w-[18px] h-5 flex items-center justify-center">
           <svg width="18" height="18" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2V6M4 2V6M1 10H17M3 4H15C16.1046 4 17 4.89543 17 6V16C17 17.1046 16.1046 18 15 18H3C1.89543 18 1 17.1046 1 16V6C1 4.89543 1.89543 4 3 4Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>

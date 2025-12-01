@@ -2,106 +2,141 @@ import api from "../utils/api"
 import { useState, useEffect, useMemo, useCallback } from "react"
 
 //student's appointmeents
-export function useAppointments() {
-    const [appointments, setAppointments] = useState([]);
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-    const [loading, setLoading] = useState(false);
+export function useCalendarAppointments() {
+    const [calendarAppointments, setCalendarAppointments] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
 
-    // Stable function: depends only on hasMore & loading
-    const fetchAppointments = useCallback(async (pageToLoad) => {
-        if (loading || !hasMore) return;
-
-        setLoading(true);
+    const fetchCalendarAppointments = async () => {
+        setLoading(true)
+        setError(null)
 
         try {
-            const res = await api.get(`/my-bookings?page=${pageToLoad}`);
+            const res = await api.get('/calendar/appointments')
 
             if (res.data.success) {
-                const converted = (res.data.data || []).map((a) => {
-                    const d = new Date(a.start);
-                    // normalize to a date object at local midnight for calendar comparisons
-                    const localDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-
-                    return {
-                        ...a,
-                        date: localDate,
-                        dateString: d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-                        time: d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }),
-                        office: a.details?.office_name || a.office || "",
-                        student: a.details?.student_name || a.student || "",
-                    };
-                });
-
-                setAppointments(prev => {
-                    const merged = [...prev, ...converted];
-                    const unique = Array.from(new Map(merged.map(a => [a.id, a])).values());
-                    return unique;
-                });
-
-                const meta = res.data.meta;
-
-                // Stop loading if last page is reached
-                if (meta.current_page >= meta.last_page) {
-                    setHasMore(false);
-                } else {
-                    // Only increment page after successful load
-                    setPage((prev) => prev + 1);
-                }
+                setCalendarAppointments(res.data.data)
+            } else {
+                setError('Failed to fetch appointments')
             }
         } catch (err) {
-            console.error("Failed to fetch appointments:", err);
+            setError(err.message || 'Server error');
+        } finally {
+            setLoading(false);
         }
+    }
 
-        setLoading(false);
-    }, [hasMore, loading]);
-
-
-    // Load first page ONCE on mount
     useEffect(() => {
-        fetchAppointments(1);
-    }, []);
+        fetchCalendarAppointments()
+    }, [])
 
-
-    // Optional: Call this to load more pages (e.g., infinite scroll)
-    const loadMore = () => {
-        if (!loading && hasMore) {
-            fetchAppointments(page);
-        }
-    };
-
-
-    // For calendar hover
-    const upcomingAppointments = appointments
-        .map(a => ({
-            ...a,
-            // ensure we have a Date object
-            _dateObj: a.date instanceof Date ? a.date : new Date(a.date)
-        }))
-        .filter(a => a._dateObj >= new Date(new Date().setHours(0,0,0,0)))
-        .sort((a, b) => a._dateObj - b._dateObj)
-        .map((a) => ({
-            id: a.id,
-            date: a._dateObj,
-            dateString: a.dateString || a._dateObj.toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-            }),
-            studentName: a.student || a.studentName || a.student_name,
-            office: a.office || a.office_name,
-            time: a.time,
-        }));
-
-
-    return {
-        appointments,
-        upcomingAppointments,
-        fetchAppointments: loadMore, // expose as loadMore
-        hasMore,
-        loading,
-    };
+    return { calendarAppointments, loading, error, refresh: fetchCalendarAppointments };
 }
+
+export function useAppointments() {
+  const [appointments, setAppointments] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const fetchAppointments = useCallback(async (pageToLoad = 1) => {
+    if (loading) return;
+
+    setLoading(true);
+
+    try {
+      const res = await api.get(`/my-bookings?page=${pageToLoad}`);
+
+      if (res.data.success) {
+        const converted = (res.data.data || []).map((a) => {
+          const rawDate = new Date(a.start);
+
+          const phDate = new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }).format(rawDate);
+
+          const phTime = new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Manila",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }).format(rawDate);
+
+          // Convert Manila date for calendar comparisons
+          const [monthName, dayWithComma, year] = phDate.replace(",", "").split(" ");
+          const day = parseInt(dayWithComma);
+          const monthIndex = new Date(`${monthName} 1, 2000`).getMonth();
+          const localDate = new Date(parseInt(year), monthIndex, day);
+
+          return {
+            ...a,
+            date: localDate,
+            dateString: phDate,
+            time: phTime,
+            office: a.details?.office_name || a.office || "",
+            student: a.details?.student_name || a.student || "",
+          };
+        });
+
+        setAppointments(prev => {
+          const merged = pageToLoad === 1 ? converted : [...prev, ...converted]; // ✅ RESET if page 1
+          const unique = Array.from(new Map(merged.map(a => [a.id, a])).values()); // ✅ remove duplicates
+          return unique;
+        });
+
+        // Pagination logic
+        const meta = res.data.meta;
+        setPage(meta.current_page < meta.last_page ? meta.current_page + 1 : meta.current_page);
+        setHasMore(meta.current_page < meta.last_page);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    setLoading(false);
+  }, [loading]);
+
+  // Load first page on mount
+  useEffect(() => {
+    fetchAppointments(1);
+  }, []);
+
+  // Infinite scroll loader
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      fetchAppointments(page);
+    }
+  };
+
+  // Prepare for calendar hover/upcoming list
+  const upcomingAppointments = appointments
+    .filter(a => a.date >= new Date(new Date().setHours(0,0,0,0))) // ✅ only future dates
+    .sort((a, b) => a.date - b.date)
+    .map((a) => ({
+      id: a.id,
+      date: a.date,
+      dateString: a.dateString,
+      studentName: a.student,
+      office: a.office,
+      time: a.time,
+      status: a.details?.status,
+      reference_code: a.details?.reference_code,
+      attachedFile: a.details?.uploaded_file_url || null,
+    }));
+
+  return {
+    appointments,
+    upcomingAppointments,
+    fetchAppointments: loadMore,
+    refreshNow: () => fetchAppointments(1), // 🎯 call this if you want manual refresh trigger
+    hasMore,
+    loading,
+  };
+}
+
 
 
 //school events
@@ -169,13 +204,16 @@ export function useBooking(e, onSuccess) {
             })
 
             if (response.data.success) {
+                onSuccess?.();
                 return { success: true }
             }
 
         } catch (err) {
-            if (err.response?.data?.errors) {
-                console.error("Failed making booking", err)
-                setErrors(err.response.data.errors)
+            if (err.response && err.response.status === 422) {
+                const validationErrors = err.response.data.errors;
+                setErrors(validationErrors);
+            } else {
+                alert('Something went wrong. Please try again.');
             }
             return { success: false }
         }
@@ -205,14 +243,18 @@ export function useRecent() {
 
 export function useHistory() {
     const [bookings, setBookings] = useState([])
+    const [loading, setLoading] = useState(false)
 
     const fetchHistoryBookings = async () => {
         try {
+            setLoading(true)
             const res = await api.get('/bookings/history')
             setBookings(res.data.bookings)
         }catch (err) {
             console.error(err)
             alert('Failed to fetch booking history')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -220,7 +262,7 @@ export function useHistory() {
         fetchHistoryBookings()
     }, [])
 
-    return { bookings, fetchHistoryBookings }
+    return { bookings, fetchHistoryBookings, loading }
 }
 
 

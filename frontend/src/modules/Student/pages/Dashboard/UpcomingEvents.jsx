@@ -15,10 +15,22 @@ function UpcomingEvents({ upcomingEvents = [] }) {
               <span className="font-semibold text-xs text-black" style={{ fontFamily: 'Inter' }}>{event.event_title}</span>
             </div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{event.event_date}</span>
+              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>
+                {new Date(event.event_date).toLocaleDateString('en-US', {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+                </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{event.event_time}</span>
+              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>
+                {new Date(`1970-01-01T${event.event_time}`).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true, 
+                })}
+                </span>
             </div>
           </div>
         ))}

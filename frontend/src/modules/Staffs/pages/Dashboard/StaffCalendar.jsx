@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import GradIcon from '../../../../components/global-img/graduation-cap.svg';
+import { useDashboardAppointments } from '../../../../hooks/staffHooks';
 
-function StaffCalendar({ 
-  currentDate, 
-  isAnimating, 
-  bookedAppointments, 
-  setBookedAppointments 
-}) {
+function StaffCalendar({ currentDate, isAnimating, }) {
+  const { loading, error, appointments, fetchDashboard } = useDashboardAppointments()
   const [showAppointmentHoverModal, setShowAppointmentHoverModal] = useState(false);
   const [hoveredAppointment, setHoveredAppointment] = useState(null);
+  const [calendarData, setCalendarData] = useState([]);
+
+  useEffect(() => {
+    fetchDashboard()
+  }, [fetchDashboard])
+
+  useEffect(() => {
+    const transformed = appointments.map(appt => ({
+      id: appt.id,
+      office: appt.details.office,
+      studentName: appt.details.student,
+      dateObj: new Date(appt.start),
+      time: new Date(appt.start).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }),
+      status: appt.details.status
+    }));
+
+    setCalendarData(transformed);
+  }, [appointments]);
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -45,7 +63,7 @@ function StaffCalendar({
                        today.getFullYear() === currentYear;
         
         // Get all appointments for this day
-        const dayAppointments = bookedAppointments.filter(appointment => {
+        const dayAppointments = calendarData.filter(appointment => {
           return appointment.dateObj.getDate() === dayNumber &&
                  appointment.dateObj.getMonth() === currentMonth &&
                  appointment.dateObj.getFullYear() === currentYear;
@@ -203,12 +221,12 @@ function StaffCalendar({
           <div className="p-3 space-y-2">
             {hoveredAppointment.isViewAll ? (
               // Show all appointments when "View all" is hovered
-              hoveredAppointment.allAppointments.map((appointment, index) => (
-                <div key={index} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
+              hoveredAppointment.allAppointments.map((appt) => (
+                <div key={appt.id} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
                   {/* Name */}
                   <div className="flex items-center gap-2 mb-1">
                     <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.studentName}</span>
+                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appt.studentName}</span>
                   </div>
 
                   {/* Office */}
@@ -216,7 +234,7 @@ function StaffCalendar({
                     <svg width="10" height="8" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M1 4L6 1L11 4V9C11 9.26522 10.8946 9.51957 10.7071 9.70711C10.5196 9.89464 10.2652 10 10 10H2C1.73478 10 1.48043 9.89464 1.29289 9.70711C1.10536 9.51957 1 9.26522 1 9V4Z" stroke="#0059FF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.office}</span>
+                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appt.office}</span>
                   </div>
 
                    {/* <div className="flex items-center gap-2 mb-1">
@@ -233,7 +251,7 @@ function StaffCalendar({
                       <circle cx="5.25" cy="5.25" r="4.75" stroke="#9D4400" strokeWidth="1"/>
                       <path d="M5.25 2.625V5.25L7 7" stroke="#9D4400" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.time}</span>
+                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appt.time}</span>
                   </div>
                 </div>
               ))

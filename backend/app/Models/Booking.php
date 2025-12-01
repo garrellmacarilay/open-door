@@ -24,6 +24,9 @@ class Booking extends Model
         'group_members',
         'status',
         'uploaded_file_url',
+        'uploaded_file_name',
+        'uploaded_file_size',
+        'uploaded_file_mime',
         'reference_code',
     ];
 

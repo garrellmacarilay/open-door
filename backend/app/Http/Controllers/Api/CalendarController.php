@@ -13,7 +13,7 @@ class CalendarController extends Controller
     public function index()
     {
         $bookings = Booking::with(['student.user', 'office', 'staff'])
-            ->whereIn('status', ['approved', 'pending']
+            ->whereIn('status', ['approved', 'pending', 'rescheduled']
             )->get();
 
         $appointments = $bookings->map(function ($bookings) {
@@ -29,6 +29,7 @@ class CalendarController extends Controller
                     'staff' => $bookings->staff ? $bookings->staff->user->full_name : 'Unassigned',
                     'concern_description' => $bookings->concern_description,
                     'attachment' => $bookings->uploaded_file_url,
+                    'attachment_name' => $bookings->uploaded_file_name,
                     'service_type' => $bookings->service_type,
                     'status' => $bookings->status,
                     'reference_code' => $bookings->reference_code,

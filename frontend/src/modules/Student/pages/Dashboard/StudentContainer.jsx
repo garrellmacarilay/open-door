@@ -12,6 +12,7 @@ import FAQsContent from '../../pages/FAQs/FAQsContent';
 
 import api from '../../../../utils/api.js';
 import { useNavigate } from 'react-router-dom'
+import { useLogin } from '../../../../hooks/authHooks.js';
 
 // Main content component that switches based on active page
 function MainContent({ 
@@ -33,46 +34,38 @@ function MainContent({
   handleCancel,
   handleContinueToBooking,
   handleCancelReminder,
-  handleSuccessContinue
+  handleSuccessContinue,
+  refreshAppointments
 }) {
   const { recentBookings } = useRecent()
   const { activePage } = useNavigation();
 
-  const renderContent = () => {
-    switch (activePage) {
-      case 'Dashboard':
-        return <DashboardContent  />;
-      case 'BookedConsultation':
-        return <BookedConsultation recentBookings={ recentBookings }/>;
-      case 'BookingHistory':
-        return <BookingHistory />;
-      case 'FAQs':
-        return <FAQsContent />;
-      default:
-        return <DashboardContent />;
-    }
-  };
+  const renderContent = () => (
+    <>
+      {/* Dashboard stays MOUNTED even when hidden */}
+      <div className={activePage === "Dashboard" ? "block" : "hidden"}>
+        <DashboardContent refreshAppointments={refreshAppointments} />
+      </div>
+
+      <div className={activePage === "BookingHistory" ? "block" : "hidden"}>
+        <BookingHistory />
+      </div>
+
+      {/* Other pages only mount when active */}
+      {activePage === "BookedConsultation" && <BookedConsultation recentBookings={recentBookings} />}
+
+      {activePage === "FAQs" && <FAQsContent />}
+    </>
+  );
+
 
   const navigate = useNavigate()
 
-  const handleLogout = async () => {
-    try {
-      const res = await api.post('/logout')
-
-      if (res.data.success) {
-        localStorage.removeItem('token')
-        navigate('/')
-      }
-    } catch (err) {
-      console.error(err)
-      alert('Failed to log out')    
-    }
-  }
 
   return (
     <div className="flex h-screen w-screen bg-gray-100 overflow-hidden">
       {/* Sidebar Navigation Component */}
-      <StudentNav onLogout={handleLogout}/>
+      <StudentNav />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -101,6 +94,7 @@ function StudentContainer() {
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [refreshAppointments, setRefreshAppointments] = useState(0);
   const [errors, setErrors] = useState([])
   const [editProfileData, setEditProfileData] = useState({
     username: '',
@@ -199,6 +193,8 @@ function StudentContainer() {
         headers: { "Content-Type": 'multipart/form-data'}
       })
 
+      // Trigger refresh of appointments
+      setRefreshAppointments(prev => prev + 1);
       
     } catch (err) {
       if (err.response?.data?.errors) {
@@ -250,6 +246,7 @@ function StudentContainer() {
             handleContinueToBooking={handleContinueToBooking}
             handleCancelReminder={handleCancelReminder}
             handleSuccessContinue={handleSuccessContinue}
+            refreshAppointments={refreshAppointments}
         />
         </NavigationProvider>
      

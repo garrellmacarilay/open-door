@@ -98,7 +98,7 @@ function Notification() {
 
         {/* Notification Badge */}
         <div className="absolute top-3 right-3 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-          <span className="text-xs text-white font-bold" style={{ fontFamily: 'Poppins' }}>3</span>
+          <span className="text-xs text-white font-bold" style={{ fontFamily: 'Poppins' }}></span>
         </div>
       </button>
 
