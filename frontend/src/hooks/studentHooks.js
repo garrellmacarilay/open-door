@@ -1,52 +1,143 @@
 import api from "../utils/api"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 
 //student's appointmeents
-export function useAppointments() {
-    const [appointments, setAppointments] = useState([])
+export function useCalendarAppointments() {
+    const [calendarAppointments, setCalendarAppointments] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
 
-    const fetchAppointments = async () => {
+    const fetchCalendarAppointments = async () => {
+        setLoading(true)
+        setError(null)
+
         try {
-            const res = await api.get('/my-bookings')
+            const res = await api.get('/calendar/appointments')
+
             if (res.data.success) {
-                const converted = (res.data.data || []).map((a) => {
-                    const d = new Date(a.consultation_date)
-                    const localDate = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-
-                    return {
-                        ...a,
-                        date: localDate,
-                        time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        office: a.office_name || a.office || '',
-                        student: a.student_name || a.student || ''
-                    }
-                })
-
-                setAppointments(converted)
+                setCalendarAppointments(res.data.data)
+            } else {
+                setError('Failed to fetch appointments')
             }
         } catch (err) {
-            console.error('Failed to fetch appointments:', err)
+            setError(err.message || 'Server error');
+        } finally {
+            setLoading(false);
         }
     }
 
     useEffect(() => {
-        fetchAppointments()
+        fetchCalendarAppointments()
     }, [])
 
-    const upcomingAppointments = appointments
-        .filter(a => a.date instanceof Date && a.date >= new Date())
-        .sort((a,b) => a.date - b.date)
-        .map(a => ({
-            id: a.id,
-            date: a.date,
-            dateString: a.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-            studentName: a.student_name,
-            office: a.office_name,
-            time: a.time
-        }))
-
-    return {appointments, upcomingAppointments, fetchAppointments}
+    return { calendarAppointments, loading, error, refresh: fetchCalendarAppointments };
 }
+
+export function useAppointments() {
+  const [appointments, setAppointments] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const fetchAppointments = useCallback(async (pageToLoad = 1) => {
+    if (loading) return;
+
+    setLoading(true);
+
+    try {
+      const res = await api.get(`/my-bookings?page=${pageToLoad}`);
+
+      if (res.data.success) {
+        const converted = (res.data.data || []).map((a) => {
+          const rawDate = new Date(a.start);
+
+          const phDate = new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Manila",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }).format(rawDate);
+
+          const phTime = new Intl.DateTimeFormat("en-US", {
+            timeZone: "Asia/Manila",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          }).format(rawDate);
+
+          // Convert Manila date for calendar comparisons
+          const [monthName, dayWithComma, year] = phDate.replace(",", "").split(" ");
+          const day = parseInt(dayWithComma);
+          const monthIndex = new Date(`${monthName} 1, 2000`).getMonth();
+          const localDate = new Date(parseInt(year), monthIndex, day);
+
+          return {
+            ...a,
+            date: localDate,
+            dateString: phDate,
+            time: phTime,
+            office: a.details?.office_name || a.office || "",
+            student: a.details?.student_name || a.student || "",
+          };
+        });
+
+        setAppointments(prev => {
+          const merged = pageToLoad === 1 ? converted : [...prev, ...converted]; // ✅ RESET if page 1
+          const unique = Array.from(new Map(merged.map(a => [a.id, a])).values()); // ✅ remove duplicates
+          return unique;
+        });
+
+        // Pagination logic
+        const meta = res.data.meta;
+        setPage(meta.current_page < meta.last_page ? meta.current_page + 1 : meta.current_page);
+        setHasMore(meta.current_page < meta.last_page);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    setLoading(false);
+  }, [loading]);
+
+  // Load first page on mount
+  useEffect(() => {
+    fetchAppointments(1);
+  }, []);
+
+  // Infinite scroll loader
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      fetchAppointments(page);
+    }
+  };
+
+  // Prepare for calendar hover/upcoming list
+  const upcomingAppointments = appointments
+    .filter(a => a.date >= new Date(new Date().setHours(0,0,0,0))) // ✅ only future dates
+    .sort((a, b) => a.date - b.date)
+    .map((a) => ({
+      id: a.id,
+      date: a.date,
+      dateString: a.dateString,
+      studentName: a.student,
+      office: a.office,
+      time: a.time,
+      status: a.details?.status,
+      reference_code: a.details?.reference_code,
+      attachedFile: a.details?.uploaded_file_url || null,
+    }));
+
+  return {
+    appointments,
+    upcomingAppointments,
+    fetchAppointments: loadMore,
+    refreshNow: () => fetchAppointments(1), // 🎯 call this if you want manual refresh trigger
+    hasMore,
+    loading,
+  };
+}
+
+
 
 //school events
 export function useEvents() {
@@ -68,7 +159,7 @@ export function useEvents() {
     return {events, fetchEvents}
 }
 
-export function useBooking() {
+export function useBooking(e, onSuccess) {
     const [offices, setOffices] = useState([])
     const [errors, setErrors] = useState({})
     const [form, setForm] = useState({
@@ -81,7 +172,6 @@ export function useBooking() {
         group_members: '' 
     })
 
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 
     useEffect(() => {
@@ -114,21 +204,22 @@ export function useBooking() {
             })
 
             if (response.data.success) {
-                setShowSuccessModal(true);
+                onSuccess?.();
+                return { success: true }
             }
 
-            return { success: true }
-
         } catch (err) {
-            if (err.response?.data?.errors) {
-                console.error("Failed making booking", err)
-                setErrors(err.response.data.errors)
+            if (err.response && err.response.status === 422) {
+                const validationErrors = err.response.data.errors;
+                setErrors(validationErrors);
+            } else {
+                alert('Something went wrong. Please try again.');
             }
             return { success: false }
         }
     }
 
-    return { form, setForm, errors, offices, showSuccessModal, setShowSuccessModal, handleSubmit }
+    return { form, setForm, errors, offices, handleSubmit }
 }
 
 export function useRecent() {
@@ -152,14 +243,18 @@ export function useRecent() {
 
 export function useHistory() {
     const [bookings, setBookings] = useState([])
+    const [loading, setLoading] = useState(false)
 
     const fetchHistoryBookings = async () => {
         try {
+            setLoading(true)
             const res = await api.get('/bookings/history')
             setBookings(res.data.bookings)
         }catch (err) {
             console.error(err)
             alert('Failed to fetch booking history')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -167,77 +262,23 @@ export function useHistory() {
         fetchHistoryBookings()
     }, [])
 
-    return { bookings, fetchHistoryBookings }
+    return { bookings, fetchHistoryBookings, loading }
 }
 
-export function useProfile () {
-   const [user, setUser] = useState({})
-   const [fullName, setFullName] = useState('')
-   const [profilePicture, setProfilePicture] = useState(null)
-   const [preview, setPreview] = useState(null)
-   const [message, setMessage] = useState('')
 
-   useEffect(() => {
-    const fetchUser = async () => {
-        const res = await api.get('/profile')
-        setUser(res.data.user)
-        setFullName(res.data.user.full_name);
-        setPreview(res.data.user.profile_picture_url || null);
-    }
-    fetchUser()
-   }, [])
-
-   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setMessage('')
-    
-    const formData = new FormData()
-    formData.append('full_name', fullName);
-
-    if (profilePicture) {
-        formData.append('profile_picture', profilePicture);   
-    }
-
-    try {
-        const res = await api.post('/user/profile', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        })
-
-        if (res.data.success) {
-            setMessage('Profile updated successfully')
-            setUser(res.data.user)
-
-            if (res.data.user.profile_picture_url) {
-                setPreview(res.data.user.profile_picture_url);
-            }
-        }
-    } catch (err) {
-        if (err.response && err.response.status === 422) {
-            const errors = err.response.data.errors
-            const errorMessages = Object.values(errors)
-                .flat()
-                .join(' | ')
-            console.error('Validation errors:', errors)
-            setMessage(`Validation failed: ${errorMessages}`);
-        } else {
-            console.error('Profile update failed:', err)
-            setMessage('Profile update failed. Please try again.')
-        }
-    }
-   }
-
-   return { user, setProfilePicture, preview, message, handleSubmit }
-}
-
-export function useFeedback() {
-    const [rating, setRating] = useState('')
-    const [comment, setComment] = useState('')
+export function useFeedback(booking) {
+    const [rating, setRating] = useState('');
+    const [comment, setComment] = useState('');
 
     const handleSubmit = async (e) => {
-        e.preventDefault()
-        
+        // allow calling with or without an event (parent may handle preventDefault)
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+        if (!booking) {
+            console.error("No booking passed to useFeedback");
+            return { success: false, message: 'No booking provided' };
+        }
+
         try {
             const res = await api.post('/feedback/store', {
                 booking_id: booking.id,
@@ -245,18 +286,82 @@ export function useFeedback() {
                 office_id: booking.office_id,
                 rating,
                 comment
-            })
+            });
 
             if (res.data.success) {
-                return res.data
+                // keep rating/comment in hook state — parent can read them after this resolves
+                return res.data;
             }
+            return res.data || { success: false };
         } catch (err) {
-            console.error('Failed to submit feedback', err)
-            throw err
+            console.error('Failed to submit feedback', err);
+            throw err;
+        }
+    };
+
+    return {
+        rating,
+        comment,
+        setRating,
+        setComment,
+        handleSubmit
+    };
+}
+
+
+
+export function useReschedule() {
+    const [isRescheduling, setIsRescheduling] = useState(false);
+
+    const rescheduleBooking = async (id, newDateTime, newFile = null) => {
+            if (!(typeof newDateTime === 'string')) {
+                throw new Error("newDateTime must be a string in YYYY-MM-DDTHH:mm format");
+            }
+        const formData = new FormData();
+        formData.append('consultation_date', newDateTime);
+
+        if (newFile) {
+            formData.append('uploaded_file_url', newFile);
+        }
+
+        formData.append('_method', 'PATCH');
+
+        try {
+            const res = await api.post(`/reschedule/booking/${id}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+            console.log('Rescheduled Successfully')
+            return res.data;
+        } catch (err) {
+            console.error("Reschedule failed:", err.response?.data || err);
+            throw err;
+        } finally {
+            setIsRescheduling(false);
+        }
+    };
+
+    return { isRescheduling, rescheduleBooking };
+}
+
+export function useCancel() {
+    const [isCancelling, setIsCancelling] = useState(false)
+
+    const cancelBooking = async (id) => {
+        setIsCancelling(true)
+
+        try {
+            const res = await api.patch(`/cancel/booking/${id}`)
+            console.log('Cancelled successfully', res.data)
+            return res.data
+        } catch (err) {
+            console.error('Cancel failed:', err)
+        } finally {
+            setIsCancelling(false)
         }
     }
-    
-    return { rating, comment, setComment, setRating, handleSubmit }
+
+    return { isCancelling, cancelBooking}
 }
+
 
 

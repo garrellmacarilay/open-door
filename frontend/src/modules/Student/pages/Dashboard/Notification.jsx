@@ -3,64 +3,67 @@ import NotificationIcon from "../../components/img/notification.png";
 
 function Notification() {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(false)
 
   // Sample notification data
-  const notifications = [
-    {
-      id: 1,
-      office: 'Student Organization',
-      starttime: '11:00 AM',
-      endtime: '12:00 PM',
-      notiftime: '2 hours ago',
-      status: 'Approved',
-      icon: 'clock'
-    },
-    {
-      id: 2,
-      office: 'Studen Discipline',
-      starttime: '1:00 PM',
-      endtime: '2:00 PM',
-      notiftime: '3 hours ago',
-      status: 'Approved',
-      icon: 'clock'
-    },
-    {
-      id: 3,
-      office: 'Student Publication',
-      starttime: '2:30 PM',
-      endtime: '3:30 PM',
-      notiftime: '5 hours ago',
-      status: 'Declined',
-      icon: 'clock'
-    },
-    {
-      id: 4,
-      office: 'Student Internship',
-      starttime: '9:00 AM',
-      endtime: '10:00 AM',
-      notiftime: '1 day ago',
-      status: 'Declined',
-      icon: 'clock'
-    },
-    {
-      id: 5,
-      office: 'Sports Development and Management',
-      starttime: '3:00 PM',
-      endtime: '4:00 PM',
-      notiftime: '2 days ago',
-      status: 'Approved',
-      icon: 'clock'
-    },
-    {
-      id: 6,
-      office: 'Student IT Support and Services',
-      starttime: '10:00 AM',
-      endtime: '11:00 AM',
-      notiftime: '3 days ago',
-      status: 'Approved',
-      icon: 'clock'
-    }
-  ];
+  // const notifications = [
+  //   {
+  //     id: 1,
+  //     office: 'Student Organization',
+  //     starttime: '11:00 AM',
+  //     endtime: '12:00 PM',
+  //     notiftime: '2 hours ago',
+  //     status: 'Approved',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 2,
+  //     office: 'Studen Discipline',
+  //     starttime: '1:00 PM',
+  //     endtime: '2:00 PM',
+  //     notiftime: '3 hours ago',
+  //     status: 'Approved',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 3,
+  //     office: 'Student Publication',
+  //     starttime: '2:30 PM',
+  //     endtime: '3:30 PM',
+  //     notiftime: '5 hours ago',
+  //     status: 'Declined',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 4,
+  //     office: 'Student Internship',
+  //     starttime: '9:00 AM',
+  //     endtime: '10:00 AM',
+  //     notiftime: '1 day ago',
+  //     status: 'Declined',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 5,
+  //     office: 'Sports Development and Management',
+  //     starttime: '3:00 PM',
+  //     endtime: '4:00 PM',
+  //     notiftime: '2 days ago',
+  //     status: 'Approved',
+  //     icon: 'clock'
+  //   },
+  //   {
+  //     id: 6,
+  //     office: 'Student IT Support and Services',
+  //     starttime: '10:00 AM',
+  //     endtime: '11:00 AM',
+  //     notiftime: '3 days ago',
+  //     status: 'Approved',
+  //     icon: 'clock'
+  //   }
+  // ];
 
   const handleNotificationClick = () => {
     setShowNotificationModal(!showNotificationModal);
@@ -95,7 +98,7 @@ function Notification() {
 
         {/* Notification Badge */}
         <div className="absolute top-3 right-3 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-          <span className="text-xs text-white font-bold" style={{ fontFamily: 'Poppins' }}>3</span>
+          <span className="text-xs text-white font-bold" style={{ fontFamily: 'Poppins' }}></span>
         </div>
       </button>
 

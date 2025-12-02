@@ -36,6 +36,8 @@ class CalendarController extends Controller
                     'student' => $bookings->student->first_name . ' ' . $bookings->student->last_name,
                     'office' => $bookings->office->name,
                     'staff' => $bookings->staff ? $bookings->staff->first_name . ' ' . $bookings->staff->last_name : 'Unassigned',
+                    'attachment' => $bookings->uploaded_file_url,
+                    'attachment_name' => $bookings->uploaded_file_name,
                     'concern_description' => $bookings->concern_description,
                     'status' => $bookings->status,
                     'reference_code' => $bookings->reference_code,

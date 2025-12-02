@@ -3,11 +3,16 @@ import { NavigationProvider, useNavigation } from '../../../../contexts/Navigati
 import StudentNav from './StudentNav';
 import Header from './Header';
 import DashboardContent from './DashboardContent';
+import { useRecent } from '../../../../hooks/studentHooks.js';
 
 // Import the other page components
 import BookedConsultation from '../../pages/Booked Consultation/BookedConsultation';
 import BookingHistory from '../Booking History/BookingHistory.jsx';
 import FAQsContent from '../../pages/FAQs/FAQsContent';
+
+import api from '../../../../utils/api.js';
+import { useNavigate } from 'react-router-dom'
+import { useLogin } from '../../../../hooks/authHooks.js';
 
 // Main content component that switches based on active page
 function MainContent({ 
@@ -29,24 +34,33 @@ function MainContent({
   handleCancel,
   handleContinueToBooking,
   handleCancelReminder,
-  handleSuccessContinue
+  handleSuccessContinue,
+  refreshAppointments
 }) {
+  const { recentBookings } = useRecent()
   const { activePage } = useNavigation();
 
-  const renderContent = () => {
-    switch (activePage) {
-      case 'Dashboard':
-        return <DashboardContent  />;
-      case 'BookedConsultation':
-        return <BookedConsultation />;
-      case 'BookingHistory':
-        return <BookingHistory />;
-      case 'FAQs':
-        return <FAQsContent />;
-      default:
-        return <DashboardContent />;
-    }
-  };
+  const renderContent = () => (
+    <>
+      {/* Dashboard stays MOUNTED even when hidden */}
+      <div className={activePage === "Dashboard" ? "block" : "hidden"}>
+        <DashboardContent refreshAppointments={refreshAppointments} />
+      </div>
+
+      <div className={activePage === "BookingHistory" ? "block" : "hidden"}>
+        <BookingHistory />
+      </div>
+
+      {/* Other pages only mount when active */}
+      {activePage === "BookedConsultation" && <BookedConsultation recentBookings={recentBookings} />}
+
+      {activePage === "FAQs" && <FAQsContent />}
+    </>
+  );
+
+
+  const navigate = useNavigate()
+
 
   return (
     <div className="flex h-screen w-screen bg-gray-100 overflow-hidden">
@@ -80,6 +94,8 @@ function StudentContainer() {
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [refreshAppointments, setRefreshAppointments] = useState(0);
+  const [errors, setErrors] = useState([])
   const [editProfileData, setEditProfileData] = useState({
     username: '',
     email: 'garrell.macarilay@student.laverdad.edu.ph',
@@ -139,22 +155,55 @@ function StudentContainer() {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   console.log('Form submitted:', formData);
+  //   setShowBookingModal(false);
+  //   setShowSuccessModal(true);
+  //   // Reset form
+  //   setFormData({
+  //     office: '',
+  //     serviceType: '',
+  //     date: '',
+  //     time: '',
+  //     topic: '',
+  //     groupMembers: '',
+  //     attachment: null
+  //   });
+  // };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
     setShowBookingModal(false);
     setShowSuccessModal(true);
-    // Reset form
-    setFormData({
-      office: '',
-      serviceType: '',
-      date: '',
-      time: '',
-      topic: '',
-      groupMembers: '',
-      attachment: null
-    });
-  };
+    try {
+      const formData = new FormData()
+
+      formData.append('office_id', form.office_id)
+      formData.append('service_type', form.service_type);
+      formData.append('consultation_date', form.consultation_date)
+      formData.append('concern_description', form.concern_description)
+      formData.append('group_members', form.group_members)
+
+      if (form.uploaded_file_url instanceof File){
+        formData.append('uploaded_file_url', form.uploaded_file_url)
+      }
+
+      await api.post('/bookings', formData, {
+        headers: { "Content-Type": 'multipart/form-data'}
+      })
+
+      // Trigger refresh of appointments
+      setRefreshAppointments(prev => prev + 1);
+      
+    } catch (err) {
+      if (err.response?.data?.errors) {
+        setErrors(err.response.data.errors);
+      } else {
+        alert (err.response?.data?.message || 'Failed to book consultation. ');
+      }
+    }
+  }
 
   const handleCancel = () => {
     setShowBookingModal(false);
@@ -197,6 +246,7 @@ function StudentContainer() {
             handleContinueToBooking={handleContinueToBooking}
             handleCancelReminder={handleCancelReminder}
             handleSuccessContinue={handleSuccessContinue}
+            refreshAppointments={refreshAppointments}
         />
         </NavigationProvider>
      

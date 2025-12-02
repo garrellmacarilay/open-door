@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import GradIcon from '../../../../components/global-img/graduation-cap.svg';
 
 function Calendar({ 
@@ -9,6 +9,51 @@ function Calendar({
 }) {
   const [showAppointmentHoverModal, setShowAppointmentHoverModal] = useState(false);
   const [hoveredAppointment, setHoveredAppointment] = useState(null);
+
+  // Precompute normalized appointments grouped by local date key to avoid remapping in each cell
+  const apptsByDate = useMemo(() => {
+    const map = {};
+    const dateKey = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+
+    (bookedAppointments || []).forEach((appointment) => {
+      // Parse date from 'start' (or 'end' if you prefer)
+      const apptDate = new Date(appointment.start);
+
+      const localDate = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate());
+      const key = dateKey(localDate);
+
+      const details = appointment.details || {};
+
+      // Normalize fields to your component's expected names
+      const normalized = {
+        ...appointment,
+        id: appointment.id,
+        dateObj: apptDate,
+        student: details.student || details.studentName || appointment.title || 'Unknown',
+        studentName: details.student || details.studentName || appointment.title || 'Unknown',
+        office: details.office || details.office_name || 'Unknown',
+        serviceType: details.service_type || details.service || 'Unknown',
+        time: apptDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: (details.status || 'pending').toLowerCase(), // normalize to lowercase
+        attachedFile: details.attachment || null,
+        concernDescription: details.concern_description || '',
+        staff: details.staff || 'Unassigned',
+        referenceCode: details.reference_code || '',
+        dateString: localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      };
+
+      if (!map[key]) map[key] = [];
+      map[key].push(normalized);
+    });
+
+    // Sort each day's appointments by time
+    Object.keys(map).forEach(k => {
+      map[k].sort((a, b) => a.dateObj - b.dateObj);
+    });
+
+    return map;
+  }, [bookedAppointments]);
+
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -29,6 +74,9 @@ function Calendar({
     const totalCells = 42;
     const daysArray = [];
 
+    // helper to create a date key (local y-m-d) for map lookups
+    const dateKey = (d) => `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+
     // Fill the array with 42 cells
     for (let i = 0; i < totalCells; i++) {
       const dayNumber = i - firstDay + 1;
@@ -44,15 +92,14 @@ function Calendar({
                        today.getMonth() === currentMonth && 
                        today.getFullYear() === currentYear;
         
-        // Get all appointments for this day
-        const dayAppointments = bookedAppointments.filter(appointment => {
-          return appointment.date.getDate() === dayNumber &&
-                 appointment.date.getMonth() === currentMonth &&
-                 appointment.date.getFullYear() === currentYear;
-        });
+        // Lookup appointments for this day from the precomputed map
+        const cellDate = new Date(currentYear, currentMonth, dayNumber);
+        const dayKey = dateKey(cellDate);
+        const dayAppointments = apptsByDate[dayKey] || [];
 
         const hasAppointments = dayAppointments.length > 0;
         const maxVisible = 2;
+        // pre-sorted when grouping; visible ones are earliest
         const visibleAppointments = dayAppointments.slice(0, maxVisible);
         const hasMoreAppointments = dayAppointments.length > maxVisible;
         
@@ -71,12 +118,11 @@ function Calendar({
             
             {/* Appointment Indicators */}
             {hasAppointments && (
-              <div className="absolute bottom-1 left-1 right-1 space-y-0.5">
-                {/* Visible appointment indicators */}
-                {visibleAppointments.map((appointment, index) => (
-                  <div 
-                    key={`appointment-${index}`}
-                    className="bg-[#FF9500] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
+              <div className="absolute inset-x-1 bottom-2 flex flex-col items-center gap-1 px-1 pb-2 pointer-events-auto z-20">
+                {visibleAppointments.map((appointment) => (
+                  <div
+                    key={appointment.id || `${appointment.office}-${appointment.time}`}
+                    className="bg-[#FDE68A] rounded-[10px] px-3 py-1 flex items-center justify-center cursor-pointer z-10 shadow-sm w-[86%] max-w-full overflow-hidden"
                     onMouseEnter={(e) => {
                       setHoveredAppointment({
                         ...appointment,
@@ -88,17 +134,17 @@ function Calendar({
                       setShowAppointmentHoverModal(false);
                       setHoveredAppointment(null);
                     }}
+                    title={`${appointment.time} • ${appointment.service_type || appointment.service || appointment.office || appointment.office_name || 'Appointment Schedule'}`}
                   >
-                    <span className="text-white text-[10px] font-bold leading-none" style={{ fontFamily: 'Poppins' }}>
-                      {appointment.office}
+                    <span className="text-[#9A5A00] text-[12px] font-semibold leading-none truncate" style={{ fontFamily: 'Poppins' }}>
+                      {appointment.service_type || appointment.service || appointment.office || appointment.office_name || 'Appointment Schedule'}
                     </span>
                   </div>
                 ))}
-                
-                {/* View all indicator */}
+
                 {hasMoreAppointments && (
-                  <div 
-                    className="bg-[#122141] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
+                  <div
+                    className="bg-[#122141] rounded-[8px] px-3 py-1 flex items-center justify-center cursor-pointer z-10 w-[86%] shadow-sm"
                     onMouseEnter={(e) => {
                       setHoveredAppointment({
                         allAppointments: dayAppointments,
@@ -204,11 +250,6 @@ function Calendar({
               // Show all appointments when "View all" is hovered
               hoveredAppointment.allAppointments.map((appointment, index) => (
                 <div key={index} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
-                  {/* Name */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.studentName}</span>
-                  </div>
 
                   {/* Office */}
                   <div className="flex items-center gap-2 mb-1">
@@ -239,12 +280,6 @@ function Calendar({
             ) : (
               // Show single appointment details
               <>
-                {/* Name */}
-                <div className="flex items-center gap-2">
-                  <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
-                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.studentName}</span>
-                </div>
-
                 {/* Office */}
                 <div className="flex items-center gap-2">
                   <svg width="10" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -259,7 +294,7 @@ function Calendar({
                     <path d="M8 2H2C1.44772 2 1 2.44772 1 3V9C1 9.55228 1.44772 10 2 10H8C8.55228 10 9 9.55228 9 9V3C9 2.44772 8.55228 2 8 2Z" fill="white"/>
                     <path d="M7 1V3M3 1V3M1 5H9" stroke="#360055" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.dateString}</span>
                 </div>
 
                 {/* Time */}

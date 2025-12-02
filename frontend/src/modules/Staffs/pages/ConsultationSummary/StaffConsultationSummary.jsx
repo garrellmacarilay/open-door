@@ -1,65 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useConsultationSummary } from '../../../../hooks/staffHooks';
 
 function StaffConsultationSummary() {
-  const [consultations, setConsultations] = useState([
-    {
-      id: 1,
-      studentName: 'John Doe',
-      studentId: '2021-001',
-      office: 'Guidance and Counseling',
-      topic: 'Academic Advising',
-      date: '2025-11-10',
-      time: '10:00 AM',
-      status: 'Completed',
-      notes: 'Student discussed course selection for next semester. Provided guidance on career paths.',
-      rating: 5,
-      feedback: 'Very helpful session. Clear guidance provided.'
-    },
-    {
-      id: 2,
-      studentName: 'Jane Smith',
-      studentId: '2021-002',
-      office: 'Guidance and Counseling',
-      topic: 'Career Planning',
-      date: '2025-11-09',
-      time: '11:00 AM',
-      status: 'Completed',
-      notes: 'Discussed career opportunities in the students field of study. Provided resources for job hunting.',
-      rating: 4,
-      feedback: 'Good session with practical advice.'
-    },
-    {
-      id: 3,
-      studentName: 'Mike Johnson',
-      studentId: '2021-003',
-      office: 'Guidance and Counseling',
-      topic: 'Personal Counseling',
-      date: '2025-11-08',
-      time: '2:00 PM',
-      status: 'Completed',
-      notes: 'Student shared personal challenges affecting academic performance. Developed coping strategies.',
-      rating: 5,
-      feedback: 'Excellent support and understanding.'
-    },
-    {
-      id: 4,
-      studentName: 'Sarah Wilson',
-      studentId: '2021-004',
-      office: 'Guidance and Counseling',
-      topic: 'Academic Support',
-      date: '2025-11-07',
-      time: '3:00 PM',
-      status: 'No Show',
-      notes: 'Student did not attend scheduled consultation.',
-      rating: null,
-      feedback: null
-    }
-  ]);
-
+  const { consultations, fetchSummary, loading, error } = useConsultationSummary();
+  
   const [selectedConsultation, setSelectedConsultation] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    fetchSummary(searchQuery);
+  }, [fetchSummary, searchQuery]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -228,7 +180,7 @@ function StaffConsultationSummary() {
                 <tr key={consultation.id} className="hover:bg-gray-50 transition-colors">
                   <td className="p-4 border-b">
                     <div>
-                      <div className="font-medium text-gray-800">{consultation.studentName}</div>
+                      <div className="font-medium text-gray-800">{consultation.student_name}</div>
                       <div className="text-sm text-gray-500">{consultation.studentId}</div>
                     </div>
                   </td>
@@ -237,8 +189,20 @@ function StaffConsultationSummary() {
                   </td>
                   <td className="p-4 border-b">
                     <div>
-                      <div className="text-gray-800">{consultation.date}</div>
-                      <div className="text-sm text-gray-500">{consultation.time}</div>
+                      <div className="text-gray-800">  
+                        {new Date(consultation.consultation_date).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </div>
+                      <div className="text-sm text-gray-500">  
+                        {new Date(consultation.consultation_date).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "numeric",
+                          hour12: true, 
+                        })}
+                      </div>
                     </div>
                   </td>
                   <td className="p-4 border-b">

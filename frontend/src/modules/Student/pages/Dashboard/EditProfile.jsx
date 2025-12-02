@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import UplaodIcon from "../../../../components/global-img/upload.svg";
+import userProfile from '../../../../components/global-img/user.png';
 
 function EditProfile({ 
   showEditProfileModal, 
@@ -10,48 +11,39 @@ function EditProfile({
 }) {
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState(editProfileData.profileImage);
 
+  useEffect(() => {
+    setImagePreview(editProfileData.profileImage);
+  }, [editProfileData.profileImage])
+  
   // Handle file selection
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-      if (!validTypes.includes(file.type)) {
-        alert('Please select a valid image file (JPEG, JPG, PNG, or GIF)');
-        return;
-      }
+    
+    if (!file) return;
 
-      // Validate file size (max 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-      if (file.size > maxSize) {
-        alert('File size must be less than 5MB');
-        return;
-      }
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!validTypes.includes(file.type)) return alert('Invalid file type');
+  
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) return alert('File too large');
 
-      setProfileImage(file);
-      
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
+    handleEditProfileChange('profileImage', file);
 
-      // Notify parent component about the image change
-      if (handleEditProfileChange) {
-        handleEditProfileChange('profileImage', file);
-      }
-    }
+    const reader = new FileReader();
+    reader.onload = (event) => setImagePreview(event.target.result);
+    reader.readAsDataURL(file);
+
   };
 
   // Handle upload button click
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleUploadClick = () => fileInputRef.current?.click();
 
   if (!showEditProfileModal) return null;
+
+  const imageToShow = imagePreview || `https://ui-avatars.com/api/?name=${editProfileData.username || 'User'}`;
+
 
   return (
     <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-50">
@@ -66,16 +58,13 @@ function EditProfile({
           <form onSubmit={handleEditProfileSubmit} className="space-y-6">
             {/* Profile Picture Section */}
             <div className="flex flex-col items-center space-y-4">
-              {/* Profile Picture */}
-              <div className="w-25 h-25 bg-gray-300 rounded-full border-3 border-[#D0D0D0] bg-cover bg-center overflow-hidden mt-6"
-                   style={{
-                     backgroundImage: imagePreview 
-                       ? `url(${imagePreview})` 
-                       : editProfileData.profileImage 
-                       ? `url(${editProfileData.profileImage})` 
-                       : 'url(${profile})'
-                   }}>
-              </div>
+                {/* Profile Picture */}
+                <img
+                  src={imageToShow}
+                  alt="Profile"
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = userProfile; }}
+                  className="w-25 h-25 bg-gray-300 rounded-full border-3 border-[#D0D0D0] object-cover overflow-hidden mt-6"
+                />
               
               {/* Hidden File Input */}
               <input
@@ -130,36 +119,7 @@ function EditProfile({
                 className="w-full h-10 px-3 border border-[#E2E8F0] rounded-md text-sm text-[#020618] bg-white"
                 style={{ fontFamily: 'Inter' }}
                 placeholder="Enter email address"
-              />
-            </div>
-
-            {/* Change Password Field */}
-            <div className="space-y-0 m-2">
-              <label className="block text-black text-sm font-medium" style={{ fontFamily: 'Inter' }}>
-                Change Password
-              </label>
-              <input
-                type="password"
-                value={editProfileData.newPassword}
-                onChange={(e) => handleEditProfileChange('newPassword', e.target.value)}
-                className="w-full h-10 px-3 border border-[#E2E8F0] rounded-md text-sm text-[#62748E] bg-white"
-                style={{ fontFamily: 'Inter' }}
-                placeholder="Enter new password"
-              />
-            </div>
-
-            {/* Confirm Password Field */}
-            <div className="space-y-0 m-2">
-              <label className="block text-black text-sm font-medium" style={{ fontFamily: 'Inter' }}>
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={editProfileData.confirmPassword}
-                onChange={(e) => handleEditProfileChange('confirmPassword', e.target.value)}
-                className="w-full h-10 px-3 border border-[#E2E8F0] rounded-md text-sm text-[#62748E] bg-white"
-                style={{ fontFamily: 'Inter' }}
-                placeholder="Confirm new password"
+                disabled
               />
             </div>
 

@@ -1,31 +1,16 @@
 import React, { useState } from 'react';
 
-function AdminCalendarFilter({ 
-  selectedOffice = "All Offices", 
-  onOfficeChange,
-  offices = [
-    "Communications",
-    "Guidance and Counseling",
-    "Medical and Dental Services",
-    "Sports Development and Management",
-    "Student Assistance and Experiential Education",
-    "Student Discipline",
-    "Student Internship",
-    "Student IT Support and Services",
-    "Student Organization",
-    "Student Publication"
-  ]
-}) {
+function AdminCalendarFilter({ selectedOffice, onOfficeChange, offices = [] }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleOfficeSelect = (office) => {
-    onOfficeChange?.(office);
+    onOfficeChange?.(office.id);
     setIsDropdownOpen(false);
   };
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
+  const selectedOfficeName = offices.find((office) => office.id === selectedOffice)?.office_name || "All Offices";
 
   return (
     <div className="relative w-full mx-0 mt-2">
@@ -43,7 +28,7 @@ function AdminCalendarFilter({
               className="text-[#848484]! font-medium text-[15px] flex-1 text-left whitespace-nowrap overflow-hidden"
               style={{ fontFamily: 'Inter', lineHeight: '1.21em' }}
             >
-              {selectedOffice}
+              {selectedOfficeName}
             </span>
             
             {/* Chevron Icon */}
@@ -73,12 +58,12 @@ function AdminCalendarFilter({
                   key={index}
                   onClick={() => handleOfficeSelect(office)}
                   className={`w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 ${
-                    office === selectedOffice ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                    office.id === selectedOffice ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
                   } ${index === 0 ? 'rounded-t-[10px]' : ''} ${index === offices.length - 1 ? 'rounded-b-[10px]' : ''}`}
                   style={{ fontFamily: 'Inter' }}
                 >
                   <span className="text-[12px] font-medium whitespace-nowrap overflow-hidden text-ellipsis block">
-                    {office}
+                    {office.office_name}
                   </span>
                 </button>
               ))}

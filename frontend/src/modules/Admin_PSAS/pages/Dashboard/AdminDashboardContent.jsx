@@ -5,82 +5,26 @@ import AdminCalendarHeader from './AdminCalendarHeader';
 import AdminUpcomingAppointments from './AdminUpcomingAppointments';
 import AdminUpcomingEvents from './AdminUpcomingEvents';
 import AdminCalendar from './AdminCalendar';
+import { useAdminAppointments, useAdminOfficeAppointments } from '../../../../hooks/adminHooks';
 
 function AdminDashboardContent() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isAnimating, setIsAnimating] = useState(false);
     
-    // Staff-specific appointments (consultations they need to handle)
-    const [AdminConsultations, setAdminConsultations] = useState([
-      {
-        id: 1,
-        date: 'November 15, 2025',
-        dateObj: new Date(2025, 10, 15),
-        office: 'Guidance and Counseling',
-        time: '10:00 AM',
-        studentName: 'John Doe',
-        topic: 'Academic Advising',
-        status: 'Scheduled'
-      },
-      {
-        id: 2,
-        date: 'November 15, 2025',
-        dateObj: new Date(2025, 10, 15),
-        office: 'Guidance and Counseling',
-        time: '11:00 AM',
-        studentName: 'Jane Smith',
-        topic: 'Career Planning',
-        status: 'Scheduled'
-      },
-      {
-        id: 3,
-        date: 'November 16, 2025',
-        dateObj: new Date(2025, 10, 16),
-        office: 'Guidance and Counseling',
-        time: '2:00 PM',
-        studentName: 'Mike Johnson',
-        topic: 'Personal Counseling',
-        status: 'Scheduled'
-      },
-      {
-        id: 4,
-        date: 'November 18, 2025',
-        dateObj: new Date(2025, 10, 18),
-        office: 'Guidance and Counseling',
-        time: '3:00 PM',
-        studentName: 'Sarah Wilson',
-        topic: 'Academic Support',
-        status: 'Pending'
-      }
-    ]);
+    //upcoming appointments in the sidebar
+    const { appointments: upcomingAppointments, loading: upcomingLoading, error: upcomingError } = useAdminAppointments();
 
-    // Staff events (meetings, training, etc.)
-    const [AdminEvents, setAdminEvents] = useState([
-      {
-        id: 1,
-        date: new Date(2025, 10, 16),
-        title: 'Staff Meeting',
-        time: '9:00 AM',
-        type: 'Meeting',
-        location: 'Conference Room A'
-      },
-      {
-        id: 2,
-        date: new Date(2025, 10, 17),
-        title: 'Training Workshop',
-        time: '1:00 PM',
-        type: 'Training',
-        location: 'Training Center'
-      },
-      {
-        id: 3,
-        date: new Date(2025, 10, 20),
-        title: 'Department Review',
-        time: '10:00 AM',
-        type: 'Review',
-        location: 'Office'
-      }
-    ]);
+    //calendar and filtering
+    const {
+      offices,
+      calendarAppointments,
+      stats,
+      appointments: officeAppointments,
+      selectedOfficeId,
+      handleOfficeChange,
+      loading: calendarLoading,
+      error: calendarError
+    } = useAdminOfficeAppointments()   
 
     const handleDateNavigation = (direction) => {
       if (isAnimating) return;
@@ -119,9 +63,17 @@ function AdminDashboardContent() {
           {/* Calendar Section - Flexible sizing */}
           <div className="flex-1 min-w-0 flex flex-col min-h-0">
             {/* Dynamic Stats */}
-            <AdminDynamicStats />
+            <AdminDynamicStats 
+               todayConsultations={stats.today}
+               pendingApprovals={stats.pending}
+               thisMonth={stats.month}
+            />
             {/* Calendar Filter */}
-            <AdminCalendarFilter className="m-4" />
+            <AdminCalendarFilter className="m-4" 
+              offices={offices}
+              selectedOffice={selectedOfficeId}
+              onOfficeChange={handleOfficeChange}
+            />
             {/* Calendar Header */}
             <AdminCalendarHeader 
                 currentDate={currentDate}
@@ -133,8 +85,8 @@ function AdminDashboardContent() {
             {/* Admin Calendar */}
             <AdminCalendar 
               currentDate={currentDate}
-              bookedAppointments={AdminConsultations}
-              setBookedAppointments={setAdminConsultations}
+              calendarAppointments={calendarAppointments}
+              setBookedAppointments={() => {}}
               isAnimating={isAnimating}
             />
           </div>
@@ -143,12 +95,12 @@ function AdminDashboardContent() {
           <div className="w-80 flex flex-col gap-4 shrink-0 min-h-0">
             {/* Upcoming Consultations */}
             <div className="flex-1 min-h-0 mt-2">
-              <AdminUpcomingAppointments upcomingEvents={AdminConsultations} />
+              <AdminUpcomingAppointments upcomingEvents={upcomingAppointments} />
             </div>
             
             {/* Upcoming Events */}
             <div className="flex-1 min-h-0">
-              <AdminUpcomingEvents events={AdminEvents} />
+              <AdminUpcomingEvents />
             </div>
           </div>
         </div>

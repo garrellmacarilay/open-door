@@ -1,74 +1,27 @@
-import React, { useState } from 'react';
-
+import React, { useState, useEffect } from 'react';
+import { useAdminBookings } from '../../../../hooks/adminHooks';
 function AdminConsultationSummary() {
-  const [consultations, setConsultations] = useState([
-    {
-      id: 1,
-      studentName: 'John Doe',
-      studentId: '2021-001',
-      office: 'Guidance and Counseling',
-      topic: 'Academic Advising',
-      date: '2025-11-10',
-      time: '10:00 AM',
-      status: 'Completed',
-      notes: 'Student discussed course selection for next semester. Provided guidance on career paths.',
-      rating: 5,
-      feedback: 'Very helpful session. Clear guidance provided.'
-    },
-    {
-      id: 2,
-      studentName: 'Jane Smith',
-      studentId: '2021-002',
-      office: 'Guidance and Counseling',
-      topic: 'Career Planning',
-      date: '2025-11-09',
-      time: '11:00 AM',
-      status: 'Completed',
-      notes: 'Discussed career opportunities in the students field of study. Provided resources for job hunting.',
-      rating: 4,
-      feedback: 'Good session with practical advice.'
-    },
-    {
-      id: 3,
-      studentName: 'Mike Johnson',
-      studentId: '2021-003',
-      office: 'Guidance and Counseling',
-      topic: 'Personal Counseling',
-      date: '2025-11-08',
-      time: '2:00 PM',
-      status: 'Completed',
-      notes: 'Student shared personal challenges affecting academic performance. Developed coping strategies.',
-      rating: 5,
-      feedback: 'Excellent support and understanding.'
-    },
-    {
-      id: 4,
-      studentName: 'Sarah Wilson',
-      studentId: '2021-004',
-      office: 'Guidance and Counseling',
-      topic: 'Academic Support',
-      date: '2025-11-07',
-      time: '3:00 PM',
-      status: 'No Show',
-      notes: 'Student did not attend scheduled consultation.',
-      rating: null,
-      feedback: null
-    }
-  ]);
-
-  const [selectedConsultation, setSelectedConsultation] = useState(null);
+  const [selectedConsultation, setSelectedConsultation] = useState()
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const { bookings, search, setSearch, status, setStatus, handleSearchChange, fetchBookings, handleStatusChange, loading } = useAdminBookings();
+
+
+  useEffect(() => {
+    fetchBookings(search, status)
+  }, [status])
+  
   const getStatusColor = (status) => {
     switch (status) {
       case 'Completed':
-        return 'bg-green-100! text-green-800';
-      case 'No Show':
+        return 'bg-blue-100! text-blue-800';
+      case 'Declined':
         return 'bg-red-100! text-red-800';
       case 'Cancelled':
         return 'bg-yellow-100! text-yellow-800';
+      case '':
       default:
         return 'bg-gray-100! text-gray-800';
     }
@@ -100,24 +53,6 @@ function AdminConsultationSummary() {
       </div>
     );
   };
-
-  const filteredConsultations = consultations.filter(consultation => {
-    // Apply status filter
-    const statusMatch = filterStatus === 'All' || consultation.status === filterStatus;
-    
-    // Apply search filter
-    const searchMatch = searchQuery === '' || 
-      consultation.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      consultation.studentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      consultation.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      consultation.office.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      consultation.date.includes(searchQuery) ||
-      consultation.time.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (consultation.notes && consultation.notes.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (consultation.feedback && consultation.feedback.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    return statusMatch && searchMatch;
-  });
 
   const handleViewDetails = (consultation) => {
     setSelectedConsultation(consultation);
@@ -159,13 +94,13 @@ function AdminConsultationSummary() {
               <input
                 type="text"
                 placeholder="Search consultations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={search}
+                onChange={handleSearchChange}
                 className="pl-10 pr-4 py-2 border text-gray-900! border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => setSearch('')}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
                   <svg 
@@ -188,25 +123,28 @@ function AdminConsultationSummary() {
             {/* Status Filter - Takes 1/3 (1 column) */}
             <div className="sm:col-span-1">
               <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                value={status}
+                onChange={handleStatusChange}
                 className="pl-3 pr-8 py-2 border text-black border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
               >
                 <option value="All">All Status</option>
-                <option value="Completed">Completed</option>
-                <option value="No Show">No Show</option>
-                <option value="Cancelled">Cancelled</option>
+                <option value="approved">Approved</option>
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="rescheduled">Rescheduled</option>
+                <option value="declined">Declined</option>
               </select>
             </div>
           </div>
         </div>
 
         {/* Search Results Info */}
-        {(searchQuery || filterStatus !== 'All') && (
+        {(searchQuery || statusFilter !== 'All') && (
           <div className="mb-4 text-sm text-gray-600">
-            Showing {filteredConsultations.length} of {consultations.length} consultations
+            Showing {bookings.length} consultations
             {searchQuery && <span> for "{searchQuery}"</span>}
-            {filterStatus !== 'All' && <span> with status "{filterStatus}"</span>}
+            {statusFilter !== 'All' && <span> with status "{statusFilter}"</span>}
           </div>
         )}
 
@@ -224,46 +162,66 @@ function AdminConsultationSummary() {
               </tr>
             </thead>
             <tbody>
-              {filteredConsultations.map((consultation) => (
-                <tr key={consultation.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="p-4 border-b">
-                    <div>
-                      <div className="font-medium text-gray-800">{consultation.studentName}</div>
-                      <div className="text-sm text-gray-500">{consultation.studentId}</div>
-                    </div>
-                  </td>
-                  <td className="p-4 border-b">
-                    <div className="text-gray-800">{consultation.office}</div>
-                  </td>
-                  <td className="p-4 border-b">
-                    <div>
-                      <div className="text-gray-800">{consultation.date}</div>
-                      <div className="text-sm text-gray-500">{consultation.time}</div>
-                    </div>
-                  </td>
-                  <td className="p-4 border-b">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(consultation.status)}`}>
-                      {consultation.status}
-                    </span>
-                  </td>
-                  <td className="p-4 border-b">
-                    {renderStars(consultation.rating)}
-                  </td>
-                  <td className="p-4 border-b">
-                    <button
-                      onClick={() => handleViewDetails(consultation)}
-                      className="px-3 py-1 bg-[#142240]! text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-                    >
-                      View Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {bookings.map((consultation) => {
+                  // 👇 PUT IT HERE (inside map, before return)
+                  const [datePart, timePart] = consultation.consultation_date.split(" ");
+
+                  return (  // ✅ return your row JSX
+                    <tr key={consultation.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="p-4 border-b">
+                        <div>
+                          <div className="font-medium text-gray-800">{consultation.student_name}</div>
+                          <div className="text-sm text-gray-500">{consultation.reference_code}</div>
+                        </div>
+                      </td>
+
+                      <td className="p-4 border-b text-gray-800">{consultation.office}</td>
+
+                      {/* Date & Time column */}
+                      <td className="p-4 border-b">
+                        <div className="text-gray-800">                        
+                          {new Date(consultation.consultation_date).toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </div> {/* ✅ DATE */}
+                        <div className="text-sm text-gray-500">
+                          {new Date(consultation.consultation_date).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true, 
+                          })}
+                        </div> {/* ✅ TIME */}
+                      </td>
+
+                      <td className="p-4 border-b">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(consultation.status)}`}>
+                          {consultation.status}
+                        </span>
+                      </td>
+
+                      <td className="p-4 border-b">
+                        {renderStars(consultation.feedback.rating)}
+                      </td>
+
+                      <td className="p-4 border-b">
+                        <button
+                          onClick={() => handleViewDetails(consultation)}
+                          className="px-3 py-1 bg-[#142240]! text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
+                        >
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  );
+              })}
             </tbody>
+
           </table>
         </div>
 
-        {filteredConsultations.length === 0 && (
+        {bookings.length === 0 && (
           <div className="text-center py-12">
             <svg 
               className="mx-auto h-12 w-12 text-gray-400 mb-4" 
@@ -280,15 +238,15 @@ function AdminConsultationSummary() {
             </svg>
             <p className="text-gray-500 text-lg mb-2">No consultations found</p>
             <p className="text-gray-400 text-sm">
-              {searchQuery || filterStatus !== 'All' 
+              {searchQuery || statusFilter !== 'All' 
                 ? 'Try adjusting your search or filter criteria' 
                 : 'No consultations available'}
             </p>
-            {(searchQuery || filterStatus !== 'All') && (
+            {(searchQuery || statusFilter !== 'All') && (
               <button
                 onClick={() => {
                   setSearchQuery('');
-                  setFilterStatus('All');
+                  setStatusFilter('All');
                 }}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
               >
@@ -305,9 +263,9 @@ function AdminConsultationSummary() {
         <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="bg-gray-50 px-6 py-4 border-b">
+            <div className="bg-[#122141] px-6 py-4 border-b">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-800">Consultation Details</h3>
+                <h3 className="text-lg font-semibold text-white">Consultation Details</h3>
                 <button
                   onClick={handleCloseModal}
                   className="text-gray-500 hover:text-gray-700 text-xl"
@@ -322,15 +280,15 @@ function AdminConsultationSummary() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
-                  <p className="text-gray-800">{selectedConsultation.studentName}</p>
+                  <p className="text-gray-800">{selectedConsultation.student_name}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
-                  <p className="text-gray-800">{selectedConsultation.studentId}</p>
+                  <p className="text-gray-800">{selectedConsultation.reference_code}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
-                  <p className="text-gray-800">{selectedConsultation.topic}</p>
+                  <p className="text-gray-800">{selectedConsultation.service_type}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -356,14 +314,15 @@ function AdminConsultationSummary() {
               {selectedConsultation.rating && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                  {renderStars(selectedConsultation.rating)}
+                  {renderStars(selectedConsultation.feedback.rating)}
+
                 </div>
               )}
 
               {selectedConsultation.feedback && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Student Feedback</label>
-                  <p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedConsultation.feedback}</p>
+                  <p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedConsultation.feedback.comment}</p>
                 </div>
               )}
             </div>

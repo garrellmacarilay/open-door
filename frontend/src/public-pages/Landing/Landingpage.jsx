@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 import landingBg from "../../assets/img/bg-image.png";
 import student1 from "../../assets/img/student-1.png";
@@ -16,7 +17,19 @@ export const FrameLandingPage = () => {
   const [loginButtonVisible, setLoginButtonVisible] = useState(true);
   const contactButtonRef = useRef(null);
   const aboutUsRef = useRef(null);
+  const navigate = useNavigate()
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    if (token) {
+      localStorage.setItem("token", token);
+      window.history.replaceState({}, document.title, "/")
+      navigate("/dashboard");
+    }
+  }, [navigate])
+  
   const contactInfo = [
     {
       id: 1,
@@ -55,6 +68,10 @@ export const FrameLandingPage = () => {
       icon: "📰"
     }
   ];
+
+  const handleLoginPage = () => {
+    navigate('/login')
+  }
 
   const handleEmailClick = (email) => {
     // Create mailto link with subject line
@@ -143,7 +160,7 @@ export const FrameLandingPage = () => {
               : 'opacity-0 -translate-x-full pointer-events-none'
           }`}>
             <a
-              href="/login"
+              onClick={handleLoginPage}
               className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-[#1e3a8a] hover:bg-[#1e40af] text-white! font-semibold transition duration-200 shadow-md hover:shadow-lg"
             >Log In</a>
           </div>

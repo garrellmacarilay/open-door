@@ -16,8 +16,8 @@ class AnalyticsController extends Controller
     {
         $statsNow = Carbon::now();
 
-        $start = $statsNow->copy()->subMonth()->startOfMonth();
-        $end = $statsNow->copy()->subMonth()->endOfMonth();
+        $start = $statsNow->copy()->startOfMonth();
+        $end = $statsNow->copy()->endOfMonth();
 
         //Total Summary
         $total = Booking::whereBetween('consultation_date', [$start, $end])->count();
@@ -42,9 +42,11 @@ class AnalyticsController extends Controller
                 'total' => $total,
                 'completed' => $completed,
                 'cancelled' => $cancelled,
+                'pending' =>  $total - ($completed + $cancelled),
                 'percentages' => [
                     'completed' => $percentage($completed),
                     'cancelled' => $percentage($cancelled),
+                    'total' => $percentage($total)
                 ],
             ])
         ]);
@@ -52,24 +54,33 @@ class AnalyticsController extends Controller
 
     public function consultationTrends()
     {
-        $statsNow = Carbon::now();
+        $now = Carbon::now();
 
-        $start = $statsNow->copy()->subMonth()->startOfMonth();
-        $end = $statsNow->copy()->subMonth()->endOfMonth();
+        $months = collect();
 
-        $statuses = ['completed', 'cancelled'];
-
-        foreach ($statuses as $status) {
-            $trendData[$status] = Booking::where('status', $status)
-                ->whereBetween('consultation_date', [$start, $end])
-                ->count();
+        for ($i = 11; $i >= 0; $i--) {
+            $month = $now->copy()->subMonths($i);
+            $months->push([
+                'month' => $month->format('F'),
+                'start' => $month->startOfMonth()->toDateTimeString(),
+                'end' => $month->endOfMonth()->toDateTimeString(),
+            ]);
         }
+
+        $trendData = $months->map(function($m) {
+            $count = Booking::whereBetween('consultation_date', [$m['start'], $m['end']])->count();
+
+            return [
+                'month' => $m['month'],
+                'total' => $count
+            ];
+        });
 
         return response()->json([
             'success' => true,
             'trends' => [
-                'labels' => ['Completed', 'Cancelled'],
-                'values' => [$trendData['completed'], $trendData['cancelled']]
+                'labels' => $trendData->pluck('month'),
+                'values' => $trendData->pluck('total')
             ]
         ]);
     }
@@ -95,23 +106,28 @@ class AnalyticsController extends Controller
 
     public function generateReport()
     {
-        $monthYear = now()->subMonth()->format('F Y');
+        $monthYear = now()->format('F Y');
+
+        $now = Carbon::now();
+
+        $start = $now->copy()->startOfMonth();
+        $end = $now->copy()->endOfMonth();
 
         $completed = Booking::where('status', 'completed')
-            ->whereMonth('consultation_date', now()->subMonth()->month)
+            ->whereMonth('consultation_date', now()->month)
             ->count();
 
         $cancelled = Booking::where('status', 'cancelled')
             ->whereMonth('consultation_date', now()
-            ->subMonth()->month)
+            ->month)
             ->count();
 
-        $total = $completed + $cancelled;
+        $total = Booking::whereBetween('consultation_date', [$start, $end])->count();
 
         $distribution = Booking::selectRaw('office_id, COUNT(*) as total')
             ->with('office:id,office_name')
-            ->whereMonth('consultation_date',now()->subMonth()->month)
-            ->whereYear('consultation_date', now()->subMonth()->year)
+            ->whereMonth('consultation_date',now()->month)
+            ->whereYear('consultation_date', now()->year)
             ->groupBy('office_id')
             ->get();
 
@@ -121,8 +137,8 @@ class AnalyticsController extends Controller
 
         foreach ($offices as $office) {
             $query = Booking::where('office_id', $office->id)
-                ->whereMonth('consultation_date',now()->subMonth()->month)
-                ->whereYear('consultation_date', now()->subMonth()->year);
+                ->whereMonth('consultation_date',now()->month)
+                ->whereYear('consultation_date', now()->year);
 
             $officeBreakdown[] = [
                 'name' => $office->office_name,
@@ -141,7 +157,7 @@ class AnalyticsController extends Controller
             mkdir($directory, 0755, true);
         }
 
-        $fileName = 'consultation_report_' . now()->subMonth()->format('Y_m') . '.pdf';
+        $fileName = 'consultation_report_' . now()->format('Y_m') . '.pdf';
         $filePath = $directory . '/' . $fileName;
 
         Browsershot::html($html)

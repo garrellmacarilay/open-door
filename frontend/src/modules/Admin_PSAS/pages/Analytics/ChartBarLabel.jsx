@@ -1,22 +1,25 @@
 import { TrendingUp } from "lucide-react"
 import { BarChart, Bar, CartesianGrid, XAxis, LabelList, Tooltip, ResponsiveContainer } from "recharts"
+import { useConsultationTrends } from "../../../../hooks/adminHooks"
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-  { month: "July", desktop: 186 },
-  { month: "August", desktop: 305 },
-  { month: "September", desktop: 237 },
-  { month: "October", desktop: 73 },
-  { month: "November", desktop: 209 },
-  { month: "December", desktop: 214 },
-]
+
 
 export default function ChartBarLabel() {
+  const { trends, loading, error } = useConsultationTrends()
+  
+  const chartData = trends.labels.map((month, index) => ({
+    month,
+    consultations: trends.values[index]
+  }))
+
+  if (loading) {
+    return <div className="bg-white p-6 rounded-lg shadow-sm text-gray-600">Loading chart...</div>;
+  }
+
+  if (error) {
+    return <div className="bg-white p-6 rounded-lg shadow-sm text-red-600">Error loading trends</div>;
+  }
+
   return (
     <div className=" flex flex-col w-full h-95 bg-white rounded-lg  border-gray-200 shadow-sm">
         {/* Header */}
@@ -52,7 +55,7 @@ export default function ChartBarLabel() {
                 labelStyle={{ color: '#111827', fontWeight: 600 }}
               />
               <Bar 
-                dataKey="desktop" 
+                dataKey="consultations" 
                 fill="#3b82f6" 
                 radius={[8, 8, 0, 0]}
               >

@@ -36,7 +36,7 @@ class AdminBookingController extends Controller
             ->count();
 
         $recentBookings = (clone $bookingQuery)
-            ->with('student.user')
+            ->with('student.user', 'office')
             ->latest()
             ->take(5)
             ->get()
@@ -45,6 +45,7 @@ class AdminBookingController extends Controller
                     'reference_code' => $booking->reference_code,
                     'student_name' =>  optional($booking->student?->user)->full_name ?? 'Unknown',
                     'service_type' => $booking->service_type,
+                    'office' => $booking->office?->office_name ?? 'Unknown',
                     'status' => ucfirst($booking->status),
                     'consultation_date' => $booking->consultation_date
                         ? Carbon::parse($booking->consultation_date)->toIso8601String()
@@ -72,7 +73,12 @@ class AdminBookingController extends Controller
     {
         $search = $request->input('search');
 
-        $bookings = Booking::with(['student.user', 'office'])
+        $status = $request->input('status');
+
+        $bookings = Booking::with(['student.user', 'office', 'feedback'])
+            ->when($status && $status !== 'All', function($q) use ($status){
+                $q->where('status', $status);
+            })
             ->when($search, function ($query) use ($search) {
 
                 $query->whereHas('student.user', function ($q) use ($search) {
@@ -96,7 +102,12 @@ class AdminBookingController extends Controller
                     'office' => $booking->office->office_name,
                     'color' => $this->getStatusColor($booking->status),
                     'consultation_date' => $booking->consultation_date,
+                    'notes' => $booking->concern_description,
                     'status' => ucfirst($booking->status),
+                    'feedback' => [
+                        'rating' => $booking->feedback->rating ?? '',
+                        'comment' => $booking->feedback->comment ?? ''
+                    ]
                 ];
             });
 

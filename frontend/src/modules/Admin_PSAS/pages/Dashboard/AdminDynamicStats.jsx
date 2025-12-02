@@ -1,9 +1,9 @@
 import React from 'react';
 
 function AdminDynamicStats({ 
-  todayConsultations = 12, 
-  pendingApprovals = 5, 
-  thisMonth = 165 
+  todayConsultations,  
+  pendingApprovals, 
+  thisMonth, 
 }) {
   const stats = [
     {

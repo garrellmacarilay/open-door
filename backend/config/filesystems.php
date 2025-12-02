@@ -60,6 +60,21 @@ return [
             'report' => false,
         ],
 
+        'cloudinary' => [
+            'driver' => 'cloudinary',
+            /*
+             | Provide Cloudinary credentials here so the Cloudinary
+             | filesystem driver receives a proper config array and
+             | does not cause "array offset on null" errors when
+             | the package attempts to read these keys.
+             */
+            'url' => env('CLOUDINARY_URL'),
+            'cloud' => env('CLOUDINARY_CLOUD_NAME'),
+            'key' => env('CLOUDINARY_KEY'),
+            'secret' => env('CLOUDINARY_SECRET'),
+            'secure' => env('CLOUDINARY_SECURE', true),
+        ],
+
     ],
 
     /*

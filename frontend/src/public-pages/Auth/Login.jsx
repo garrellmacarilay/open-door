@@ -3,13 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react"; // optional, for the back icon
 import Login_img from "../../components/global-img/LVCC-Gate.jpg";
 import PSAS_Logo from "../../components/global-img/PSAS-Logo.png";
+import api from "../../utils/api";
+import { useGoogleLogin, useLogin } from '../../hooks/authHooks'
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const { handleGoogleLogin } = useGoogleLogin()
+  const { handleLogin, loading, message } = useLogin()
+
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Basic validation
     if (!email || !password) {
@@ -17,20 +24,16 @@ export default function LoginPage() {
       return;
     }
     
-    // Here you would normally make an API call to authenticate
-    console.log("Login submitted", { email, password });
-    
-    // For now, navigate to admin dashboard (replace with your actual route)
-    navigate("/admin");
+    await handleLogin(email, password)
   };
 
-  const handleGoogleLogin = () => {
-    // Here you would implement Google OAuth
-    console.log("Google login clicked");
-    alert("Google login functionality would be implemented here");
-    // For demo purposes, navigate to admin (replace with actual Google OAuth)
-    // navigate("/admin");
-  };
+  // const handleGoogleLogin = () => {
+  //   // Here you would implement Google OAuth
+  //   console.log("Google login clicked");
+  //   alert("Google login functionality would be implemented here");
+  //   // For demo purposes, navigate to admin (replace with actual Google OAuth)
+  //   // navigate("/admin");
+  // };
 
   const handleBackClick = () => {
     navigate("/"); // Navigate back to landing page
@@ -94,7 +97,7 @@ export default function LoginPage() {
               type="submit"
               className="w-full bg-[#1e3a8a] hover:bg-[#1e40af] text-white font-semibold py-3 rounded-md transition duration-200 shadow-md hover:shadow-lg"
             >
-              Log In
+              {loading ? "Logging in..." : "Log In"}
             </button>
 
             <div className="flex items-center my-4">
