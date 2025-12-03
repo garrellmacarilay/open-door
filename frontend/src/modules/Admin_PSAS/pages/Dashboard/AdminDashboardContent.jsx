@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminCalendarFilter from './AdminCalendarFilter';
 import AdminDynamicStats from './AdminDynamicStats';
 import AdminCalendarHeader from './AdminCalendarHeader';
@@ -6,6 +6,7 @@ import AdminUpcomingAppointments from './AdminUpcomingAppointments';
 import AdminUpcomingEvents from './AdminUpcomingEvents';
 import AdminCalendar from './AdminCalendar';
 import { useAdminAppointments, useAdminOfficeAppointments } from '../../../../hooks/adminHooks';
+import { useEvents } from '../../../../hooks/globalHooks';
 
 function AdminDashboardContent() {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -13,6 +14,11 @@ function AdminDashboardContent() {
     
     //upcoming appointments in the sidebar
     const { appointments: upcomingAppointments, loading: upcomingLoading, error: upcomingError } = useAdminAppointments();
+    const { events, fetchEvents } = useEvents()
+
+    useEffect(() => {
+      fetchEvents()
+    }, [])
 
     //calendar and filtering
     const {
@@ -100,7 +106,9 @@ function AdminDashboardContent() {
             
             {/* Upcoming Events */}
             <div className="flex-1 min-h-0">
-              <AdminUpcomingEvents />
+              <AdminUpcomingEvents 
+                
+              />
             </div>
           </div>
         </div>

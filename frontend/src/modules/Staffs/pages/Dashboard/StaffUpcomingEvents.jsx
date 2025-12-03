@@ -1,76 +1,27 @@
 import React, { useState } from 'react';
+import { useCreateEvent } from '../../../../hooks/staffAdminHooks';
 
-function StaffUpcomingEvents() {
-  const [events, setEvents] = useState([
-    // Sample events for demonstration
-    {
-      id: 1,
-      title: 'Mental Health Break',
-      date: new Date('2025-11-20'),
-      time: '10:00 AM',
-      description: 'A scheduled break focusing on mental wellness and stress relief for all staff members.'
-    },
-    {
-      id: 2,
-      title: 'Team Meeting',
-      date: new Date('2025-11-22'),
-      time: '2:00 PM',
-      description: 'Monthly team meeting to discuss project updates and upcoming initiatives.'
-    }
-  ]);
+function StaffUpcomingEvents({ upcomingEvents = [], onAddEvent, onDeleteEvent }) {
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showViewEventModal, setShowViewEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    date: '',
-    time: '',
-    description: ''
-  });
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const { form, setForm, handleSubmit: createEvent, errors } = useCreateEvent();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Create new event object
-    const newEvent = {
-      id: Date.now(), // Simple ID generation
-      title: formData.title,
-      date: new Date(formData.date),
-      time: formData.time,
-      description: formData.description
-    };
-    
-    // Add event to the list
-    setEvents(prevEvents => [...prevEvents, newEvent]);
-    
-    console.log('Event added:', newEvent);
-    setShowAddEventModal(false);
-    
-    // Reset form
-    setFormData({
-      title: '',
-      date: '',
-      time: '',
-      description: ''
-    });
-  };
+  const handleAddEventSubmit = async (e) => {
+    e.preventDefault()
+    const result = await createEvent(e)
+    if (result?.success) {
+      setShowAddEventModal(false)
+      setForm({ event_title: '', description: '', event_date: '', event_time: '' });
 
+      if (onAddEvent) onAddEvent(result.event);
+    }
+  }
   const handleCancel = () => {
     setShowAddEventModal(false);
     // Reset form
-    setFormData({
-      title: '',
-      date: '',
-      time: '',
-      description: ''
-    });
+    setForm({ event_title: '', description: '', event_date: '', event_time: '' });
   };
 
   const handleViewEvent = (event) => {
@@ -84,10 +35,11 @@ function StaffUpcomingEvents() {
   };
 
   const handleDeleteEvent = (eventId) => {
-    setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
-    setShowViewEventModal(false);
+    if (onDelete) onDeleteEvent(eventId)
+    setShowViewEventModal(false)
     setSelectedEvent(null);
   };
+  
   return (
     <div className="bg-white rounded-lg shadow-sm flex flex-col h-full">
       {/* Header */}
@@ -97,7 +49,7 @@ function StaffUpcomingEvents() {
 
       {/* Content - Scrollable Events */}
       <div className="flex-1 overflow-y-auto p-4 min-h-0">
-        {events.length === 0 ? (
+        {upcomingEvents.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-gray-500">
             <div className="text-center">
               <p className="text-sm" style={{ fontFamily: 'Inter' }}>No upcoming events</p>
@@ -105,12 +57,11 @@ function StaffUpcomingEvents() {
             </div>
           </div>
         ) : (
-          events
+          upcomingEvents
             .sort((a, b) => new Date(a.date) - new Date(b.date)) // Sort by date
-            .slice(0, 5) // Show up to 5 events
             .map((event, index) => (
           <div 
-            key={`${event?.title || 'event'}-${event?.time || 'time'}-${index}`} 
+            key={event.id} 
             className="border border-gray-400 rounded-[5px] p-3 mb-4 bg-[rgba(207,226,255,0.25)] cursor-pointer hover:bg-[rgba(207,226,255,0.4)] transition-colors"
             onClick={() => handleViewEvent(event)}
           >
@@ -122,7 +73,7 @@ function StaffUpcomingEvents() {
                 <path d="M7 8C8.65685 8 10 6.65685 10 5C10 3.34315 8.65685 2 7 2C5.34315 2 4 3.34315 4 5C4 6.65685 5.34315 8 7 8Z" stroke="#360055" strokeWidth="2"/>
                 <path d="M7 10C4.79086 10 3 11.7909 3 14H11C11 11.7909 9.20914 10 7 10Z" stroke="#360055" strokeWidth="2"/>
               </svg>
-              <span className="font-semibold text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.title || 'Unknown Event'}</span>
+              <span className="font-semibold text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.event_title || 'Unknown Event'}</span>
             </div>
 
             {/* Date Row */}
@@ -132,7 +83,11 @@ function StaffUpcomingEvents() {
                 <path d="M9 1V5M5 1V5M1 7H13" stroke="#360055" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>
-                {event?.date ? event.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date'}
+                 {new Date(event.event_date).toLocaleDateString('en-US', {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
               </span>
             </div>
 
@@ -142,7 +97,13 @@ function StaffUpcomingEvents() {
                 <circle cx="7.25" cy="7.25" r="6.25" stroke="#9D4400" strokeWidth="2"/>
                 <path d="M7.25 3.625V7.25L9.625 9.625" stroke="#9D4400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.time || 'Unknown Time'}</span>
+              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>
+                {new Date(`1970-01-01T${event.event_time}`).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true, 
+                })}
+                </span>
             </div>
           </div>
         ))
@@ -175,7 +136,7 @@ function StaffUpcomingEvents() {
             </div>
 
             {/* Modal Content */}
-            <form onSubmit={handleSubmit} className="p-6 flex-1 min-h-0 overflow-y-auto">
+            <form onSubmit={handleAddEventSubmit} className="p-6 flex-1 min-h-0 overflow-y-auto">
               <div className="space-y-6">
                 {/* Event Title */}
                 <div>
@@ -185,8 +146,8 @@ function StaffUpcomingEvents() {
                   <input
                     type="text"
                     required
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    value={form.event_title}
+                    onChange={(e) => setForm(prev => ({ ...prev, event_title: e.target.value }))}
                     placeholder="Mental Health Break"
                     className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 placeholder-[#BCBABA] focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
                     style={{ fontFamily: 'Inter' }}
@@ -201,8 +162,8 @@ function StaffUpcomingEvents() {
                   <input
                     type="date"
                     required
-                    value={formData.date}
-                    onChange={(e) => handleInputChange('date', e.target.value)}
+                    value={form.event_date}
+                    onChange={(e) => setForm(prev => ({ ...prev, event_date: e.target.value }))}
                     className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
                     style={{ fontFamily: 'Inter' }}
                   />
@@ -216,21 +177,10 @@ function StaffUpcomingEvents() {
                   <input
                     type="time"
                     required
-                    value={formData.time.includes(':') && !formData.time.includes('M') ? formData.time : ''}
-                    onChange={(e) => {
-                      const timeValue = e.target.value;
-                      if (timeValue) {
-                        // Convert 24h to 12h format for display
-                        const [hours, minutes] = timeValue.split(':');
-                        const hour = parseInt(hours);
-                        const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                        const ampm = hour >= 12 ? 'PM' : 'AM';
-                        const formattedTime = `${hour12}:${minutes} ${ampm}`;
-                        handleInputChange('time', formattedTime);
-                      } else {
-                        handleInputChange('time', '');
-                      }
-                    }}
+                    value={form.event_time}
+                    onChange={(e) =>
+                      setForm(prev => ({ ...prev, event_time: e.target.value }))
+                    }
                     className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
                     style={{ fontFamily: 'Inter' }}
                   />
@@ -244,8 +194,8 @@ function StaffUpcomingEvents() {
                   <textarea
                     required
                     rows="3"
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    value={form.description}
+                    onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Enter Event Description"
                     className="w-full px-4 py-2 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 placeholder-[#BCBABA] focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC] resize-none"
                     style={{ fontFamily: 'Inter' }}
@@ -310,7 +260,7 @@ function StaffUpcomingEvents() {
                     Event Title
                   </label>
                   <div className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 bg-gray-50 flex items-center" style={{ fontFamily: 'Inter' }}>
-                    {selectedEvent.title || 'Unknown Event'}
+                    {selectedEvent.event_title || 'Unknown Event'}
                   </div>
                 </div>
 
@@ -320,7 +270,11 @@ function StaffUpcomingEvents() {
                     Event Date
                   </label>
                   <div className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 bg-gray-50 flex items-center" style={{ fontFamily: 'Inter' }}>
-                    {selectedEvent.date ? selectedEvent.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date'}
+                    {new Date(selectedEvent.event_date).toLocaleDateString('en-US', {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
                   </div>
                 </div>
 
@@ -330,7 +284,11 @@ function StaffUpcomingEvents() {
                     Event Time
                   </label>
                   <div className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 bg-gray-50 flex items-center" style={{ fontFamily: 'Inter' }}>
-                    {selectedEvent.time || 'Unknown Time'}
+                    {new Date(`1970-01-01T${selectedEvent.event_time}`).toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "numeric",
+                      hour12: true, 
+                    })}
                   </div>
                 </div>
 
@@ -370,5 +328,8 @@ function StaffUpcomingEvents() {
     </div>
   );
 }
+
+
+  
 
 export default StaffUpcomingEvents;

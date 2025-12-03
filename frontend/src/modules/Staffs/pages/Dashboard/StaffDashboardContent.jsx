@@ -4,16 +4,28 @@ import StaffUpcomingAppointments from './StaffUpcomingAppointments';
 import StaffUpcomingEvents from './StaffUpcomingEvents';
 import StaffCalendar from './StaffCalendar';
 import { useDashboardAppointments } from '../../../../hooks/staffHooks';
+import { useEvents } from '../../../../hooks/globalHooks';
 
 function StaffDashboardContent() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isAnimating, setIsAnimating] = useState(false);
-
+    const [eventsList, setEventsList] = useState([])
     const { loading, error, appointments, fetchDashboard } = useDashboardAppointments();
+    const {events, fetchEvents} = useEvents()
 
     useEffect(() => {
       fetchDashboard();
-    }, [fetchDashboard])
+      fetchEvents()
+    }, []);
+
+    const handleAddEvent = (newEvent) => {
+      setEventsList((prev) => [...prev, newEvent]);
+    };
+
+    const handleDeleteEvent = (eventId) => {
+      setEventsList((prev) => prev.filter((event) => event.id !== eventId));
+    };
+
     
     // Staff-specific appointments (consultations they need to handle)
   
@@ -64,7 +76,11 @@ function StaffDashboardContent() {
             
             {/* Upcoming Events */}
             <div className="flex-1 min-h-0">
-              <StaffUpcomingEvents />
+              <StaffUpcomingEvents 
+                upcomingEvents={events}
+                onAddEvent={handleAddEvent}
+                onDeleteEvent={handleDeleteEvent}
+              />
             </div>
           </div>
         </div>

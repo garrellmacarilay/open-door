@@ -63,4 +63,22 @@ class AdminEventController extends Controller
         ]);
     }
 
+    public function deleteEvent($id)
+    {
+        $event = Event::find($id);
+
+        if (!$event) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Event not found'
+            ], 404);
+        }
+
+        $event->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Event deleted successfully'
+        ]);
+    }
 }

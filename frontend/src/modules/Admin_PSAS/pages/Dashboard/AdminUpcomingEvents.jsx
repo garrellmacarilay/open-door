@@ -1,93 +1,7 @@
 import React, { useState } from 'react';
 
-function AdminUpcomingEvents() {
-  const [events, setEvents] = useState([
-    // Sample events for demonstration
-    {
-      id: 1,
-      title: 'Mental Health Break',
-      date: new Date('2025-11-20'),
-      time: '10:00 AM',
-      description: 'A scheduled break focusing on mental wellness and stress relief for all staff members.'
-    },
-    {
-      id: 2,
-      title: 'Team Meeting',
-      date: new Date('2025-11-22'),
-      time: '2:00 PM',
-      description: 'Monthly team meeting to discuss project updates and upcoming initiatives.'
-    }
-  ]);
-  const [showAddEventModal, setShowAddEventModal] = useState(false);
-  const [showViewEventModal, setShowViewEventModal] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    date: '',
-    time: '',
-    description: ''
-  });
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Create new event object
-    const newEvent = {
-      id: Date.now(), // Simple ID generation
-      title: formData.title,
-      date: new Date(formData.date),
-      time: formData.time,
-      description: formData.description
-    };
-    
-    // Add event to the list
-    setEvents(prevEvents => [...prevEvents, newEvent]);
-    
-    console.log('Event added:', newEvent);
-    setShowAddEventModal(false);
-    
-    // Reset form
-    setFormData({
-      title: '',
-      date: '',
-      time: '',
-      description: ''
-    });
-  };
-
-  const handleCancel = () => {
-    setShowAddEventModal(false);
-    // Reset form
-    setFormData({
-      title: '',
-      date: '',
-      time: '',
-      description: ''
-    });
-  };
-
-  const handleViewEvent = (event) => {
-    setSelectedEvent(event);
-    setShowViewEventModal(true);
-  };
-
-  const handleCloseViewModal = () => {
-    setShowViewEventModal(false);
-    setSelectedEvent(null);
-  };
-
-  const handleDeleteEvent = (eventId) => {
-    setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
-    setShowViewEventModal(false);
-    setSelectedEvent(null);
-  };
+function AdminUpcomingEvents({ upcomingEvents = [] }) {
+  
   return (
     <div className="bg-white rounded-lg shadow-sm flex flex-col h-full">
       {/* Header */}
@@ -97,7 +11,7 @@ function AdminUpcomingEvents() {
 
       {/* Content - Scrollable Events */}
       <div className="flex-1 overflow-y-auto p-4 min-h-0">
-        {events.length === 0 ? (
+        {upcomingEvents.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-gray-500">
             <div className="text-center">
               <p className="text-sm" style={{ fontFamily: 'Inter' }}>No upcoming events</p>
