@@ -161,16 +161,16 @@ export const FrameLandingPage = () => {
           }`}>
             <a
               onClick={handleLoginPage}
-              className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-[#1e3a8a] hover:bg-[#1e40af] text-white! font-semibold transition duration-200 shadow-md hover:shadow-lg"
+              className="inline-flex items-center justify-center px-6 py-3 rounded-md bg-[#122141] hover:bg-[#1e40af] text-white! font-semibold transition duration-200 shadow-md hover:shadow-lg"
             >Log In</a>
           </div>
           
       </section>
       {/* Landing Page Body */}
-      <div className="flex flex-col bg-[#1f3463] relative z-20">
+      <div className="flex flex-col bg-[#122141] relative z-20">
 
       {/* About Us */}
-      <section ref={aboutUsRef} className="aboutus bg-[#1f3463] text-white flex flex-col-reverse md:flex-row items-center justify-between gap-10 p-8 md:p-16">
+      <section ref={aboutUsRef} className="aboutus bg-[#122141] text-white flex flex-col-reverse md:flex-row items-center justify-between gap-10 p-8 md:p-16">
         <div className="flex-1 space-y-4">
           <h2 className="text-4xl md:text-5xl font-semibold">About Us</h2>
           <p className="text-lg leading-relaxed">
@@ -195,7 +195,7 @@ export const FrameLandingPage = () => {
       </section>
 
       {/* What Makes Us Unique */}
-      <section className="bg-[#1f3463] text-white flex flex-col md:flex-row items-center justify-between gap-10 p-8 md:p-16">
+      <section className="bg-[#122141] text-white flex flex-col md:flex-row items-center justify-between gap-10 p-8 md:p-16">
         <div className="flex-1">
           <img
             src={school2}
@@ -203,21 +203,27 @@ export const FrameLandingPage = () => {
             className="rounded-2xl shadow-lg w-full object-cover"
           />
         </div>
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-4 pl-10">
           <h2 className="text-4xl font-semibold">What Makes Us Unique</h2>
           <p className="text-lg leading-relaxed">
             <span className="font-bold text-[#ff6a00]">
-              Full Scholarship Grant (“Study Now, Pay Never”)
+              Full Scholarship Grant  <span className="font-bold text-white">(“Study Now, Pay Never”)</span>
             </span>{" "}
-            LVCC is the first private school in the Philippines to offer full
-            scholarships covering tuition, uniforms, materials, and even meals
-            or dormitory needs — removing financial barriers to education.
+           <br />
+            LVCC is the first private school in the Philippines 
+            to grant a full scholarship program that covers tuition, 
+            miscellaneous fees, uniforms, instructional materials,  
+            meals for deserving students. 
+            <br />
+            <br /> 
+            This removes financial barriers so many face 
+            in pursuing education.
           </p>
         </div>
       </section>
 
       {/* Holistic Education */}
-      <section className="bg-[#1f3463]! mb-20 flex flex-col items-center text-center gap-8 p-8 md:p-16">
+      <section className="bg-[#1122141]! mb-20 flex flex-col items-center text-center gap-8 p-8 md:p-16">
         <h2 className="text-4xl text-white font-semibold">Holistic Education</h2>
         <p className="max-w-3xl text-lg text-white leading-relaxed">
           Beyond academics, LVCC emphasizes Christian values, character
@@ -231,7 +237,7 @@ export const FrameLandingPage = () => {
               key={i}
               src={img}
               alt={`Student ${i + 1}`}
-              className="rounded-lg shadow-md w-72 md:w-80 object-cover"
+              className="rounded-lg shadow-md w-80 md:w-100 object-cover"
             />
           ))}
         </div>
