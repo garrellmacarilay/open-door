@@ -203,15 +203,21 @@ export const FrameLandingPage = () => {
             className="rounded-2xl shadow-lg w-full object-cover"
           />
         </div>
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-4 pl-10">
           <h2 className="text-4xl font-semibold">What Makes Us Unique</h2>
           <p className="text-lg leading-relaxed">
             <span className="font-bold text-[#ff6a00]">
-              Full Scholarship Grant (“Study Now, Pay Never”)
+              Full Scholarship Grant  <span className="font-bold text-white">(“Study Now, Pay Never”)</span>
             </span>{" "}
-            LVCC is the first private school in the Philippines to offer full
-            scholarships covering tuition, uniforms, materials, and even meals
-            or dormitory needs — removing financial barriers to education.
+           <br />
+            LVCC is the first private school in the Philippines 
+            to grant a full scholarship program that covers tuition, 
+            miscellaneous fees, uniforms, instructional materials,  
+            meals for deserving students. 
+            <br />
+            <br /> 
+            This removes financial barriers so many face 
+            in pursuing education.
           </p>
         </div>
       </section>
