@@ -95,3 +95,22 @@ export function useProfile() {
     handleSubmit
   };
 }
+
+export function useEvents() {
+    const [events, setEvents] = useState([])
+
+    const fetchEvents = async () => {
+        try {
+            const res = await api.get('/calendar/events')
+            if (res.data.success) setEvents(res.data.data)
+        } catch (err) {
+            console.error('Failed to fetch events:', err)
+        }
+    }
+
+    useEffect(() => {
+        fetchEvents()
+    }, [])
+
+    return {events, fetchEvents}
+}

@@ -36,7 +36,7 @@ function AppRoutes() {
               <Route path="/dashboard" element={
                   !user ? <Navigate to="/login" replace /> :
                   user.role === 'student' ? <Navigate to="/dashboard/student" replace /> :
-                  user.role === 'staff' ? <Navigate to="/dashboard/staff" replace /> :
+                  user.role === 'staff' ? <Navigate to="/dashboard/office" replace /> :
                   user.role === 'admin' ? <Navigate to="/dashboard/admin" replace /> :
                   <Navigate to="/unauthorized" replace />
               } />
