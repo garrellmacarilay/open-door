@@ -39,7 +39,7 @@ export default function LoginPage() {
     navigate("/"); // Navigate back to landing page
   };
   return (
-    <div className="flex items-center justify-center min-h-screen min-w-screen bg-linear-to-b bg-[#1F3463]! ">
+    <div className="flex items-center justify-center min-h-screen min-w-screen bg-linear-to-b bg-[#122141]! ">
       <div className="flex flex-col h-160 mx-60 justify-center content-center md:flex-row w-full rounded-2xl overflow-hidden shadow-[0px_8px_50px_20px_rgba(112,112,112,0.22)] bg-white">
         {/* Left - Login Form */}
         

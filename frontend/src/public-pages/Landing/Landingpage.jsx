@@ -7,6 +7,7 @@ import student2 from "../../assets/img/student-2.png";
 import student3 from "../../assets/img/student-3.png";
 import school1 from "../../assets/img/school-1.png";
 import school2 from "../../assets/img/school-2.png";
+import psasLogo from "../../assets/img/PSAS-Logo.png";
 import Footer from "./Footer.jsx";
 
 
@@ -15,6 +16,7 @@ export const FrameLandingPage = () => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: 1000, right: 0 });
   const [loginButtonVisible, setLoginButtonVisible] = useState(true);
+  const [psasLogoVisible, setpsasLogoVisible] = useState(true);
   const contactButtonRef = useRef(null);
   const aboutUsRef = useRef(null);
   const navigate = useNavigate()
@@ -115,6 +117,7 @@ export const FrameLandingPage = () => {
       const viewportHeight = window.innerHeight;
       // Hide button when scrolled more than 50% of viewport height
       setLoginButtonVisible(scrollY < viewportHeight * 0.5);
+      setpsasLogoVisible(scrollY < viewportHeight * 0.95);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -139,6 +142,21 @@ export const FrameLandingPage = () => {
 
   return (
     <>
+      {/* PSAS Logo - Fixed at upper left of viewport */}
+     
+      <div className={`fixed -top-5 -left-5 z-50 ${
+        psasLogoVisible 
+          ? 'opacity-100 translate-x-0' 
+          : 'opacity-0 -translate-x-full pointer-events-none'
+       }`}>
+        <img
+          src={psasLogo}
+          alt="PSAS Logo"
+          className="w-20 h-20 md:w-32 md:h-32 object-contain"
+        />
+        
+       </div>
+
        <section
       // Landing Page 1st Modal
       className="relative flex flex-col justify-center items-start text-white px-6 md:px-16 py-32 min-h-screen"
@@ -153,8 +171,9 @@ export const FrameLandingPage = () => {
         }}
       > 
           
+          
           {/* Login button overlaid on the left - hides when scrolled */}
-          <div className={`fixed left-6 md:left-16 top-[70%] z-10 transform -translate-y-1/2 transition-all duration-500 ease-in-out ${
+          <div className={`fixed left-6 md:left-16 top-[70%] z-10 ${
             loginButtonVisible 
               ? 'opacity-100 translate-x-0' 
               : 'opacity-0 -translate-x-full pointer-events-none'
