@@ -28,7 +28,7 @@ function Header() {
         <h1 className="text-black text-3xl! md:text-3xl font-bold" style={{ fontFamily: 'Poppins' }}>
           {getCurrentPageTitle()}
         </h1>
-        <div className="flex items-center gap-2!">
+        <div className="flex items-center gap-2">
           {/* Notification Component */}
           <Notification />
           

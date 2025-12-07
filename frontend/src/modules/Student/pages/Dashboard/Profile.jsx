@@ -50,7 +50,7 @@ function Profile({ setShowEditProfileModal, profileImageUrl, fullName, email }) 
 
       {/* Profile Modal */}
       {showProfileModal && (
-        <div className="profile-modal absolute top-14 -right-1 w-64 bg-white rounded-lg shadow-2xl border z-50 overflow-hidden">
+        <div className="profile-modal absolute top-14 -right-2 w-64 bg-white rounded-lg shadow-2xl border z-50 overflow-hidden">
           {/* Modal Header - Dark Blue Section */}
           <div className="bg-[#142240] h-17 relative">
             {/* User Info */}
@@ -65,7 +65,7 @@ function Profile({ setShowEditProfileModal, profileImageUrl, fullName, email }) 
             {/* User Info */}
               <div className="flex ml-2 flex-col">
                 <p className="font-normal text-xs text-white" style={{ fontFamily: 'Poppins' }}>{fullName || "No Name Set"}</p>
-                <p className="text-[9px] text-white" style={{ fontFamily: 'Poppins' }}>{email || "No Email"}</p>
+                <p className="text-[8px] text-white" style={{ fontFamily: 'Poppins' }}>{email || "No Email"}</p>
               </div>
             </div>
           </div>

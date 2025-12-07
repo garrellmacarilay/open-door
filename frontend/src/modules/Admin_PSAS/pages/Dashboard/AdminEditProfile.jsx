@@ -11,6 +11,7 @@ function AdminEditProfile({
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false)
 
   // Handle file selection
   const handleImageUpload = (event) => {
@@ -51,11 +52,26 @@ function AdminEditProfile({
     fileInputRef.current?.click();
   };
 
+  const onLocalSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      await handleEditProfileSubmit(e)
+      alert('Profile successfully updated')
+    } catch (err) {
+      console.log(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
   if (!showEditProfileModal) return null;
 
   return (
     <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-50">
-      <div className="edit-profile-modal bg-white rounded-lg w-[532px] h-[649px] relative shadow-2xl overflow-hidden">
+      <div className="edit-profile-modal bg-white rounded-lg w-[532px] h-auto relative shadow-2xl overflow-hidden">
         {/* Modal Header */}
         <div className="bg-[#142240] rounded-t-lg h-[70px] flex items-center px-8">
           <h2 className="text-white text-xl font-bold" style={{ fontFamily: 'Inter' }}>Edit Profile</h2>
@@ -63,7 +79,7 @@ function AdminEditProfile({
 
         {/* Modal Content */}
         <div className="p-4 px-7 h-full overflow-y-auto">
-          <form onSubmit={handleEditProfileSubmit} className="space-y-6">
+          <form onSubmit={onLocalSubmit} className="space-y-6">
             {/* Profile Picture Section */}
             <div className="flex flex-col items-center space-y-4">
               {/* Profile Picture */}
@@ -112,7 +128,7 @@ function AdminEditProfile({
                 type="text"
                 value={editProfileData.username}
                 onChange={(e) => handleEditProfileChange('username', e.target.value)}
-                className="w-full h-10 px-3 border border-[#E2E8F0] rounded-md text-sm text-[#62748E] bg-white"
+                className="w-full h-10 px-3 border border-[#E2E8F0] rounded-md text-sm text-[#050505] bg-white"
                 style={{ fontFamily: 'Inter' }}
                 placeholder="Enter username"
               />
@@ -146,10 +162,19 @@ function AdminEditProfile({
               </button>
               <button
                 type="submit"
-                className="px-3 py-2 bg-[#155DFC]! rounded-lg text-[#F8FAFC] text-sm font-medium hover:bg-[#0d47c4] transition-colors"
+                disabled={loading}
+                className={`px-3 py-2 bg-[#155DFC]! rounded-lg text-[#F8FAFC] text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                  loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#0d47c4]'
+                }`}
                 style={{ fontFamily: 'Inter' }}
               >
-                Save Changes
+                <span>{loading ? 'Saving' : 'Save Changes'} </span>
+                {loading && (
+                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
               </button>
             </div>
           </form>
