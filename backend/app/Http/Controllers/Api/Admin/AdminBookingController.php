@@ -17,12 +17,15 @@ class AdminBookingController extends Controller
     {
         $officeId = $request->query('office_id');
 
+        $month = $request->query('month', now()->month);
+        $year = $request->query('year', now()->year);
+
         $bookingQuery = Booking::query();
 
         if ($officeId) {
             $bookingQuery->where('office_id', $officeId);
         }
-
+        //STATS
         $totalBookings = $bookingQuery->count();
         $pending = (clone $bookingQuery)->where('status', 'pending')->count();
         $approved = (clone $bookingQuery)->where('status', 'approved')->count();
@@ -35,25 +38,27 @@ class AdminBookingController extends Controller
             ->whereYear('consultation_date', now()->year)
             ->count();
 
+
+        //SIDEBAR
         $recentBookings = (clone $bookingQuery)
             ->with('student.user', 'office')
             ->latest()
             ->take(5)
             ->get()
             ->map(function ($booking) {
-                return [
-                    'reference_code' => $booking->reference_code,
-                    'student_name' =>  optional($booking->student?->user)->full_name ?? 'Unknown',
-                    'service_type' => $booking->service_type,
-                    'office' => $booking->office?->office_name ?? 'Unknown',
-                    'status' => ucfirst($booking->status),
-                    'consultation_date' => $booking->consultation_date
-                        ? Carbon::parse($booking->consultation_date)->toIso8601String()
-                        : null,
-                    'created_at' => $booking->created_at->toIso8601String(),
-
-                ];
+                return $this->formatBookingData($booking);
             });
+
+        //CALENDAR BOOKING
+        $calendarBookings = (clone $bookingQuery)
+            ->with('student.user', 'office')
+            ->whereMonth('consultation_date', $month)
+            ->whereYear('consultation_date', $year)
+            ->get()
+            ->map(function ($booking) {
+                return $this->formatBookingData($booking);
+            });
+
 
         return response()->json([
             'success' => true,
@@ -66,6 +71,7 @@ class AdminBookingController extends Controller
                 'month' => $thisMonthConsultations,
             ],
             'recent_bookings' => $recentBookings,
+            'calendar_bookings' => $calendarBookings,
         ]);
     }
         // 🟩 Fetch all bookings
@@ -202,4 +208,20 @@ class AdminBookingController extends Controller
                 return 'gray';
         }
     }
+
+    private function formatBookingData($booking) {
+        return [
+            'reference_code' => $booking->reference_code,
+            'student_name' => optional($booking->student?->user)->full_name ?? 'Unknown',
+            'service_type' => $booking->service_type,
+            'office' => $booking->office?->office_name ?? 'Unknown',
+            'status' => ucfirst($booking->status),
+            'consultation_date' => $booking->consultation_date
+                ? Carbon::parse($booking->consultation_date)->toIso8601String()
+                : null,
+            'created_at' => $booking->created_at->toIso8601String(),
+        ];
+    }
 }
+
+

@@ -1,6 +1,68 @@
 import React, { useState } from 'react';
+import { useCreateEvent } from '../../../../hooks/staffAdminHooks';
 
-function AdminUpcomingEvents({ upcomingEvents = [] }) {
+function AdminUpcomingEvents({ upcomingEvents = [], refreshEvents }) {
+
+  const { form, setForm, setErrors, handleSubmit, handleDelete } = useCreateEvent();
+
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [showViewEventModal, setShowViewEventModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  const handleInputChange = (field, value) => {
+    // Map UI field names to Hook field names if they differ
+    let key = field;
+    if (field === 'title') key = 'event_title';
+    if (field === 'date') key = 'event_date';
+    if (field === 'time') key = 'event_time';
+
+    setForm(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const onFormSubmit = async (e) => {
+    const result = await handleSubmit(e);
+    // If the hook returns success, close the modal
+    if (result && result.success) {
+      setShowAddEventModal(false);
+      if (refreshEvents) {
+        await refreshEvents()
+      }
+    }
+  };
+
+  const handleCancel = () => {
+    setShowAddEventModal(false);
+    setErrors(null);
+    setForm({ event_title: '', description: '', event_date: '', event_time: '' });
+  };
+
+  const handleViewEvent = (event) => {
+    setSelectedEvent(event);
+    setShowViewEventModal(true);
+  };
+
+  const handleCloseViewModal = () => {
+    setShowViewEventModal(false);
+    setSelectedEvent(null);
+  };
+
+  const handleDeleteEvent = async (id) => {
+    const res = await handleDelete(id);
+    if (res.success) {
+      setShowViewEventModal(false);
+
+      if (refreshEvents) {
+        await refreshEvents()
+      }
+    } else {
+      alert("Failed to delete event");
+    }
+    
+  };
+
   
   return (
     <div className="bg-white rounded-lg shadow-sm flex flex-col h-full">
@@ -19,9 +81,8 @@ function AdminUpcomingEvents({ upcomingEvents = [] }) {
             </div>
           </div>
         ) : (
-          events
-            .sort((a, b) => new Date(a.date) - new Date(b.date)) // Sort by date
-            .slice(0, 5) // Show up to 5 events
+          upcomingEvents
+            .sort((a, b) => new Date(a.date) - new Date(b.date)) 
             .map((event, index) => (
           <div 
             key={event.id || `event-${index}`}
@@ -36,7 +97,7 @@ function AdminUpcomingEvents({ upcomingEvents = [] }) {
                 <path d="M7 8C8.65685 8 10 6.65685 10 5C10 3.34315 8.65685 2 7 2C5.34315 2 4 3.34315 4 5C4 6.65685 5.34315 8 7 8Z" stroke="#360055" strokeWidth="2"/>
                 <path d="M7 10C4.79086 10 3 11.7909 3 14H11C11 11.7909 9.20914 10 7 10Z" stroke="#360055" strokeWidth="2"/>
               </svg>
-              <span className="font-semibold text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.title || 'Unknown Event'}</span>
+              <span className="font-semibold text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.event_title || 'Unknown Event'}</span>
             </div>
 
             {/* Date Row */}
@@ -46,7 +107,11 @@ function AdminUpcomingEvents({ upcomingEvents = [] }) {
                 <path d="M9 1V5M5 1V5M1 7H13" stroke="#360055" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>
-                {event?.date ? event.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Unknown Date'}
+                {new Date(event.event_date).toLocaleDateString('en-US', {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
               </span>
             </div>
 
@@ -56,7 +121,13 @@ function AdminUpcomingEvents({ upcomingEvents = [] }) {
                 <circle cx="7.25" cy="7.25" r="6.25" stroke="#9D4400" strokeWidth="2"/>
                 <path d="M7.25 3.625V7.25L9.625 9.625" stroke="#9D4400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{event?.time || 'Unknown Time'}</span>
+              <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>                 
+                  {new Date(`1970-01-01T${event.event_time}`).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "numeric",
+                    hour12: true, 
+                  })}
+                </span>
             </div>
           </div>
         ))
@@ -89,7 +160,7 @@ function AdminUpcomingEvents({ upcomingEvents = [] }) {
             </div>
 
             {/* Modal Content */}
-            <form onSubmit={handleSubmit} className="p-6 flex-1 min-h-0 overflow-y-auto">
+            <form onSubmit={onFormSubmit} className="p-6 flex-1 min-h-0 overflow-y-auto">
               <div className="space-y-6">
                 {/* Event Title */}
                 <div>
@@ -99,9 +170,9 @@ function AdminUpcomingEvents({ upcomingEvents = [] }) {
                   <input
                     type="text"
                     required
-                    value={formData.title}
+                    value={form.event_title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="Mental Health Break"
+                    placeholder="Enter an event title"
                     className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 placeholder-[#BCBABA] focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
                     style={{ fontFamily: 'Inter' }}
                   />
@@ -115,7 +186,7 @@ function AdminUpcomingEvents({ upcomingEvents = [] }) {
                   <input
                     type="date"
                     required
-                    value={formData.date}
+                    value={form.event_date}
                     onChange={(e) => handleInputChange('date', e.target.value)}
                     className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
                     style={{ fontFamily: 'Inter' }}
@@ -130,21 +201,8 @@ function AdminUpcomingEvents({ upcomingEvents = [] }) {
                   <input
                     type="time"
                     required
-                    value={formData.time.includes(':') && !formData.time.includes('M') ? formData.time : ''}
-                    onChange={(e) => {
-                      const timeValue = e.target.value;
-                      if (timeValue) {
-                        // Convert 24h to 12h format for display
-                        const [hours, minutes] = timeValue.split(':');
-                        const hour = parseInt(hours);
-                        const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                        const ampm = hour >= 12 ? 'PM' : 'AM';
-                        const formattedTime = `${hour12}:${minutes} ${ampm}`;
-                        handleInputChange('time', formattedTime);
-                      } else {
-                        handleInputChange('time', '');
-                      }
-                    }}
+                    value={form.event_time.includes(':') && !form.event_time.includes('M') ? form.event_time : ''}
+                    onChange={(e) => handleInputChange('time', e.target.value)}
                     className="w-full h-10 px-4 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC]"
                     style={{ fontFamily: 'Inter' }}
                   />
@@ -158,7 +216,7 @@ function AdminUpcomingEvents({ upcomingEvents = [] }) {
                   <textarea
                     required
                     rows="3"
-                    value={formData.description}
+                    value={form.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="Enter Event Description"
                     className="w-full px-4 py-2 border border-[#BCBABA] rounded-[10px] text-sm text-gray-700 placeholder-[#BCBABA] focus:outline-none focus:border-[#155DFC] focus:ring-1 focus:ring-[#155DFC] resize-none"

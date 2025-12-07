@@ -17,7 +17,11 @@ function AdminDashboardContent() {
     const { events, fetchEvents } = useEvents()
 
     useEffect(() => {
-      fetchEvents()
+      if (
+        events.length === 0
+      ) {
+        fetchEvents()
+      }
     }, [])
 
     //calendar and filtering
@@ -25,12 +29,10 @@ function AdminDashboardContent() {
       offices,
       calendarAppointments,
       stats,
-      appointments: officeAppointments,
       selectedOfficeId,
       handleOfficeChange,
-      loading: calendarLoading,
-      error: calendarError
-    } = useAdminOfficeAppointments()   
+      // ...
+    } = useAdminOfficeAppointments(currentDate);
 
     const handleDateNavigation = (direction) => {
       if (isAnimating) return;
@@ -107,7 +109,8 @@ function AdminDashboardContent() {
             {/* Upcoming Events */}
             <div className="flex-1 min-h-0">
               <AdminUpcomingEvents 
-                
+                upcomingEvents={events}
+                refreshEvents={fetchEvents}
               />
             </div>
           </div>

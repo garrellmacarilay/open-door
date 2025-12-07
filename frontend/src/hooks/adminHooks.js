@@ -34,10 +34,12 @@ export function useAdminAppointments() {
     return { appointments, loading, error, refresh: fetchAppointments };
 }
 
-export function useAdminOfficeAppointments() {
+// In hooks/adminHooks.js
+
+export function useAdminOfficeAppointments(currentDate) { // 1. Accept currentDate
     const [offices, setOffices] = useState([]);
     const [appointments, setAppointments] = useState([]);
-    const [stats, setStats] = useState({ today: 0, pending: 0, month: 0 })
+    const [stats, setStats] = useState({ today: 0, pending: 0, month: 0 });
     const [calendarAppointments, setCalendarAppointments] = useState([]);
     const [selectedOfficeId, setSelectedOfficeId] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -55,28 +57,38 @@ export function useAdminOfficeAppointments() {
         }));
     };
 
-    // Fetch offices for dropdown
     const fetchOffices = async () => {
         try {
             const res = await api.get('/offices');
             setOffices(res.data);
         } catch (err) {
             console.error(err);
-            setError(err.message || "Failed to fetch offices");
         }
     };
-    
 
-    // Fetch appointments for selected office
-    const fetchAppointments = async (officeId = null) => {
+    // 2. Update fetchAppointments to use the date and office
+    const fetchAppointments = async (officeId, date) => {
         setLoading(true);
         setError(null);
         try {
-            const res = await api.get(`/admin/dashboard${officeId ? `?office_id=${officeId}` : ""}`);
+            // Calculate Month and Year from the calendar's current date
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1; // JS months are 0-indexed
+
+            // Build Query: ?year=2023&month=12&office_id=1
+            let query = `?year=${year}&month=${month}`;
+            if (officeId) {
+                query += `&office_id=${officeId}`;
+            }
+
+            // Call API with date filters
+            const res = await api.get(`/admin/dashboard${query}`);
+
             if (res.data.success) {
-                setAppointments(res.data.recent_bookings);
-                setCalendarAppointments(mapBookingsToCalendar(res.data.recent_bookings));
-                setStats(res.data.stats)
+                // Ensure backend returns ALL events for that month, not just "recent"
+                setAppointments(res.data.recent_bookings); 
+                setCalendarAppointments(mapBookingsToCalendar(res.data.calendar_bookings));
+                setStats(res.data.stats);
             } else {
                 setError("Failed to fetch appointments");
             }
@@ -88,16 +100,21 @@ export function useAdminOfficeAppointments() {
         }
     };
 
-    // Initialize
+    // Initialize Offices only once
     useEffect(() => {
         fetchOffices();
-        fetchAppointments();
     }, []);
 
-    // Handle dropdown change
+    // 3. Trigger Fetch when currentDate OR selectedOfficeId changes
+    useEffect(() => {
+        if (currentDate) {
+            fetchAppointments(selectedOfficeId, currentDate);
+        }
+    }, [currentDate, selectedOfficeId]);
+
     const handleOfficeChange = (officeId) => {
         setSelectedOfficeId(officeId);
-        fetchAppointments(officeId);
+        // The useEffect above will catch this change and trigger the fetch automatically
     };
 
     return {
@@ -109,7 +126,7 @@ export function useAdminOfficeAppointments() {
         loading,
         error,
         handleOfficeChange,
-        refresh: () => fetchAppointments(selectedOfficeId),
+        refresh: () => fetchAppointments(selectedOfficeId, currentDate),
     };
 }
 

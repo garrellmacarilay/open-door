@@ -4,7 +4,8 @@ function AdminCalendarFilter({ selectedOffice, onOfficeChange, offices = [] }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleOfficeSelect = (office) => {
-    onOfficeChange?.(office.id);
+    const officeId = office ? office.id : null;
+    onOfficeChange?.(officeId);
     setIsDropdownOpen(false);
   };
 
@@ -53,6 +54,18 @@ function AdminCalendarFilter({ selectedOffice, onOfficeChange, offices = [] }) {
           {/* Dropdown Menu */}
           {isDropdownOpen && (
             <div className="absolute top-[38px] left-0 w-55 bg-white border border-[#C6C6C6] rounded-[10px] shadow-lg z-50 max-h-[300px] overflow-y-auto">
+              <button
+                onClick={() => handleOfficeSelect(null)} // Pass null to clear filter
+                className={`w-full text-left px-4 py-3 hover:bg-gray-100 transition-colors border-b border-gray-100 rounded-t-[10px] ${
+                  !selectedOffice ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                }`}
+                style={{ fontFamily: 'Inter' }}
+              >
+                <span className="text-[12px] font-medium whitespace-nowrap overflow-hidden text-ellipsis block">
+                  All Offices
+                </span>
+              </button>
+              
               {offices.map((office, index) => (
                 <button
                   key={index}
