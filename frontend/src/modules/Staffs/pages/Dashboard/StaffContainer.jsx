@@ -31,16 +31,17 @@ function MainContent({
 }) {
   const { activePage } = useNavigation();
 
-  const renderContent = () => {
-    switch (activePage) {
-      case 'Dashboard':
-        return <StaffDashboardContent />;
-      case 'ConsultationSummary':
-        return <StaffConsultationSummary />;
-      default:
-        return <StaffDashboardContent />;
-    }
-  };
+  const renderContent = () => (
+    <>
+      <div className={`h-full w-full ${activePage === 'Dashboard' || !activePage ? 'block' : 'hidden'}`}>
+        <StaffDashboardContent />
+      </div>
+
+      <div className={`h-full w-full ${activePage === 'ConsultationSummary' || !activePage ? 'block' : 'hidden'}`}>
+        <StaffConsultationSummary />
+      </div>
+    </>
+  );
 
   return (
     <div className="flex h-screen w-screen bg-gray-100 overflow-hidden">

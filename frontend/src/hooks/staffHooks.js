@@ -76,7 +76,14 @@ export function useConsultationSummary() {
     }
   }, []);
 
-  return { loading, error, consultations, fetchSummary };
+  // ✅ ADDED setConsultations to the return object
+  return { 
+    loading, 
+    error, 
+    consultations, 
+    setConsultations, // <--- This allows you to update the list manually
+    fetchSummary 
+  };
 }
 
 

@@ -64,7 +64,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::get('/calendar/events', [AdminEventController::class, 'events']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::get('/notifications/read/{id}', [NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
     Route::post('/user/profile', [ProfileController::class, 'updateProfile']);
 
