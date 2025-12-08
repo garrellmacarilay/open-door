@@ -24,7 +24,7 @@ function AdminDynamicStats({
   ];
 
   return (
-    <div className="flex gap-[18px] w-full mx-0 mt-2">
+    <div className="flex gap-3 w-full mx-0 mt-2">
       {stats.map((stat) => (
         <div 
           key={stat.id}

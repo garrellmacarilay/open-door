@@ -44,7 +44,7 @@ export default function OfficeDistribution() {
   }));
 
   return (
-    <div className="flex flex-col w-full bg-white rounded-lg shadow-lg min-h-[300px]">
+    <div className="flex flex-col w-full h-100 bg-white rounded-lg shadow-lg min-h-[280px]">
       {/* Header Section */}
       <div className="p-4 sm:p-6 border-b border-gray-200">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
@@ -56,7 +56,7 @@ export default function OfficeDistribution() {
       </div>
 
       {/* Chart Section */}
-      <div className="flex-1 p-4 sm:p-6 flex flex-row items-center justify-center gap-6 h-[300px]">
+      <div className="flex-1 p-4 sm:p-6 flex flex-row items-center justify-center gap-3 h-[300px]">
         {/* Legend */}
         <div className="shrink-0 w-1/3">
           <div className="grid grid-cols-1 gap-2">

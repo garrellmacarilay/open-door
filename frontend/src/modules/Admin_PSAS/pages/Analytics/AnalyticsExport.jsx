@@ -12,7 +12,7 @@ function AnalyticsExport({ onExport, isExporting = false }) {
   };
 
   return (
-    <div className="w-full -mt-2">
+    <div className="w-full -mt-2 mb-2">
       {/* Export Section - Matching Figma Design */}
       <div 
         className="bg-[#142240] rounded-[10px] w-full h-20 flex items-center justify-between px-[41px] relative"
@@ -44,7 +44,7 @@ function AnalyticsExport({ onExport, isExporting = false }) {
           <button
             onClick={handleExport}
             disabled={loading}
-            className={`bg-white rounded-[10px] w-[236px] h-[49px] flex items-center justify-center gap-2.5 px-2.5 transition-all duration-200 ${
+            className={`bg-white rounded-[10px] w-[236px] h-[49px] flex items-center justify-center gap-3 px-2.5 transition-all duration-200 ${
               loading  
                 ? 'opacity-75 cursor-not-allowed' 
                 : 'hover:bg-gray-100 hover:shadow-md active:scale-95'

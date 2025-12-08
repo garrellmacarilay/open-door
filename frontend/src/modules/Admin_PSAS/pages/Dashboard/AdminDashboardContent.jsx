@@ -67,7 +67,7 @@ function AdminDashboardContent() {
         {/* Calendar Header */}
 
         {/* Main Content Grid */}
-        <div className="flex-1 px-4 pb-4 flex gap-6 overflow-hidden min-h-0 ">
+        <div className="flex-1 px-4 pb-4 flex gap-3 overflow-hidden min-h-0 ">
           {/* Calendar Section - Flexible sizing */}
           <div className="flex-1 min-w-0 flex flex-col min-h-0">
             {/* Dynamic Stats */}

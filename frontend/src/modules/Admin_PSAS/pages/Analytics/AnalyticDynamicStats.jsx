@@ -55,7 +55,7 @@ function AnalyticDynamicStats({
   };
 
   return (
-    <div className="flex gap-5 -mt-2 w-full">
+    <div className="flex gap-3 -mt-2 w-full">
       {stats.map((stat) => (
         <div 
           key={stat.id}

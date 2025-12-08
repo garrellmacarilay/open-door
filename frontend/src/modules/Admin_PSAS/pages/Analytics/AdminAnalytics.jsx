@@ -12,7 +12,7 @@ function AdminAnalytics() {
   if (loading) return <div className="p-8">Loading stats...</div>;
   if (error) return <div className="p-8 text-red-500">Failed to load analytics</div>;
   return (
-    <div className="flex flex-col gap-6 p-8">
+    <div className="flex flex-col gap-3 p-8">
       <AnalyticsExport />
       <AnalyticDynamicStats 
         totalConsultations={stats?.total}
@@ -22,7 +22,7 @@ function AdminAnalytics() {
         cancelled={stats?.cancelled}
         cancelledChange={stats?.percentages?.cancelled}
       />
-      <div className="flex flex-row gap-2">
+      <div className="flex flex-row gap-3">
         <ChartBarLabel />
         <ChartPieLegend />
       </div>

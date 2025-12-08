@@ -21,7 +21,7 @@ export default function ChartBarLabel() {
   }
 
   return (
-    <div className=" flex flex-col w-full h-95 bg-white rounded-lg  border-gray-200 shadow-sm">
+    <div className=" flex flex-col w-full h-100 bg-white rounded-lg  border-gray-200 shadow-sm">
         {/* Header */}
         <div className="flex-1 p-6 pb-4">
           <h3 className="text-2xl font-semibold text-gray-900">Bar Chart - Label</h3>
