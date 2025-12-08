@@ -118,15 +118,15 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
               {/* Status Badge */}
               <div className="absolute top-2.5 right-3 ">
                 <div className={`px-2 h-5 rounded-[5px] flex items-center justify-center ${
-                  status === 'pending' ? 'bg-[#FFE168]' :
-                  status === 'approved' ? 'bg-[#9EE2AA]' :
+                  status === 'pending' ? 'bg-[#b8ce28]' :
+                  status === 'approved' ? 'bg-[#3b7846]' :
                   status === 'rescheduled' ? 'bg-[#961bb5]' :
                   'bg-red-200'
                 }`}>
                   <span className={`${
-                    status === 'pending' ? 'text-[#9D6B00]' :
-                    status === 'approved' ? 'text-[#009812]' :
-                    status === 'rescheduled' ? 'text-[#360136]' :
+                    status === 'pending' ? 'text-white' :
+                    status === 'approved' ? 'text-white' :
+                    status === 'rescheduled' ? 'text-white' :
                     'text-red-700'
                   }`} style={{ fontFamily: 'Poppins', fontSize: '10px' }}>
                     {status || 'Unknown'}
