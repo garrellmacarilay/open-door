@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Office;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Spatie\Browsershot\Browsershot;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AnalyticsResource;
@@ -106,39 +107,36 @@ class AnalyticsController extends Controller
 
     public function generateReport()
     {
+        // 1. Gather Data (Your existing logic is fine)
         $monthYear = now()->format('F Y');
-
         $now = Carbon::now();
-
         $start = $now->copy()->startOfMonth();
         $end = $now->copy()->endOfMonth();
 
         $completed = Booking::where('status', 'completed')
-            ->whereMonth('consultation_date', now()->month)
+            ->whereMonth('consultation_date', $now->month)
             ->count();
 
         $cancelled = Booking::where('status', 'cancelled')
-            ->whereMonth('consultation_date', now()
-            ->month)
+            ->whereMonth('consultation_date', $now->month)
             ->count();
 
         $total = Booking::whereBetween('consultation_date', [$start, $end])->count();
 
         $distribution = Booking::selectRaw('office_id, COUNT(*) as total')
             ->with('office:id,office_name')
-            ->whereMonth('consultation_date',now()->month)
-            ->whereYear('consultation_date', now()->year)
+            ->whereMonth('consultation_date', $now->month)
+            ->whereYear('consultation_date', $now->year)
             ->groupBy('office_id')
             ->get();
 
         $officeBreakdown = [];
-
         $offices = Office::all();
 
         foreach ($offices as $office) {
             $query = Booking::where('office_id', $office->id)
-                ->whereMonth('consultation_date',now()->month)
-                ->whereYear('consultation_date', now()->year);
+                ->whereMonth('consultation_date', $now->month)
+                ->whereYear('consultation_date', $now->year);
 
             $officeBreakdown[] = [
                 'name' => $office->office_name,
@@ -152,6 +150,7 @@ class AnalyticsController extends Controller
             'monthYear', 'total', 'completed', 'cancelled', 'distribution', 'officeBreakdown'
         ))->render();
 
+        // 2. Prepare Directory
         $directory = storage_path('app/reports');
         if (!file_exists($directory)) {
             mkdir($directory, 0755, true);
@@ -160,12 +159,34 @@ class AnalyticsController extends Controller
         $fileName = 'consultation_report_' . now()->format('Y_m') . '.pdf';
         $filePath = $directory . '/' . $fileName;
 
-        Browsershot::html($html)
-            ->format('A4')
-            ->margins(10, 10, 10, 10)
-            ->setOption('args', ['--no-sandbox'])
-            ->save($filePath);
+        // 3. Generate PDF with Error Handling & Path Detection
+        try {
+            $browsershot = Browsershot::html($html)
+                ->format('A4')
+                ->margins(10, 10, 10, 10)
+                ->showBackground() // Often needed for charts/colors to show
+                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox']);
 
-        return response()->download($filePath);
+            // Explicitly set Node/NPM paths for Production (Docker)
+            // If your Dockerfile installed node at standard locations:
+            if (app()->environment('production')) {
+                $browsershot->setNodeBinary('/usr/bin/node');
+                $browsershot->setNpmBinary('/usr/bin/npm');
+            }
+
+            $browsershot->save($filePath);
+
+        } catch (\Exception $e) {
+            // Log the ACTUAL error from Puppeteer so you can debug it
+            Log::error('PDF Generation Failed: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => 'Failed to generate PDF. Please check server logs.',
+                'details' => $e->getMessage() // Remove this line in strict production
+            ], 500);
+        }
+
+        // 4. Download and Delete
+        return response()->download($filePath)->deleteFileAfterSend(true);
     }
 }
