@@ -177,7 +177,7 @@ function StaffConsultationSummary() {
             </thead>
             <tbody>
               {filteredConsultations.map((consultation) => (
-                <tr key={consultation.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={consultation.id} className="hover:bg-gray-50 transition-colors ">
                   <td className="p-4 border-b">
                     <div>
                       <div className="font-medium text-gray-800">{consultation.student_name}</div>

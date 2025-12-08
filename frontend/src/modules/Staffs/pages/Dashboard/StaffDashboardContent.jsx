@@ -50,7 +50,7 @@ function StaffDashboardContent() {
         {/* Calendar Header */}
 
         {/* Main Content Grid */}
-        <div className="flex-1 px-4 pb-4 flex gap-6 overflow-hidden min-h-0 ">
+        <div className="flex-1 px-4 pb-4 flex gap-3 overflow-hidden min-h-0 ">
           {/* Calendar Section - Flexible sizing */}
           <div className="flex-1 min-w-0 flex flex-col min-h-0">
             <StaffCalendarHeader 
@@ -68,7 +68,7 @@ function StaffDashboardContent() {
           </div>
           
           {/* Right Column - Upcoming Consultations and Events */}
-          <div className="w-80 flex flex-col gap-4 shrink-0 min-h-0">
+          <div className="w-80 flex flex-col gap-3 shrink-0 min-h-0">
             {/* Upcoming Consultations */}
             <div className="flex-1 min-h-0 mt-2">
               <StaffUpcomingAppointments upcomingEvents={appointments} />
