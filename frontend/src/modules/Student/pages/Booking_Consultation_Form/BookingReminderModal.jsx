@@ -28,17 +28,17 @@ export default function BookingReminderModal({ isOpen, onCancel, onContinue }) {
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-end gap-3 mt-0">
+          <div className="flex justify-end gap-3">
             <button
               onClick={onCancel}
-              className="border-black! rounded-lg text-[#000000] text-sm font-medium bg-white! hover:bg-gray-50 transition-colors"
+              className="border-gray-900! h-8 px-3 rounded-lg text-[#000000] text-sm font-medium  hover:bg-gray-50 "
               style={{ fontFamily: 'Inter' }}
             >
               Cancel
             </button>
             <button
               onClick={onContinue}
-              className=" bg-[#155DFC]! rounded-lg text-white text-sm font-medium hover:bg-[#0d47c4] transition-colors"
+              className=" bg-[#155DFC]! h-8 px-3 rounded-lg text-white text-sm font-medium hover:bg-[#0d47c4]"
               style={{ fontFamily: 'Inter' }}
             >
               Continue

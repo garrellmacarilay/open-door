@@ -33,7 +33,8 @@ export default function BookConsultationModal({
                     <select
                         value={form.office_id}
                         onChange={(e) => setForm({ ...form, office_id: e.target.value })}
-                        className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-[#FFFCFC]"
+                        placeholder="Select Office"
+                        className="w-full h-9 px-3 border border-[#9B9999] rounded-[7px] text-black text-sm bg-[#FFFCFC]"
                         style={{ fontFamily: 'Inter' }}
                         required
                     >
@@ -59,8 +60,9 @@ export default function BookConsultationModal({
               <select
                 value={form.service_type}
                 onChange={(e) => setForm({ ...form, service_type: e.target.value })}
-                className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-[#FFFCFC]"
-                required
+                className="w-full h-9 px-3 border border-[#9B9999] rounded-[7px] text-black text-sm bg-[#FFFCFC]"
+                style={{ fontFamily: 'Inter' }}
+                 required
               >
                 <option value="">Select Service Type</option>
                 <option value="Consultation">Consultation</option>
@@ -81,7 +83,7 @@ export default function BookConsultationModal({
                         type="date"
                         value={form.date}
                         onChange={(e) => setForm( {...form, date: e.target.value })}
-                        className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white appearance-none relative"
+                        className="w-full h-9 px-3 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white appearance-none relative"
                         style={{ fontFamily: 'Inter' }}
                         required
                       />
@@ -97,7 +99,7 @@ export default function BookConsultationModal({
                       type="time"
                       value={form.time}            
                       onChange={(e) => setForm( {...form, time: e.target.value })}
-                      className="w-full h-9 px-6 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white appearance-none relative"
+                      className="w-full h-9 px-3 border border-[#9B9999] rounded-[7px] text-[#8C8B8B] text-sm bg-white appearance-none relative"
                       style={{ fontFamily: 'Inter' }}
                       required
                     />
@@ -119,6 +121,7 @@ export default function BookConsultationModal({
                 placeholder="Briefly describe your concern"
                 className="w-full px-3 py-2 border border-[#9B9999] rounded-[7px] text-black text-sm bg-[#FFFCFC] resize-none"
                 rows={4}
+                style={{ fontFamily: 'Inter' }}
                 required
               />
             </div>
@@ -134,6 +137,8 @@ export default function BookConsultationModal({
                 placeholder="Enter names of group members"
                 className="w-full px-3 py-2 border border-[#9B9999] rounded-[7px] text-black text-sm bg-[#FFFCFC] resize-none"
                 rows={2}
+                style={{ fontFamily: 'Inter' }}
+                
               />
             </div>
 
@@ -146,6 +151,8 @@ export default function BookConsultationModal({
                 type="file"
                 onChange={(e) => setForm({ ...form, uploaded_file_url: e.target.files[0] })}
                 className="w-full text-sm text-black border border-[#9B9999] rounded-[7px] bg-[#FFFCFC] file:px-3 file:py-1 file:border-0 file:rounded-full file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                style={{ fontFamily: 'Inter' }}
+                
               />
             </div>
 
@@ -160,14 +167,14 @@ export default function BookConsultationModal({
               <button
                 type="button"
                 onClick={onCancel}
-                className="border border-[#000000]! rounded-lg text-black! text-xs font-medium bg-white! hover:bg-gray-50 transition-colors"
+                className="border border-[#000000]! h-8 px-3 rounded-lg text-black! text-xs font-medium bg-white! hover:bg-gray-50 transition-colors"
                 style={{ fontFamily: 'Inter' }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="justify-center items-center bg-[#155DFC]! rounded-lg text-white text-xs font-medium hover:bg-[#0d47c4] transition-colors"
+                className="justify-center items-center h-8 px-3 bg-[#155DFC]! rounded-lg text-white text-xs font-medium hover:bg-[#0d47c4] transition-colors"
                 style={{ fontFamily: 'Inter' }}
               >
                 Submit Request
