@@ -47,11 +47,11 @@ function FAQsContent() {
       {/* Main Content Area */}
       <div className="flex-1 relative">
         {/* FAQs Content Container */}
-        <div className="flex flex-row relative bg-white rounded-2xl shadow-lg w-300 h-150 m-auto my-7 p-9">
+        <div className="flex flex-row relative bg-white rounded-2xl shadow-lg w-300 h-146 m-auto my-7 p-9">
 
           {/* Left Side - LV Photo */}
           <div 
-            className="flex w-118 h-123 rounded-[13px] shadow-lg m-3 bg-cover bg-center"
+            className="flex w-118 h-122 rounded-[13px] shadow-lg m-3 mb-4 bg-cover bg-center"
             style={{
               backgroundImage: `url(${FAQsBG})`,
               boxShadow: '0px 8px 10px 0px rgba(0, 0, 0, 0.25)',

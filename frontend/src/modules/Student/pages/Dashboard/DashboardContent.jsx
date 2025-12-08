@@ -154,7 +154,7 @@ function DashboardContent({ refreshAppointments = 0 }) {
         closeReminder={closeReminder}
       />
       
-      <div className="flex-1 px-4 pb-4 flex gap-4 overflow-hidden rounded-lg -mr-0.5">
+      <div className="flex-1 px-4 flex gap-3 overflow-hidden rounded-lg h-[116%]">
         {/* Calendar Section */}
         <Calendar 
           currentDate={currentDate}
@@ -165,12 +165,16 @@ function DashboardContent({ refreshAppointments = 0 }) {
         />
 
         {/* Right Sidebar - Two Modals */}
-        <div className="w-80 flex flex-col gap-4 shrink-0 min-h-0">
+        <div className="w-80 flex flex-col gap-3 shrink-0 min-h-0">
           {/* Upcoming Appointments Component */}
-          <UpcomingAppointments upcomingEvents={appointments} fetchMore={fetchAppointments} hasMore={hasMore}/>
+          <div className="flex-1 min-h-0">
+            <UpcomingAppointments upcomingEvents={appointments} fetchMore={fetchAppointments} hasMore={hasMore}/>
+          </div>
           
           {/* Upcoming Events Component */}
-          <UpcomingEvents upcomingEvents={events || [] } />
+          <div className="flex-1 min-h-0">
+            <UpcomingEvents upcomingEvents={events || [] } />
+          </div>
         </div>
       </div>
 

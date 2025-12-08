@@ -1,6 +1,6 @@
 function UpcomingEvents({ upcomingEvents = [] }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm flex flex-col h-[354px]">
+    <div className="bg-white rounded-lg shadow-sm flex flex-col h-full shadow-2xl">
       {/* Header */}
       <div className="bg-[#142240] rounded-t-lg h-[58px] flex items-center px-4 shrink-0">
         <h2 className="text-white text-lg font-bold" style={{ fontFamily: 'Inter' }}>Upcoming Events</h2>
