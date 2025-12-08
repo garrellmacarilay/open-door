@@ -94,7 +94,7 @@ Route::middleware(['auth:sanctum', 'staffadmin'])->group(function () {
     Route::post('/create/event', [AdminEventController::class, 'storeEvents']);
     Route::put('/update/events/{id}', [AdminEventController::class, 'updateEvent']);
     Route::patch('/bookings/status/{id}', [AdminBookingController::class, 'updateStatus']);
-    Route::delete('/delete/event/{id}', [AdminEventController::class, 'delete']);
+    Route::delete('/delete/event/{id}', [AdminEventController::class, 'deleteEvent']);
 
 });
 

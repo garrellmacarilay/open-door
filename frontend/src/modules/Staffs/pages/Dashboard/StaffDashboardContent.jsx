@@ -9,14 +9,25 @@ import { useEvents } from '../../../../hooks/globalHooks';
 function StaffDashboardContent() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isAnimating, setIsAnimating] = useState(false);
-    const [eventsList, setEventsList] = useState([])
+    
+    // 1. This is your "Source of Truth" for the UI
+    const [eventsList, setEventsList] = useState([]); 
+
     const { loading, error, appointments, fetchDashboard } = useDashboardAppointments();
-    const {events, fetchEvents} = useEvents()
+    const { events, fetchEvents } = useEvents();
 
     useEffect(() => {
       fetchDashboard();
-      fetchEvents()
+      fetchEvents();
     }, []);
+
+    // 2. ✅ CRITICAL FIX: Sync fetched data to local state
+    // When the API returns data ('events'), update your local 'eventsList'
+    useEffect(() => {
+      if (events) {
+        setEventsList(events);
+      }
+    }, [events]);
 
     const handleAddEvent = (newEvent) => {
       setEventsList((prev) => [...prev, newEvent]);
@@ -26,8 +37,6 @@ function StaffDashboardContent() {
       setEventsList((prev) => prev.filter((event) => event.id !== eventId));
     };
 
-    // Staff-specific appointments (consultations they need to handle)
-  
     const handleDateNavigation = (direction) => {
       if (isAnimating) return;
       setIsAnimating(true);
@@ -45,17 +54,10 @@ function StaffDashboardContent() {
     };
 
     return (
-      // 1. Root container needs h-full and overflow-hidden to contain the scrollable area
       <div className="flex flex-col h-full overflow-hidden">
-        
-        {/* 2. Main Scrollable Container 
-             - overflow-y-auto: Enables scrolling for the whole dashboard
-             - flex-1: Fills available space
-        */}
         <div className="flex-1 px-4 pb-6 flex gap-3 overflow-y-auto">
           
           {/* Left Column (Calendar) */}
-          {/* Added min-h-[600px] to prevent squashing and force scroll on small screens */}
           <div className="flex-1 min-w-0 flex flex-col min-h-[600px]">
             <StaffCalendarHeader 
                 currentDate={currentDate}
@@ -72,18 +74,18 @@ function StaffDashboardContent() {
           </div>
           
           {/* Right Column (Sidebar) */}
-          {/* Added min-h-[600px] to match the calendar height */}
           <div className="w-80 flex flex-col gap-3 shrink-0 min-h-[600px]">
             
             {/* Upcoming Consultations */}
-            <div className="flex-1 min-h-0 pt-[58px]"> {/* Added padding-top to align with calendar below header if needed, or remove if header is part of calendar */}
+            <div className="flex-1 min-h-0 pt-[58px]"> 
               <StaffUpcomingAppointments upcomingEvents={appointments} />
             </div>
             
             {/* Upcoming Events */}
             <div className="flex-1 min-h-0">
               <StaffUpcomingEvents 
-                upcomingEvents={events}
+                // 3. ✅ CRITICAL FIX: Pass 'eventsList' (local state), not 'events' (hook state)
+                upcomingEvents={eventsList} 
                 onAddEvent={handleAddEvent}
                 onDeleteEvent={handleDeleteEvent}
               />
