@@ -107,7 +107,7 @@ class AnalyticsController extends Controller
 
     public function generateReport()
     {
-        // 1. Gather Data (Your existing logic is fine)
+        // 1. Gather Data
         $monthYear = now()->format('F Y');
         $now = Carbon::now();
         $start = $now->copy()->startOfMonth();
@@ -146,11 +146,12 @@ class AnalyticsController extends Controller
             ];
         }
 
+        // 2. Render HTML
         $html = view('reports.analytics', compact(
             'monthYear', 'total', 'completed', 'cancelled', 'distribution', 'officeBreakdown'
         ))->render();
 
-        // 2. Prepare Directory
+        // 3. Prepare Directory
         $directory = storage_path('app/reports');
         if (!file_exists($directory)) {
             mkdir($directory, 0755, true);
@@ -159,34 +160,39 @@ class AnalyticsController extends Controller
         $fileName = 'consultation_report_' . now()->format('Y_m') . '.pdf';
         $filePath = $directory . '/' . $fileName;
 
-        // 3. Generate PDF with Error Handling & Path Detection
+        // 4. Generate PDF
         try {
             $browsershot = Browsershot::html($html)
                 ->format('A4')
                 ->margins(10, 10, 10, 10)
-                ->showBackground() // Often needed for charts/colors to show
-                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox']);
+                ->showBackground()
+                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
+                ->newHeadless();
 
-            // Explicitly set Node/NPM paths for Production (Docker)
-            // If your Dockerfile installed node at standard locations:
+            // 🟢 FIX: Only enforce paths in Production (Docker)
+            // Locally, let Browsershot find Node automatically
             if (app()->environment('production')) {
                 $browsershot->setNodeBinary('/usr/bin/node');
                 $browsershot->setNpmBinary('/usr/bin/npm');
             }
+            // Optional: If you are on Mac/Linux Localhost and it still fails,
+            // you might need to uncomment and set your local path:
+            // else {
+            //    $browsershot->setNodeBinary('/usr/local/bin/node');
+            // }
 
             $browsershot->save($filePath);
 
         } catch (\Exception $e) {
-            // Log the ACTUAL error from Puppeteer so you can debug it
             Log::error('PDF Generation Failed: ' . $e->getMessage());
 
             return response()->json([
-                'error' => 'Failed to generate PDF. Please check server logs.',
-                'details' => $e->getMessage() // Remove this line in strict production
+                'error' => 'Failed to generate PDF.',
+                'details' => $e->getMessage()
             ], 500);
         }
 
-        // 4. Download and Delete
+        // 5. Download and Delete
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
-}
+    }

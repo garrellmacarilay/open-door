@@ -6,7 +6,7 @@ FROM php:8.3.11-fpm
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl unzip libsqlite3-dev libonig-dev libzip-dev libpq-dev zip git bash \
     gnupg2 ca-certificates fonts-liberation \
-    # Image Manipulation Dependencies (Required for Cloudinary/Image Validations)
+    # Image Manipulation Dependencies (Required for Cloudinary/Validation)
     libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
     # Puppeteer/Chrome dependencies
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libcups2 libdbus-1-3 libdrm2 \
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libstdc++6 wget xvfb \
     # Configure GD Extension
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    # Install PHP Extensions (Added 'gd' and 'pcntl')
+    # Install PHP Extensions
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql pdo_pgsql pdo_sqlite mbstring zip opcache bcmath exif pcntl gd \
     && apt-get autoremove -y && apt-get clean \
@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /var/www
 
 # ─────────────────────────────
-# Composer Install (Cached Layer)
+# Composer Install
 # ─────────────────────────────
 COPY composer.json composer.lock ./
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -48,12 +48,28 @@ RUN mkdir -p storage bootstrap/cache public/storage \
     && chmod -R 775 storage bootstrap/cache public
 
 # ─────────────────────────────
-# Node.js & Puppeteer
+# Node.js & Puppeteer (FIXED)
 # ─────────────────────────────
+# 1. Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install puppeteer --no-interaction \
-    && npm cache clean --force
+    && apt-get install -y nodejs
+
+# 2. Define custom cache directory for Puppeteer so www-data can access it
+ENV PUPPETEER_CACHE_DIR=/var/www/.cache/puppeteer
+
+# 3. Create directory and assign permissions
+RUN mkdir -p $PUPPETEER_CACHE_DIR \
+    && chown -R www-data:www-data /var/www/.cache
+
+# 4. Switch to www-data to install packages (Ensures correct ownership)
+USER www-data
+
+# 5. Install Puppeteer and download Chrome binary
+RUN npm install puppeteer \
+    && npx puppeteer browsers install chrome
+
+# 6. Switch back to root to finish setup
+USER root
 
 # ─────────────────────────────
 # Entrypoint Script
