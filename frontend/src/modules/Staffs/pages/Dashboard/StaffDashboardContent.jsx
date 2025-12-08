@@ -26,7 +26,6 @@ function StaffDashboardContent() {
       setEventsList((prev) => prev.filter((event) => event.id !== eventId));
     };
 
-    
     // Staff-specific appointments (consultations they need to handle)
   
     const handleDateNavigation = (direction) => {
@@ -46,17 +45,22 @@ function StaffDashboardContent() {
     };
 
     return (
-      <div className="flex flex-col h-full ">
-        {/* Calendar Header */}
-
-        {/* Main Content Grid */}
-        <div className="flex-1 px-4 pb-4 flex gap-3 overflow-hidden min-h-0 ">
-          {/* Calendar Section - Flexible sizing */}
-          <div className="flex-1 min-w-0 flex flex-col min-h-0">
+      // 1. Root container needs h-full and overflow-hidden to contain the scrollable area
+      <div className="flex flex-col h-full overflow-hidden">
+        
+        {/* 2. Main Scrollable Container 
+             - overflow-y-auto: Enables scrolling for the whole dashboard
+             - flex-1: Fills available space
+        */}
+        <div className="flex-1 px-4 pb-6 flex gap-3 overflow-y-auto">
+          
+          {/* Left Column (Calendar) */}
+          {/* Added min-h-[600px] to prevent squashing and force scroll on small screens */}
+          <div className="flex-1 min-w-0 flex flex-col min-h-[600px]">
             <StaffCalendarHeader 
                 currentDate={currentDate}
                 navigateMonth={handleDateNavigation}
-                setShowReminderModal={() => {}} // Add placeholder function
+                setShowReminderModal={() => {}} 
                 goToToday={goToToday}
                 isAnimating={isAnimating}
             />
@@ -67,10 +71,12 @@ function StaffDashboardContent() {
             />
           </div>
           
-          {/* Right Column - Upcoming Consultations and Events */}
-          <div className="w-80 flex flex-col gap-3 shrink-0 min-h-0">
+          {/* Right Column (Sidebar) */}
+          {/* Added min-h-[600px] to match the calendar height */}
+          <div className="w-80 flex flex-col gap-3 shrink-0 min-h-[600px]">
+            
             {/* Upcoming Consultations */}
-            <div className="flex-1 min-h-0 mt-2">
+            <div className="flex-1 min-h-0 pt-[58px]"> {/* Added padding-top to align with calendar below header if needed, or remove if header is part of calendar */}
               <StaffUpcomingAppointments upcomingEvents={appointments} />
             </div>
             
@@ -83,6 +89,7 @@ function StaffDashboardContent() {
               />
             </div>
           </div>
+
         </div>
       </div>
     );
