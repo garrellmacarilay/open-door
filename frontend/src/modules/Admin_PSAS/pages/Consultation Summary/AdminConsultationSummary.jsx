@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useAdminBookings } from '../../../../hooks/adminHooks';
+import { useUpdateAppointmentStatus } from '../../../../hooks/adminHooks';
+
+
 function AdminConsultationSummary() {
-  const [selectedConsultation, setSelectedConsultation] = useState()
+  const [selectedConsultation, setSelectedConsultation] = useState('')
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   const { bookings, search, setSearch, status, setStatus, handleSearchChange, fetchBookings, handleStatusChange, loading } = useAdminBookings();
+  const { loading: isLoading, error, success, updateStatus } = useUpdateAppointmentStatus()
+
+  const [updatingId, setUpdatingId] = useState(null);
 
 
   useEffect(() => {
-    fetchBookings(search, status)
+    if (bookings.length === 0) {
+      fetchBookings(search, status)
+    }
   }, [status])
   
   const getStatusColor = (status) => {
@@ -53,6 +61,15 @@ function AdminConsultationSummary() {
       </div>
     );
   };
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    setUpdatingId(id)
+
+    await updateStatus(id, newStatus.toLowerCase());
+
+    fetchBookings(search, status)
+    setUpdatingId(null)
+  }
 
   const handleViewDetails = (consultation) => {
     setSelectedConsultation(consultation);
@@ -196,9 +213,55 @@ function AdminConsultationSummary() {
                       </td>
 
                       <td className="p-4 border-b">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(consultation.status)}`}>
-                          {consultation.status}
-                        </span>
+                        <div className="relative inline-block w-full max-w-[140px]">
+                          {/* Determine if this specific row is updating */}
+                          {(() => {
+                            const isUpdating = updatingId === consultation.id;
+                            
+                            return (
+                              <>
+                                <select
+                                  value={consultation.status || "Pending"}
+                                  onChange={(e) => handleStatusUpdate(consultation.id, e.target.value)}
+                                  disabled={isUpdating || isLoading} // Disable input while loading
+                                  className={`
+                                    w-full appearance-none 
+                                    px-3 py-1 pr-8 
+                                    rounded-full text-xs font-medium 
+                                    border-none outline-none cursor-pointer 
+                                    transition-colors shadow-sm
+                                    ${getStatusColor(consultation.status)}
+                                    disabled:opacity-70 disabled:cursor-not-allowed
+                                    focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
+                                  `}
+                                >
+                                  <option value="Pending" className="bg-white text-gray-800">Pending</option>
+                                  <option value="Approved" className="bg-white text-gray-800">Approved</option>
+                                  <option value="Completed" className="bg-white text-gray-800">Completed</option>
+                                  <option value="Cancelled" className="bg-white text-gray-800">Cancelled</option>
+                                  <option value="Rescheduled" className="bg-white text-gray-800">Rescheduled</option>
+                                  <option value="Declined" className="bg-white text-gray-800">Declined</option>
+                                </select>
+
+                                {/* ICON CONTAINER: Shows either Arrow or Spinner */}
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-current opacity-70">
+                                  {isUpdating ? (
+                                    /* LOADING SPINNER */
+                                    <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                  ) : (
+                                    /* DEFAULT ARROW */
+                                    <svg className="h-3 w-3 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                    </svg>
+                                  )}
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
                       </td>
 
                       <td className="p-4 border-b">
@@ -298,11 +361,23 @@ function AdminConsultationSummary() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                  <p className="text-gray-800">{selectedConsultation.date}</p>
+                  <p className="text-gray-800">{
+                    new Date(selectedConsultation.consultation_date).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric", 
+                    })}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                  <p className="text-gray-800">{selectedConsultation.time}</p>
+                  <p className="text-gray-800">{
+                    new Date(selectedConsultation.consultation_date).toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "numeric",
+                      hour12: true, 
+                    })}
+                  </p>
                 </div>
               </div>
 
@@ -311,7 +386,7 @@ function AdminConsultationSummary() {
                 <p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedConsultation.notes}</p>
               </div>
 
-              {selectedConsultation.rating && (
+              {selectedConsultation.feedback && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
                   {renderStars(selectedConsultation.feedback.rating)}

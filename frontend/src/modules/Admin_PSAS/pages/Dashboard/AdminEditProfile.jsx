@@ -59,6 +59,7 @@ function AdminEditProfile({
     try {
       await handleEditProfileSubmit(e)
       alert('Profile successfully updated')
+      handleEditProfileCancel()
     } catch (err) {
       console.log(err)
     } finally {

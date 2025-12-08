@@ -174,7 +174,11 @@ function BookingHistory() {
                         {booking.concern_description}
                       </div>
                       <div className="text-black text-[14px] font-medium leading-[17px] font-inter">
-                        {booking.consultation_date}
+                        {new Date(booking.consultation_date).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric", 
+                        })}
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">

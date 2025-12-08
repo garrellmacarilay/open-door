@@ -147,7 +147,7 @@ class AdminBookingController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|string|in:approved,declined,rescheduled,cancelled'
+            'status' => 'required|string|in:approved,declined,rescheduled,cancelled,pending,completed'
         ]);
 
         $booking = Booking::with(['student.user'])->find($id);
@@ -174,10 +174,10 @@ class AdminBookingController extends Controller
         $booking->save();
 
         $statusNotif = [
-            'approved' => ['approval', "Your booking ({$booking->reference_code}) has been approved. "],
-            'declined' => ['decline', "Your booking ({$booking->reference_code}) has been declined. "],
-            'rescheduled' => ['reschedule', "Your booking ({$booking->reference_code}) has been rescheduled. "],
-            'cancelled' => ['cancellation', "Your booking ({$booking->reference_code}) has been cancelled. "],
+            'approved' => ['approval', "Your booking at the({$booking->office->office_name}) has been approved. "],
+            'declined' => ['decline', "Your booking at the ({$booking->office->office_name}) has been declined. "],
+            'rescheduled' => ['reschedule', "Your booking at the ({$booking->office->office_name}) has been rescheduled. "],
+            'cancelled' => ['cancellation', "Your booking at the ({$booking->office->office_name}) has been cancelled. "],
         ];
 
         [$type, $message] = $statusNotif[$booking->status] ?? ['update', "There’s an update on your booking ({$booking->reference_code})."];

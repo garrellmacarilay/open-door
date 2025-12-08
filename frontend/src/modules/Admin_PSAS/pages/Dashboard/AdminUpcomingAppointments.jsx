@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import GradIcon from '../../../../components/global-img/graduation-cap.svg';
 import { useUpdateAppointmentStatus } from '../../../../hooks/adminHooks';
 
 function AdminUpcomingAppointments({ upcomingEvents }) {
+  // 1. Local state for optimistic updates
+  const [localEvents, setLocalEvents] = useState([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  
+  // Track WHICH button is clicked ('approve', 'decline', 'complete')
+  const [processingAction, setProcessingAction] = useState(null);
 
-  const { loading, error, success, updateStatus } = useUpdateAppointmentStatus()
+  const { updateStatus } = useUpdateAppointmentStatus();
+
+  // Sync props to local state when parent fetches new data
+  useEffect(() => {
+    setLocalEvents(upcomingEvents);
+  }, [upcomingEvents]);
 
   const handleAppointmentClick = (appointment) => {
-    const details = appointment.details || appointment.details || {}; 
-    // depending how your data arrives, but your sample uses appointment.details
+    const details = appointment.details || {}; 
 
     setSelectedAppointment({
       id: appointment.id,
@@ -23,9 +32,10 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
         day: "numeric",
         year: "numeric",
       }),
-      time: new Date(appointment.start).toLocaleTimeString([], {
-        hour: "2-digit",
+      time: new Date(appointment.start).toLocaleTimeString('en-US', {
+        hour: "numeric",
         minute: "2-digit",
+        hour12: true
       }),
       attachedFile: details.attachment || null,
       attachedFileName: details.attachment_name || 'No File', 
@@ -38,19 +48,51 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedAppointment(null);
+    setProcessingAction(null);
   };
 
-  const handleApprove = () => {
-    // Handle approve logic here
+  // ✅ Unified Handler
+  const handleStatusChange = async (newStatus, actionName) => {
     if (!selectedAppointment) return;
-    updateStatus(selectedAppointment.id, "approved");
-    handleCloseModal();
-  };
+    
+    // Set loading state for specific button
+    setProcessingAction(actionName);
 
-  const handleDecline = () => {
-    if (!selectedAppointment) return;
-    updateStatus(selectedAppointment.id, "declined");
-    handleCloseModal();
+    try {
+      // 1. Call API
+      await updateStatus(selectedAppointment.id, newStatus);
+
+      // 2. Optimistic Update: Update Local List
+      setLocalEvents(prevEvents => prevEvents.map(event => {
+        if (event.id === selectedAppointment.id) {
+          return {
+            ...event,
+            details: {
+              ...event.details,
+              status: newStatus
+            }
+          };
+        }
+        return event;
+      }));
+
+      // 3. Optimistic Update: Update Modal UI immediately
+      setSelectedAppointment(prev => ({
+        ...prev,
+        status: newStatus
+      }));
+
+      // 4. Close modal automatically for Declined/Completed
+      if (newStatus === 'declined' || newStatus === 'completed') {
+         setTimeout(() => handleCloseModal(), 500); 
+      }
+
+    } catch (error) {
+      console.error("Failed to update status", error);
+      alert("Failed to update status");
+    } finally {
+      setProcessingAction(null);
+    }
   };
 
   const formatDateTime = (datetime) => {
@@ -58,10 +100,19 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
     const dateObj = new Date(datetime);
 
     return {
-      date: dateObj.toLocaleDateString(),
+      date: dateObj.toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric',
+        year: 'numeric' 
+      }),
       time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
   }
+
+  // Helper to check if buttons should be shown
+  const isPendingOrRescheduled = (status) => {
+    return status === 'pending' || status === 'rescheduled';
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm flex flex-col h-full">
@@ -70,15 +121,15 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
         <h2 className="text-white text-lg font-bold" style={{ fontFamily: 'Inter' }}>Upcoming Appointments</h2>
       </div>
 
-      {/* Content */}
+      {/* List Content */}
       <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-200 min-h-0">
-        {upcomingEvents.map((event) => {
+        {localEvents.map((event) => {
           const { date, time } = formatDateTime(event.start);
           const { student, office, status, reference_code } = event.details || {};
 
           return (  
             <div
-              key={reference_code}
+              key={reference_code || event.id}
               className="border border-gray-400 rounded-[5px] p-3 pb-0 mb-4 bg-white relative cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => handleAppointmentClick(event)}            
             >
@@ -135,8 +186,7 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
               </div>
             </div>
           )
-        } 
-        )}
+        })}
       </div>
 
       {/* Appointment Details Modal */}
@@ -149,8 +199,6 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
               <h3 className="text-white text-lg font-bold" style={{ fontFamily: "Inter" }}>
                 Appointment Requests
               </h3>
-
-              {/* X Close Button */}
               <button onClick={handleCloseModal} className="text-white hover:opacity-70 transition">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -160,18 +208,15 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
 
             {/* Modal Content */}
             <div className="p-6 flex-1">
-              {/* Main Information Container */}
               <div className="border border-[#BCBABA] rounded-[10px] p-4 space-y-3">
 
-                {/* Student Information + Status Badge */}
+                {/* Student Info */}
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <img src={GradIcon} alt="Student" className="w-4 h-4"/>
                       <span className="text-sm font-semibold text-black" style={{ fontFamily: "Inter" }}>Student</span>
                     </div>
-
-                    {/* Student Name */}
                     <div className="ml-6">
                       <span className="text-sm text-black" style={{ fontFamily: "Inter" }}>
                         {selectedAppointment.studentName}
@@ -183,6 +228,8 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
                   <div className={`px-3 py-[6px] rounded-[5px] whitespace-nowrap ${
                     selectedAppointment.status === "pending" ? "bg-[#FFE168] text-[#9D6B00]" :
                     selectedAppointment.status === "approved" ? "bg-[#9EE2AA] text-[#009812]" :
+                    selectedAppointment.status === "completed" ? "bg-blue-200 text-blue-800" :
+                    selectedAppointment.status === "rescheduled" ? "bg-[#961bb5] text-white" :
                     "bg-red-200 text-red-700"
                   } text-xs font-medium`} style={{ fontFamily: "Poppins" }}>
                     {selectedAppointment.status || "Unknown"}
@@ -211,7 +258,7 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
                     <span className="text-sm font-semibold text-black" style={{ fontFamily: "Inter" }}>Type of Service</span>
                   </div>
                   <div className="ml-6 text-sm text-black" style={{ fontFamily: "Inter" }}>
-                    {selectedAppointment.serviceType || "Medical Checkup"}
+                    {selectedAppointment.serviceType}
                   </div>
                 </div>
 
@@ -230,7 +277,7 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
                   </div>
                 </div>
 
-                {/* Attached File */}
+                {/* Attachment Section */}
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
@@ -239,24 +286,10 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
                     </svg>
                     <span className="text-sm font-semibold text-black" style={{ fontFamily: "Inter" }}>Attached Files:</span>
                   </div>
-
                   <div className="ml-6 border border-[#BCBABA] rounded-[10px] p-2 bg-white flex justify-between items-center">
                       {selectedAppointment.attachedFile ? (
-                        <a 
-                          href={`${import.meta.env.VITE_APP_API_URL}/download/${selectedAppointment.id}`} 
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 text-xs font-medium text-[#909090]"
-                          style={{ fontFamily: "Poppins" }}
-                        >
-                          <span className="text-xs font-medium text-[#909090]" style={{ fontFamily: "Poppins" }}>
-                            {selectedAppointment.attachedFileName || 'document.pdf'}
-                          </span>
-                          <button className="hover:opacity-60 transition">
-                            <svg width="12" height="12" viewBox="0 0 15 15" fill="none">
-                              <path d="M2.5 7.5H12.5M7.5 2.5V12.5" stroke="#909090" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </button>
+                        <a href={`${import.meta.env.VITE_APP_API_URL}/download/${selectedAppointment.id}`} target="_blank" rel="noopener noreferrer" className="flex-1 text-xs font-medium text-[#909090]" style={{ fontFamily: "Poppins" }}>
+                          {selectedAppointment.attachedFileName}
                         </a>
                       ) : (
                         <span className="text-xs text-gray-400">No attachment</span>
@@ -267,15 +300,61 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
               </div>
             </div>
 
-            {/* Modal Actions */}
+            {/* ✅ DYNAMIC Modal Actions */}
             <div className="flex gap-3 justify-end px-6 pb-6 shrink-0">
-              <button onClick={handleApprove} className="px-6 py-2 bg-[#009650] hover:opacity-80 rounded-[5px] transition">
-                <span className="text-white text-sm font-bold" style={{ fontFamily: "Poppins" }}>Approve</span>
-              </button>
+              
+              {/* CASE 1: Pending OR Rescheduled -> Show Approve / Decline */}
+              {isPendingOrRescheduled(selectedAppointment.status) && (
+                <>
+                  {/* Approve Button - Hides if we are currently declining */}
+                  {processingAction !== 'decline' && (
+                    <button 
+                      onClick={() => handleStatusChange('approved', 'approve')} 
+                      disabled={!!processingAction}
+                      className="px-6 py-2 bg-[#009650] hover:opacity-80 rounded-[5px] transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {processingAction === 'approve' && <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>}
+                      <span className="text-white text-sm font-bold" style={{ fontFamily: "Poppins" }}>
+                        {processingAction === 'approve' ? 'Approving...' : 'Approve'}
+                      </span>
+                    </button>
+                  )}
 
-              <button onClick={handleDecline} className="px-6 py-2 bg-[#FE0101] hover:opacity-80 rounded-[5px] transition">
-                <span className="text-white text-sm font-bold" style={{ fontFamily: "Poppins" }}>Decline</span>
-              </button>
+                  {/* Decline Button - Hides if we are currently approving */}
+                  {processingAction !== 'approve' && (
+                    <button 
+                      onClick={() => handleStatusChange('declined', 'decline')} 
+                      disabled={!!processingAction}
+                      className="px-6 py-2 bg-[#FE0101] hover:opacity-80 rounded-[5px] transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {processingAction === 'decline' && <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>}
+                      <span className="text-white text-sm font-bold" style={{ fontFamily: "Poppins" }}>
+                        {processingAction === 'decline' ? 'Declining...' : 'Decline'}
+                      </span>
+                    </button>
+                  )}
+                </>
+              )}
+
+              {/* CASE 2: Approved -> Show Mark Completed */}
+              {selectedAppointment.status === 'approved' && (
+                <button 
+                  onClick={() => handleStatusChange('completed', 'complete')} 
+                  disabled={!!processingAction}
+                  className="px-6 py-2 bg-[#142240] hover:bg-blue-900 rounded-[5px] transition flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {processingAction === 'complete' && <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>}
+                  <span className="text-white text-sm font-bold" style={{ fontFamily: "Poppins" }}>
+                    {processingAction === 'complete' ? 'Updating...' : 'Mark as Completed'}
+                  </span>
+                </button>
+              )}
+
+              {/* CASE 3: Declined/Completed -> Show Nothing */}
+              {(selectedAppointment.status === 'declined' || selectedAppointment.status === 'completed') && (
+                 <span className="text-xs text-gray-500 italic self-center">Action taken</span>
+              )}
+
             </div>
 
           </div>
