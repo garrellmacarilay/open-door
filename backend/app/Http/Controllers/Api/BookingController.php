@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers\Api;
 
+use Log;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Event;
 use App\Models\Office;
 use App\Models\Booking;
 use App\Models\Student;
+use App\Mail\BookingEmail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\EmailNotification;
 use App\Models\ModalNotification;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\Mail;
 use App\Notifications\ModalNotificationCreated;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class BookingController extends Controller
 {
@@ -152,12 +156,47 @@ class BookingController extends Controller
 
         $admins = User::where('role', 'admin')->get();
 
-        foreach ($admins as $admin) {
+        $officeStaffUsers = User::whereHas('staff', function ($query) use ($office) {
+            $query->where('office_id', $office->id);
+        })->get();
+
+        $allRecipients = $admins->merge($officeStaffUsers)->unique('id');
+
+        foreach ($allRecipients as $recipient) {
             $type = 'booking_request';
             $message = "A student booked an appointment ({$booking->reference_code}).";
 
             $notification = new ModalNotificationCreated($booking, $student->user, $type, $message);
-            $notification->handleCustomInsert($admin);
+            $notification->handleCustomInsert($recipient);
+        }
+
+        try {
+            $emailSubject = "Booking Request Received: #" . $booking->reference_code;
+            $emailMessage = "Hi " . $request->user()->name . ",\n\nWe have received your booking request for " . $office->office_name . " on " . $booking->consultation_date . ".\n\nStatus: Pending review.";
+
+            // 1. Log to Database
+            $emailLog = EmailNotification::create([
+                'user_id' => $request->user()->id,
+                'booking_id' => $booking->id,
+                'recipient_email' => $request->user()->email,
+                'subject' => $emailSubject,
+                'message' => $emailMessage,
+                'type' => 'booking_request', // Ensure 'booking_request' is in your DB enum or add it
+                'status' => 'pending',
+            ]);
+
+            // 2. Send Email
+            Mail::to($request->user()->email)->send(new BookingEmail($emailSubject, $emailMessage));
+
+            // 3. Update Log Success
+            $emailLog->update(['status' => 'sent', 'sent_at' => Carbon::now()]);
+
+        } catch (\Exception $e) {
+            // 4. Log Failure (Don't break the booking flow if email fails)
+            if (isset($emailLog)) {
+                $emailLog->update(['status' => 'failed']);
+            }
+            \Log::error("Booking Email Failed: " . $e->getMessage());
         }
 
         return response()->json([

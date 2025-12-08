@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Socialite\Facades\Socialite;
-
+use Illuminate\Support\Facades\Log;
 class GoogleController extends Controller
 {
     public function redirect()
@@ -21,46 +21,79 @@ class GoogleController extends Controller
 
     public function callback()
     {
-        $googleUser = Socialite::driver('google')->stateless()->user();
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+            $email = $googleUser->getEmail();
 
-        $user = User::where('email', $googleUser->getEmail())->first();
+            // 1. Determine Role based on .env
+            $adminEmail = env('ADMIN_EMAIL');
+            // Explode converts the comma-separated string into an array, trim removes spaces
+            $staffEmails = array_map('trim', explode(',', env('STAFF_EMAILS', '')));
 
-        if (!$user) {
-            $user = User::create([
-                'full_name' => $googleUser->getName(),
-                'email' => $googleUser->getEmail(),
-                'google_id' => $googleUser->getId(),
-                'password' => Hash::make(Str::random(16)),
-            ]);
+            $role = 'student'; // Default role
 
-            if ($googleUser->getAvatar()) {
-                $avatarUrl = $googleUser->getAvatar();
-                $avatarContents = Http::get($avatarUrl)->body();
-
-                // Generate unique filename under avatars directory
-                $avatarFilename = 'avatars/profile_pictures/' . uniqid('google_') . '.jpg';
-
-                // Store the file in the public disk and ensure it's publicly visible
-                Storage::disk('public')->put($avatarFilename, $avatarContents);
-                Storage::disk('public')->setVisibility($avatarFilename, 'public');
-
-                $user->profile_picture = $avatarFilename;
-                $user->save();
+            if ($email === $adminEmail) {
+                $role = 'admin';
+            } elseif (in_array($email, $staffEmails)) {
+                $role = 'staff';
             }
 
-            $student = Student::create([
-                'user_id' => $user->id,
-                'student_number' => 'S' . Str::upper(Str::random(7)),
-            ]);
+            // 2. Find or Create User
+            $user = User::where('email', $email)->first();
 
-            $user->update(attributes: ['student_id' => $student->id]);
+            if (!$user) {
+                $user = User::create([
+                    'full_name' => $googleUser->getName(),
+                    'email'     => $email,
+                    'google_id' => $googleUser->getId(),
+                    'password'  => Hash::make(Str::random(16)),
+                    'role'      => $role, // Save the role we determined above
+                ]);
+
+                // Handle Avatar (Only do this once on creation)
+                if ($googleUser->getAvatar()) {
+                    $avatarUrl = $googleUser->getAvatar();
+                    // Use try-catch for external HTTP requests to prevent crash if Google fails
+                    try {
+                        $avatarContents = Http::get($avatarUrl)->body();
+                        $avatarFilename = 'avatars/profile_pictures/' . uniqid('google_') . '.jpg';
+                        Storage::disk('public')->put($avatarFilename, $avatarContents);
+                        Storage::disk('public')->setVisibility($avatarFilename, 'public');
+
+                        $user->profile_picture = $avatarFilename;
+                        $user->save();
+                    } catch (\Exception $e) {
+                        // Log error but allow login to proceed without avatar
+                        Log::error("Failed to download avatar: " . $e->getMessage());
+                    }
+                }
+
+                // 3. Conditional Student Record Creation
+                // ONLY create a student record if the role is 'student'
+                if ($role === 'student') {
+                    $student = Student::create([
+                        'user_id'        => $user->id,
+                        'student_number' => 'S' . Str::upper(Str::random(7)),
+                    ]);
+
+                    $user->update(['student_id' => $student->id]);
+                }
+            } else {
+                // Optional: If user exists, force update their role based on .env
+                // This ensures if you add a student to the staff list later, they get promoted on next login
+                if ($user->role !== $role) {
+                    $user->update(['role' => $role]);
+                }
+            }
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+
+            // Pass the role to the frontend so you can redirect them to /admin or /dashboard
+            return redirect("{$frontendUrl}/?token={$token}&role={$user->role}");
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Login Failed: ' . $e->getMessage()], 500);
         }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
-
-        // Redirect to frontend React app with token
-        return redirect("{$frontendUrl}/?token={$token}");
     }
 }

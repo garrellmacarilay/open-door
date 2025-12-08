@@ -6,13 +6,18 @@ FROM php:8.3.11-fpm
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl unzip libsqlite3-dev libonig-dev libzip-dev libpq-dev zip git bash \
     gnupg2 ca-certificates fonts-liberation \
+    # Image Manipulation Dependencies (Required for Cloudinary/Image Validations)
+    libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
     # Puppeteer/Chrome dependencies
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libcups2 libdbus-1-3 libdrm2 \
     libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libgtk-3-0 \
     libpango-1.0-0 libxshmfence1 libnss3 libxss1 libxkbcommon0 libcurl4 \
     libstdc++6 wget xvfb \
+    # Configure GD Extension
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    # Install PHP Extensions (Added 'gd' and 'pcntl')
     && docker-php-ext-install -j$(nproc) \
-        pdo_mysql pdo_pgsql pdo_sqlite mbstring zip opcache bcmath exif opcache \
+        pdo_mysql pdo_pgsql pdo_sqlite mbstring zip opcache bcmath exif pcntl gd \
     && apt-get autoremove -y && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

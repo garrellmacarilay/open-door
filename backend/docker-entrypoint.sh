@@ -3,11 +3,16 @@ set -e
 
 echo "[entrypoint] starting container entrypoint"
 
-# Run migrations without resetting or seeding database
-echo "[entrypoint] running migrations"
-php artisan migrate --force || echo "[entrypoint] Migrations failed, maybe DB not ready yet"
+# ─────────────────────────────────────────────────────
+# Database Setup
+# ─────────────────────────────────────────────────────
+# WARNING: This wipes the database on every restart/deploy
+echo "[entrypoint] Wiping database and running seeds..."
+php artisan migrate:fresh --seed --force || echo "[entrypoint] Migrations/Seeding failed"
 
-# Link storage (if not linked)
+# ─────────────────────────────────────────────────────
+# Storage Linking
+# ─────────────────────────────────────────────────────
 echo "[entrypoint] ensuring storage symlink exists"
 if php artisan storage:link 2>/dev/null; then
     echo "[entrypoint] storage:link created or already exists"
@@ -15,18 +20,22 @@ else
     echo "[entrypoint] storage:link command failed or symlink exists"
 fi
 
-# Log storage status for debugging
-echo "[entrypoint] public/storage symlink info:"
-ls -la public | grep storage || true
-echo "[entrypoint] first 20 items in storage/app/public (if any):"
-ls -la storage/app/public || true
-
-# Clear caches
+# ─────────────────────────────────────────────────────
+# Cache Management
+# ─────────────────────────────────────────────────────
 echo "[entrypoint] clearing and warming caches"
 php artisan config:clear || true
+php artisan route:clear || true
+php artisan view:clear || true
+
+# Ideally, in production, you want to cache config/routes,
+# but only if your ENV vars are completely set before this runs.
 php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
 
+# ─────────────────────────────────────────────────────
+# Start Server
+# ─────────────────────────────────────────────────────
 echo "[entrypoint] starting Laravel server"
 php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
