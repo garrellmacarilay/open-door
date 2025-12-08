@@ -1,75 +1,69 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom'; // 1. Import useLocation
 import { useAdminBookings } from '../../../../hooks/adminHooks';
 import { useUpdateAppointmentStatus } from '../../../../hooks/adminHooks';
 
-
 function AdminConsultationSummary() {
-  const [selectedConsultation, setSelectedConsultation] = useState('')
+  const location = useLocation(); // 2. Get location
+  
+  const [selectedConsultation, setSelectedConsultation] = useState();
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const { bookings, search, setSearch, status, setStatus, handleSearchChange, fetchBookings, handleStatusChange, loading } = useAdminBookings();
-  const { loading: isLoading, error, success, updateStatus } = useUpdateAppointmentStatus()
-
+  
+  // Use existing hooks
+  const { bookings, search, setSearch, status, setStatus, handleSearchChange, fetchBookings, loading } = useAdminBookings();
+  const { loading: isUpdating, updateStatus } = useUpdateAppointmentStatus();
   const [updatingId, setUpdatingId] = useState(null);
 
-
+  // 3. DEEP LINKING EFFECT
+  // Checks URL for ?bookingId=123 when bookings are loaded
   useEffect(() => {
-    if (bookings.length === 0) {
-      fetchBookings(search, status)
+    const params = new URLSearchParams(location.search);
+    const bookingIdFromUrl = params.get('bookingId');
+
+    if (bookingIdFromUrl && bookings.length > 0) {
+      // Find the booking in the loaded list
+      const targetBooking = bookings.find(b => b.id.toString() === bookingIdFromUrl);
+      
+      if (targetBooking) {
+        handleViewDetails(targetBooking);
+        
+        // Optional: Remove query param from URL after opening so refresh doesn't reopen it
+        // window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
-  }, [status])
-  
+  }, [location.search, bookings]);
+
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    setUpdatingId(id);
+    await updateStatus(id, newStatus.toLowerCase());
+    await fetchBookings(search, status);
+    setUpdatingId(null);
+  };
+
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Completed':
-        return 'bg-blue-100! text-blue-800';
-      case 'Declined':
-        return 'bg-red-100! text-red-800';
-      case 'Cancelled':
-        return 'bg-yellow-100! text-yellow-800';
-      case '':
-      default:
-        return 'bg-gray-100! text-gray-800';
+    switch (status?.toLowerCase()) {
+      case 'completed': return 'bg-blue-100! text-blue-800';
+      case 'declined': return 'bg-red-100! text-red-800';
+      case 'cancelled': return 'bg-red-100! text-red-800';
+      case 'approved': return 'bg-green-100! text-green-800';
+      case 'pending': return 'bg-yellow-100! text-yellow-800';
+      default: return 'bg-gray-100! text-gray-800';
     }
   };
 
   const renderStars = (rating) => {
     if (!rating) return <span className="text-gray-400">No rating</span>;
-    
     return (
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
-          <svg
-            key={star}
-            width="16"
-            height="15"
-            viewBox="0 0 24 22"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-4 h-3"
-          >
-            <path
-              d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-              fill={star <= rating ? "#FFAA00" : "#E5E5E5"}
-              stroke={star <= rating ? "#FFAA00" : "#E5E5E5"}
-              strokeWidth="1"
-            />
+          <svg key={star} width="16" height="15" viewBox="0 0 24 22" fill="none" className="w-4 h-3">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill={star <= rating ? "#FFAA00" : "#E5E5E5"} stroke={star <= rating ? "#FFAA00" : "#E5E5E5"} strokeWidth="1" />
           </svg>
         ))}
       </div>
     );
   };
-
-  const handleStatusUpdate = async (id, newStatus) => {
-    setUpdatingId(id)
-
-    await updateStatus(id, newStatus.toLowerCase());
-
-    fetchBookings(search, status)
-    setUpdatingId(null)
-  }
 
   const handleViewDetails = (consultation) => {
     setSelectedConsultation(consultation);
@@ -84,66 +78,22 @@ function AdminConsultationSummary() {
   return (
     <div className="flex-1 h-screen overflow-hidden bg-[#E9E9E9] font-inter">
       <div className="h-full p-4 md:p-8 overflow-y-auto">
-        {/* Main Container with Shadow */}
         <div className="bg-white rounded-[20px] p-4 md:p-8 w-full max-w-full mx-auto shadow-[0px_4px_15px_0px_rgba(0,0,0,0.25)] min-h-fit overflow-hidden">
   
-        {/* Header with Search and Filters */}
+        {/* Controls */}
         <div className="mb-6">
-          {/* Search and Filter Controls - Grid Layout */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
-            {/* Search Input - Takes 2/3 (2 columns) */}
+            {/* Search */}
             <div className="sm:col-span-2 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg 
-                  className="h-4 w-4 text-gray-400" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth="2" 
-                    d="M21 21L16.514 16.506L21 21ZM18 10.5C18 15.194 14.194 19 9.5 19C4.806 19 1 15.194 1 10.5C1 5.806 4.806 2 9.5 2C14.194 2 18 5.806 18 10.5Z"
-                  />
-                </svg>
+                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21L16.514 16.506L21 21ZM18 10.5C18 15.194 14.194 19 9.5 19C4.806 19 1 15.194 1 10.5C1 5.806 4.806 2 9.5 2C14.194 2 18 5.806 18 10.5Z" /></svg>
               </div>
-              <input
-                type="text"
-                placeholder="Search consultations..."
-                value={search}
-                onChange={handleSearchChange}
-                className="pl-10 pr-4 py-2 border text-gray-900! border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  <svg 
-                    className="h-4 w-4 text-gray-400 hover:text-gray-600" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="2" 
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
+              <input type="text" placeholder="Search consultations..." value={search} onChange={handleSearchChange} className="pl-10 pr-4 py-2 border text-gray-900! border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" />
+              {search && (<button onClick={() => setSearch('')} className="absolute inset-y-0 right-0 pr-3 flex items-center"><svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>)}
             </div>
-            
-            {/* Status Filter - Takes 1/3 (1 column) */}
+            {/* Filter */}
             <div className="sm:col-span-1">
-              <select
-                value={status}
-                onChange={handleStatusChange}
-                className="pl-3 pr-8 py-2 border text-black border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-              >
+              <select value={status} onChange={(e) => { setStatus(e.target.value); fetchBookings(search, e.target.value); }} className="pl-3 pr-8 py-2 border text-black border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
                 <option value="All">All Status</option>
                 <option value="approved">Approved</option>
                 <option value="completed">Completed</option>
@@ -156,16 +106,7 @@ function AdminConsultationSummary() {
           </div>
         </div>
 
-        {/* Search Results Info */}
-        {(searchQuery || statusFilter !== 'All') && (
-          <div className="mb-4 text-sm text-gray-600">
-            Showing {bookings.length} consultations
-            {searchQuery && <span> for "{searchQuery}"</span>}
-            {statusFilter !== 'All' && <span> with status "{statusFilter}"</span>}
-          </div>
-        )}
-
-        {/* Consultations Table */}
+        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
@@ -179,145 +120,62 @@ function AdminConsultationSummary() {
               </tr>
             </thead>
             <tbody>
-              {bookings.map((consultation) => {
-                  // 👇 PUT IT HERE (inside map, before return)
-                  const [datePart, timePart] = consultation.consultation_date.split(" ");
-
-                  return (  // ✅ return your row JSX
-                    <tr key={consultation.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-4 border-b">
-                        <div>
-                          <div className="font-medium text-gray-800">{consultation.student_name}</div>
-                          <div className="text-sm text-gray-500">{consultation.reference_code}</div>
-                        </div>
-                      </td>
-
-                      <td className="p-4 border-b text-gray-800">{consultation.office}</td>
-
-                      {/* Date & Time column */}
-                      <td className="p-4 border-b">
-                        <div className="text-gray-800">                        
-                          {new Date(consultation.consultation_date).toLocaleDateString("en-US", {
-                            month: "long",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
-                        </div> {/* ✅ DATE */}
-                        <div className="text-sm text-gray-500">
-                          {new Date(consultation.consultation_date).toLocaleTimeString("en-US", {
-                            hour: "numeric",
-                            minute: "2-digit",
-                            hour12: true, 
-                          })}
-                        </div> {/* ✅ TIME */}
-                      </td>
-
-                      <td className="p-4 border-b">
-                        <div className="relative inline-block w-full max-w-[140px]">
-                          {/* Determine if this specific row is updating */}
-                          {(() => {
-                            const isUpdating = updatingId === consultation.id;
-                            
-                            return (
-                              <>
-                                <select
-                                  value={consultation.status || "Pending"}
-                                  onChange={(e) => handleStatusUpdate(consultation.id, e.target.value)}
-                                  disabled={isUpdating || isLoading} // Disable input while loading
-                                  className={`
-                                    w-full appearance-none 
-                                    px-3 py-1 pr-8 
-                                    rounded-full text-xs font-medium 
-                                    border-none outline-none cursor-pointer 
-                                    transition-colors shadow-sm
-                                    ${getStatusColor(consultation.status)}
-                                    disabled:opacity-70 disabled:cursor-not-allowed
-                                    focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
-                                  `}
-                                >
-                                  <option value="Pending" className="bg-white text-gray-800">Pending</option>
-                                  <option value="Approved" className="bg-white text-gray-800">Approved</option>
-                                  <option value="Completed" className="bg-white text-gray-800">Completed</option>
-                                  <option value="Cancelled" className="bg-white text-gray-800">Cancelled</option>
-                                  <option value="Rescheduled" className="bg-white text-gray-800">Rescheduled</option>
-                                  <option value="Declined" className="bg-white text-gray-800">Declined</option>
-                                </select>
-
-                                {/* ICON CONTAINER: Shows either Arrow or Spinner */}
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-current opacity-70">
-                                  {isUpdating ? (
-                                    /* LOADING SPINNER */
-                                    <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                  ) : (
-                                    /* DEFAULT ARROW */
-                                    <svg className="h-3 w-3 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                    </svg>
-                                  )}
-                                </div>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      </td>
-
-                      <td className="p-4 border-b">
-                        {renderStars(consultation.feedback.rating)}
-                      </td>
-
-                      <td className="p-4 border-b">
-                        <button
-                          onClick={() => handleViewDetails(consultation)}
-                          className="px-3 py-1 bg-[#142240]! text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-                        >
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  );
-              })}
+              {bookings.map((consultation) => (
+                <tr key={consultation.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="p-4 border-b">
+                    <div>
+                      <div className="font-medium text-gray-800">{consultation.student_name}</div>
+                      <div className="text-sm text-gray-500">{consultation.reference_code}</div>
+                    </div>
+                  </td>
+                  <td className="p-4 border-b text-gray-800">{consultation.office}</td>
+                  <td className="p-4 border-b">
+                    <div className="text-gray-800">{new Date(consultation.consultation_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+                    <div className="text-sm text-gray-500">{new Date(consultation.consultation_date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</div>
+                  </td>
+                  <td className="p-4 border-b">
+                    <div className="relative inline-block w-full max-w-[140px]">
+                      {(() => {
+                        const isUpdating = updatingId === consultation.id;
+                        return (
+                          <>
+                            <select
+                              value={consultation.status ? consultation.status.charAt(0).toUpperCase() + consultation.status.slice(1).toLowerCase() : "Pending"}
+                              onChange={(e) => handleStatusUpdate(consultation.id, e.target.value)}
+                              disabled={isUpdating || isUpdating}
+                              className={`w-full appearance-none px-3 py-1 pr-8 rounded-full text-xs font-medium border-none outline-none cursor-pointer transition-colors shadow-sm ${getStatusColor(consultation.status)} disabled:opacity-70 disabled:cursor-not-allowed`}
+                            >
+                              <option value="Pending" className="bg-white text-gray-800">Pending</option>
+                              <option value="Approved" className="bg-white text-gray-800">Approved</option>
+                              <option value="Completed" className="bg-white text-gray-800">Completed</option>
+                              <option value="Cancelled" className="bg-white text-gray-800">Cancelled</option>
+                              <option value="Rescheduled" className="bg-white text-gray-800">Rescheduled</option>
+                              <option value="Declined" className="bg-white text-gray-800">Declined</option>
+                              <option value="No Show" className="bg-white text-gray-800">No Show</option>
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-current opacity-70">
+                              {isUpdating ? (
+                                <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                              ) : (
+                                <svg className="h-3 w-3 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </td>
+                  <td className="p-4 border-b">
+                    {consultation.feedback?.rating ? renderStars(consultation.feedback.rating) : <span className="text-gray-400 text-xs">No rating</span>}
+                  </td>
+                  <td className="p-4 border-b">
+                    <button onClick={() => handleViewDetails(consultation)} className="px-3 py-1 bg-[#142240]! text-white rounded-md text-sm hover:bg-blue-700 transition-colors">View Details</button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
-
           </table>
         </div>
-
-        {bookings.length === 0 && (
-          <div className="text-center py-12">
-            <svg 
-              className="mx-auto h-12 w-12 text-gray-400 mb-4" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="1" 
-                d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L19.7071 9.70711C19.8946 9.89464 20 10.149 20 10.4142V19C20 20.1046 19.1046 21 18 21H17Z"
-              />
-            </svg>
-            <p className="text-gray-500 text-lg mb-2">No consultations found</p>
-            <p className="text-gray-400 text-sm">
-              {searchQuery || statusFilter !== 'All' 
-                ? 'Try adjusting your search or filter criteria' 
-                : 'No consultations available'}
-            </p>
-            {(searchQuery || statusFilter !== 'All') && (
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setStatusFilter('All');
-                }}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-        )}
       </div>
       </div>
 
@@ -325,91 +183,32 @@ function AdminConsultationSummary() {
       {showDetailModal && selectedConsultation && (
         <div className="fixed inset-0 bg-[#00000080] flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="bg-[#122141] px-6 py-4 border-b">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-white">Consultation Details</h3>
-                <button
-                  onClick={handleCloseModal}
-                  className="text-gray-500 hover:text-gray-700 text-xl"
-                >
-                  ×
-                </button>
-              </div>
+            <div className="bg-[#122141] px-6 py-4 border-b flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-white">Consultation Details</h3>
+              <button onClick={handleCloseModal} className="text-white hover:text-gray-300 text-xl">×</button>
             </div>
-
-            {/* Modal Content */}
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
-                  <p className="text-gray-800">{selectedConsultation.student_name}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
-                  <p className="text-gray-800">{selectedConsultation.reference_code}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
-                  <p className="text-gray-800">{selectedConsultation.service_type}</p>
-                </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Student Name</label><p className="text-gray-800">{selectedConsultation.student_name}</p></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label><p className="text-gray-800">{selectedConsultation.reference_code}</p></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Topic</label><p className="text-gray-800">{selectedConsultation.service_type}</p></div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedConsultation.status)}`}>
-                    {selectedConsultation.status}
-                  </span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedConsultation.status)}`}>{selectedConsultation.status}</span>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                  <p className="text-gray-800">{
-                    new Date(selectedConsultation.consultation_date).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric", 
-                    })}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
-                  <p className="text-gray-800">{
-                    new Date(selectedConsultation.consultation_date).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "numeric",
-                      hour12: true, 
-                    })}
-                  </p>
-                </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Date</label><p className="text-gray-800">{new Date(selectedConsultation.consultation_date).toDateString()}</p></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Time</label><p className="text-gray-800">{new Date(selectedConsultation.consultation_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p></div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                <p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedConsultation.notes}</p>
-              </div>
-
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Notes</label><p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedConsultation.notes}</p></div>
               {selectedConsultation.feedback && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                  {renderStars(selectedConsultation.feedback.rating)}
-
-                </div>
-              )}
-
-              {selectedConsultation.feedback && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Student Feedback</label>
-                  <p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedConsultation.feedback.comment}</p>
-                </div>
+                <>
+                  {selectedConsultation.feedback.rating && <div><label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>{renderStars(selectedConsultation.feedback.rating)}</div>}
+                  {selectedConsultation.feedback.comment && <div><label className="block text-sm font-medium text-gray-700 mb-1">Student Feedback</label><p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedConsultation.feedback.comment}</p></div>}
+                </>
               )}
             </div>
-
-            {/* Modal Footer */}
-            <div className="bg-gray-50 px-6 py-4 border-t">
-              <button
-                onClick={handleCloseModal}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-              >
-                Close
-              </button>
+            <div className="bg-gray-50 px-6 py-4 border-t flex justify-end">
+              <button onClick={handleCloseModal} className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">Close</button>
             </div>
           </div>
         </div>

@@ -62,6 +62,7 @@ export const NavigationProvider = ({ children, module = 'Student' }) => {
       activePage,
       currentModule,
       navigateToPage,
+      setActivePage,
       switchModule,
       getCurrentPageTitle,
       getModuleHomeTitle,

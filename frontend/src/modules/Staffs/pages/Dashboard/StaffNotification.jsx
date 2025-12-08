@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Import useNavigate
 import NotificationIcon from "../../components/img/notification.png"; // Adjust path if needed
 import { useNotifications } from '../../../../hooks/globalHooks'; // Import the shared hook
+import { useNavigation } from '../../../../contexts/NavigationContext'; // 2. Import Context
 
 function StaffNotification() {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const dropdownRef = useRef(null);
+  
+  // 3. Initialize Hooks
+  const navigate = useNavigate();
+  const { setActivePage } = useNavigation(); // Get setActivePage from context
 
-  // 1. Use the Hook
   const { 
     notifications, 
     unreadCount, 
@@ -15,23 +20,35 @@ function StaffNotification() {
     fetchNotifications 
   } = useNotifications(); 
 
-  // 2. Toggle Modal
   const handleNotificationClick = () => {
     setShowNotificationModal(!showNotificationModal);
-    // Optional: Refresh data when opening
     if (!showNotificationModal) {
       fetchNotifications();
     }
   };
 
-  // 3. Mark Read Handler
-  const handleItemClick = (id, readAt) => {
+  // 4. Handle Item Click with Redirect Logic
+  const handleItemClick = (id, readAt, bookingId) => {
+    // Mark as read if needed
     if (!readAt) {
       markAsRead(id);
     }
+    
+    // Close modal
+    setShowNotificationModal(false);
+
+    // Redirect logic
+    if (bookingId) {
+      // First: Switch the tab to "ConsultationSummary"
+      setActivePage('ConsultationSummary');
+
+      // Second: Update URL with the booking ID so the summary page can catch it
+      navigate({
+        search: `?bookingId=${bookingId}`,
+      });
+    }
   };
 
-  // 4. Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -45,7 +62,6 @@ function StaffNotification() {
     };
   }, []);
 
-  // Helper to determine status badge color based on notification type/message
   const getStatusBadge = (type, message) => {
     const lowerType = type?.toLowerCase() || '';
     const lowerMsg = message?.toLowerCase() || '';
@@ -71,14 +87,12 @@ function StaffNotification() {
         onClick={handleNotificationClick}
         className="bg-white! hover:border-white! relative w-15 h-15 flex items-center rounded-full! justify-center hover:bg-gray-100! p-3! ml-5!"
       >
-        {/* Notification Icon */}
         <img 
           src={NotificationIcon} 
           alt="Notifications" 
           className="w-15 h-15 object-contain"
         />
 
-        {/* Real Unread Badge */}
         {unreadCount > 0 && (
           <div className="absolute top-3 right-3 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
             <span className="text-[10px] text-white font-bold" style={{ fontFamily: 'Poppins' }}>
@@ -88,10 +102,8 @@ function StaffNotification() {
         )}
       </button>
 
-      {/* Notification Modal */}
       {showNotificationModal && (
         <div className="notification-modal absolute top-12 right-0 w-[311px] bg-white! rounded-lg shadow-2xl border z-50 overflow-hidden">
-          {/* Modal Header */}
           <div className="bg-[#142240] rounded-t-lg p-4 flex justify-between items-center">
             <h3 className="text-white text-lg font-bold" style={{ fontFamily: 'Inter' }}>Notifications</h3>
             {unreadCount > 0 && (
@@ -99,7 +111,6 @@ function StaffNotification() {
             )}
           </div>
 
-          {/* Notifications List */}
           <div className="max-h-80 overflow-y-auto">
             {loading && notifications.length === 0 ? (
                <div className="p-8 text-center text-gray-500 text-sm">Loading...</div>
@@ -109,13 +120,13 @@ function StaffNotification() {
                 notifications.map((notification) => (
                   <div 
                     key={notification.id} 
-                    onClick={() => handleItemClick(notification.id, notification.read_at)}
+                    // 5. Pass booking_id to handler
+                    onClick={() => handleItemClick(notification.id, notification.read_at, notification.booking_id)}
                     className={`
                       border-b border-gray-200 p-4 flex items-start gap-3 transition-colors cursor-pointer
                       ${!notification.read_at ? 'bg-blue-50 hover:bg-blue-100' : 'bg-white hover:bg-gray-50'}
                     `}
                   >
-                    {/* Icon */}
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center mt-1 shrink-0 ${!notification.read_at ? 'bg-[#054A9E]' : 'bg-gray-400'}`}>
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="6" cy="6" r="5.25" stroke="white" strokeWidth="1.5"/>
@@ -123,7 +134,6 @@ function StaffNotification() {
                       </svg>
                     </div>
 
-                    {/* Content */}
                     <div className="flex-1">
                       <p className={`text-sm mb-1 ${!notification.read_at ? 'text-black font-bold' : 'text-gray-600 font-medium'}`} style={{ fontFamily: 'Inter' }}>
                         {notification.message}
@@ -134,12 +144,10 @@ function StaffNotification() {
                           {notification.created_at}
                         </p>
                         
-                        {/* Status Badge Helper */}
                         {getStatusBadge(notification.type, notification.message)}
                       </div>
                     </div>
 
-                    {/* Unread Dot */}
                     {!notification.read_at && (
                         <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 shrink-0"></div>
                     )}
