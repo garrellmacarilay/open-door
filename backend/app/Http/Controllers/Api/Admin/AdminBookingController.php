@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Booking;
 use App\Mail\BookingEmail;
 use Illuminate\Http\Request;
+use App\Services\GmailService;
 use App\Models\EmailNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -174,20 +175,22 @@ class AdminBookingController extends Controller
             ], 500);
         }
 
-        DB::transaction(function () use ($booking, $request, $sender, $receiver) {
+        // 1. DATABASE TRANSACTION
+        // Handles all DB updates (Status, Modal Notification, and creating the initial "Pending" Email Log)
+        $emailLog = DB::transaction(function () use ($booking, $request, $sender, $receiver) {
 
             // ✅ Update status
             $booking->update([
                 'status' => $request->status
             ]);
 
-            // ✅ Notification mapping
+            // ✅ Notification mapping (Modal)
             $statusMap = [
-                'approved'     => ['approval', "Your booking at ({$booking->office->office_name}) has been approved."],
-                'declined'     => ['decline', "Your booking at ({$booking->office->office_name}) has been declined."],
-                'rescheduled'  => ['reschedule', "Your booking at ({$booking->office->office_name}) has been rescheduled."],
-                'cancelled'    => ['cancellation', "Your booking at ({$booking->office->office_name}) has been cancelled."],
-                'completed'    => ['completed', "Your booking at ({$booking->office->office_name}) has been completed."],
+                'approved'    => ['approval', "Your booking at ({$booking->office->office_name}) has been approved."],
+                'declined'    => ['decline', "Your booking at ({$booking->office->office_name}) has been declined."],
+                'rescheduled' => ['reschedule', "Your booking at ({$booking->office->office_name}) has been rescheduled."],
+                'cancelled'   => ['cancellation', "Your booking at ({$booking->office->office_name}) has been cancelled."],
+                'completed'   => ['completed', "Your booking at ({$booking->office->office_name}) has been completed."],
             ];
 
             [$type, $message] = $statusMap[$request->status]
@@ -201,15 +204,15 @@ class AdminBookingController extends Controller
                 $message
             ))->handleCustomInsert($receiver);
 
-            // ✅ Only send email for certain statuses
+            // ✅ Check if email is needed for this status
             if (!in_array($request->status, [
                 'approved', 'declined', 'cancelled', 'rescheduled', 'completed'
             ])) {
-                return;
+                return null; // Return null if no email is needed
             }
 
+            // ✅ Prepare Email Content
             $subject = "Update on Booking #{$booking->reference_code}";
-
             $emailMap = [
                 'approved'    => "Great news! Your booking at {$booking->office->office_name} has been APPROVED.",
                 'declined'    => "We are sorry, but your booking at {$booking->office->office_name} has been DECLINED.",
@@ -222,27 +225,45 @@ class AdminBookingController extends Controller
                     ($emailMap[$request->status]
                         ?? "Your booking status has changed to {$request->status}");
 
-            // ✅ Log email
-            $emailLog = EmailNotification::create([
-                'user_id' => $receiver->id,
-                'booking_id' => $booking->id,
+            // ✅ Create Email Log (Status: Pending)
+            // We return this object so we can use it outside the transaction
+            return EmailNotification::create([
+                'user_id'         => $receiver->id,
+                'booking_id'      => $booking->id,
                 'recipient_email' => $receiver->email,
-                'subject' => $subject,
-                'message' => $body,
-                'type' => 'booking_' . $request->status,
-                'status' => 'pending',
-            ]);
-
-            // ✅ Queue email (NON-blocking)
-            Mail::to($receiver->email)
-                ->queue(new BookingEmail($subject, $body));
-
-            // ✅ Mark as queued/sent (depends on your preference)
-            $emailLog->update([
-                'status' => 'sent',
-                'sent_at' => now(),
+                'subject'         => $subject,
+                'message'         => $body,
+                'type'            => 'booking_' . $request->status,
+                'status'          => 'pending',
             ]);
         });
+
+        // 2. SEND EMAIL VIA GMAIL API (Outside Transaction)
+        // We do this here so if Google is slow, it doesn't lock our Database tables.
+        if ($emailLog) {
+            try {
+                // Render Blade to HTML String
+                $htmlMessage = view('emails.booking_notification', [
+                    'emailSubject' => $emailLog->subject,
+                    'bodyContent'  => $emailLog->message
+                ])->render();
+
+                // Send
+                $gmail = new GmailService();
+                $sent = $gmail->sendEmail($emailLog->recipient_email, $emailLog->subject, $htmlMessage);
+
+                // Update Log Status
+                if ($sent) {
+                    $emailLog->update(['status' => 'sent', 'sent_at' => now()]);
+                } else {
+                    $emailLog->update(['status' => 'failed']);
+                }
+
+            } catch (\Exception $e) {
+                Log::error("Booking Update Email Failed: " . $e->getMessage());
+                $emailLog->update(['status' => 'failed']);
+            }
+        }
 
         return response()->json([
             'success' => true,
