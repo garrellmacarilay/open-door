@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('email_notifications', function (Blueprint $table) {
-            $table->id(); 
+            $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // FK → recipient
             $table->foreignId('booking_id')->nullable()->constrained('bookings')->onDelete('cascade'); // optional link to booking
             $table->string('subject'); // Email subject
@@ -21,7 +21,9 @@ return new class extends Migration
             $table->enum('type', [
                 'booking_approved',
                 'booking_declined',
-                'booking_cancelled'
+                'booking_cancelled',
+                'booking_request',
+                'booking_completed',
             ]);
             $table->enum('status', ['pending','sent','failed'])->default('pending'); // delivery status
             $table->timestamp('sent_at')->nullable(); // actual sent time

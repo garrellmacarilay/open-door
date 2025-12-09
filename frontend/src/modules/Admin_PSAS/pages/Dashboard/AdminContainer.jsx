@@ -33,20 +33,38 @@ function MainContent({
 }) {
   const { activePage } = useNavigation();
 
-  const renderContent = () => {
-    switch (activePage) {
-      case 'Dashboard':
-        return <AdminDashboardContent />;
-      case 'OfficeManagement':
-        return <OfficeManagement />;
-      case 'ConsultationSummary':
-        return <AdminConsultationSummary />;
-      case 'Analytics':
-        return <AdminAnalytics />;
-      default:
-        return <AdminDashboardContent />;
-    }
-  };
+const renderContent = () => (
+    <>
+      {/* ------------------------------------------------------ */}
+      {/* 1. PERSISTENT PAGES (Hidden when inactive, never unmounted) */}
+      {/* ------------------------------------------------------ */}
+      
+      {/* Dashboard: Keep this mounted so appointments/stats don't refetch */}
+      <div className={`h-full w-full ${activePage === 'Dashboard' || !activePage ? 'block' : 'hidden'}`}>
+        <AdminDashboardContent />
+      </div>
+
+      {/* Analytics: Keep this mounted so charts don't re-animate/fetch every time */}
+      <div className={`h-full w-full ${activePage === 'Analytics' ? 'block' : 'hidden'}`}>
+        <AdminAnalytics />
+      </div>
+
+      {/* ------------------------------------------------------ */}
+      {/* 2. DYNAMIC PAGES (Unmounts when inactive) */}
+      {/* ------------------------------------------------------ */}
+      
+      {/* These will destroy and recreate every time you click them. */}
+      {/* Good for ensuring tables show the absolute latest data on click */}
+      
+      <div className={`h-full w-full ${activePage === 'OfficeManagement' ? 'block' : 'hidden'}`}>
+        <OfficeManagement />
+      </div>
+
+      <div className={`h-full w-full ${activePage === 'ConsultationSummary' ? 'block' : 'hidden'}`}>
+        <AdminConsultationSummary />
+      </div>
+    </>
+  );
 
   return (
     <div className="flex h-screen w-screen bg-gray-100 overflow-hidden">

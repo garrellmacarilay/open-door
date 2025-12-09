@@ -22,7 +22,7 @@ export function useCreateEvent() {
 
             if (res.data.success) {
                 setForm({ event_title: '', description: '', event_date: '', event_time: '' });
-                return { success: true };
+                return { success: true, data: res.data.data };
             }
             return { success: false }; // Handle case where success is false but no error thrown
 

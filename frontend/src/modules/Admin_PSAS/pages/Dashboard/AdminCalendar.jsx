@@ -212,7 +212,7 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
           <div className="p-3 space-y-2">
             {hoveredAppointment.isViewAll ? (
               hoveredAppointment.allAppointments.map((appointment, index) => (
-                <div key={index} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
+                <div key={index} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0 scroll">
                   {/* Name */}
                   <div className="flex items-center gap-2 mb-1">
                     <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
@@ -238,7 +238,11 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
                       <path d="M5.25 2.625V5.25L7 7" stroke="#9D4400" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
-                      {appointment.time}
+                      {new Date(appointment.start).toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true
+                      })}
                     </span>
                   </div>
                 </div>
@@ -268,7 +272,11 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
                     <path d="M5.25 2.625V5.25L7 7" stroke="#9D4400" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
-                    {hoveredAppointment.start}
+                    {new Date(hoveredAppointment.start).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: 'numeric',
+                      hour12: true
+                    })}
                   </span>
                 </div>
               </>

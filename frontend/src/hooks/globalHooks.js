@@ -1,5 +1,5 @@
 import api from "../utils/api";
-import { useState, useEffect,  } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export function useProfile() {
   const [user, setUser] = useState({});
@@ -113,4 +113,91 @@ export function useEvents() {
     }, [])
 
     return {events, fetchEvents}
+}
+
+export function useNotifications(pollInterval = 30000) { 
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  
+  // ✅ NEW: Track IDs that are currently being updated
+  const pendingUpdates = useRef(new Set()); 
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
+
+  const fetchNotifications = useCallback(async (isBackground = false) => {
+    if (!isBackground) setLoading(true);
+    
+    try {
+      const res = await api.get('/notifications');
+
+      if (isMounted.current && res.data.success) {
+        const serverNotifs = res.data.notifications;
+
+        // ✅ THE FIX: Merge Server Data with Local Pending Updates
+        // If an ID is in 'pendingUpdates', force it to remain 'read' locally
+        // even if the server says it's unread (because the server is lagging).
+        const mergedNotifications = serverNotifs.map(n => {
+            if (pendingUpdates.current.has(n.id)) {
+                return { ...n, read_at: n.read_at || new Date().toISOString() };
+            }
+            return n;
+        });
+
+        setNotifications(mergedNotifications);
+        
+        // Recalculate unread count based on the merged data
+        const unread = mergedNotifications.filter(n => n.read_at === null).length;
+        setUnreadCount(unread);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (isMounted.current && !isBackground) setLoading(false);
+    }
+  }, []);
+
+  const markAsRead = useCallback(async (id) => {
+    // 1. Lock this ID so polling doesn't overwrite it
+    pendingUpdates.current.add(id);
+
+    // 2. Optimistic Update (Instant UI change)
+    setNotifications(prev => prev.map(n => 
+      n.id === id ? { ...n, read_at: new Date().toISOString() } : n
+    ));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+
+    try {
+      // 3. Send to API
+      await api.patch(`/notifications/${id}/read`);
+      
+      // 4. Update finished - we can now trust the server again.
+      // We keep it in the set for just a moment longer to ensure the next poll catches the DB update
+      setTimeout(() => {
+          pendingUpdates.current.delete(id);
+      }, 2000); 
+
+    } catch (err) {
+      console.error("Failed to mark read", err);
+      // On error, release the lock and re-fetch to revert to actual server state
+      pendingUpdates.current.delete(id);
+      fetchNotifications(true);
+    }
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    fetchNotifications(); 
+    if (pollInterval > 0) {
+      const interval = setInterval(() => {
+        fetchNotifications(true); 
+      }, pollInterval);
+      return () => clearInterval(interval);
+    }
+  }, [fetchNotifications, pollInterval]);
+
+  return { notifications, unreadCount, loading, fetchNotifications, markAsRead };
 }

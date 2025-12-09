@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Api\Admin;
 
 use Carbon\Carbon;
 use App\Models\Booking;
+use App\Mail\BookingEmail;
 use Illuminate\Http\Request;
+use App\Models\EmailNotification;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use App\Notifications\ModalNotificationCreated;
+use Illuminate\Support\Facades\Mail;
 use App\Http\Resources\BookingResource;
+use App\Notifications\ModalNotificationCreated;
+use Illuminate\Support\Facades\Log;
 
 class AdminBookingController extends Controller
 {
@@ -147,7 +151,7 @@ class AdminBookingController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|string|in:approved,declined,rescheduled,cancelled'
+            'status' => 'required|string|in:approved,declined,rescheduled,cancelled,pending,completed'
         ]);
 
         $booking = Booking::with(['student.user'])->find($id);
@@ -174,16 +178,59 @@ class AdminBookingController extends Controller
         $booking->save();
 
         $statusNotif = [
-            'approved' => ['approval', "Your booking ({$booking->reference_code}) has been approved. "],
-            'declined' => ['decline', "Your booking ({$booking->reference_code}) has been declined. "],
-            'rescheduled' => ['reschedule', "Your booking ({$booking->reference_code}) has been rescheduled. "],
-            'cancelled' => ['cancellation', "Your booking ({$booking->reference_code}) has been cancelled. "],
+            'approved' => ['approval', "Your booking at the({$booking->office->office_name}) has been approved. "],
+            'declined' => ['decline', "Your booking at the ({$booking->office->office_name}) has been declined. "],
+            'rescheduled' => ['reschedule', "Your booking at the ({$booking->office->office_name}) has been rescheduled. "],
+            'cancelled' => ['cancellation', "Your booking at the ({$booking->office->office_name}) has been cancelled. "],
+            'completed' => ['completed', "Your booking at the ({$booking->office->office_name}) has been completed. "],
         ];
 
         [$type, $message] = $statusNotif[$booking->status] ?? ['update', "There’s an update on your booking ({$booking->reference_code})."];
 
         $notification = new ModalNotificationCreated($booking, $sender, $type, $message);
         $notification->handleCustomInsert($receiver);
+
+        if (in_array($request->status, ['approved', 'declined', 'cancelled', 'rescheduled', 'completed'])) {
+
+            try {
+                $emailSubject = "Update on Booking #" . $booking->reference_code;
+
+                // Custom messages based on status
+                $messages = [
+                    'approved' => "Great news! Your booking at {$booking->office->office_name} has been APPROVED.",
+                    'declined' => "We are sorry, but your booking at {$booking->office->office_name} has been DECLINED.",
+                    'cancelled' => "Your booking at {$booking->office->office_name} has been CANCELLED.",
+                    'rescheduled' => "Your booking at {$booking->office->office_name} has been RESCHEDULED.",
+                    'completed' => "Great news! Your booking at {$booking->office->office_name} has been COMPLETED.",
+                ];
+
+                $emailMessage = "Hi " . $receiver->name . ",\n\n" . ($messages[$request->status] ?? "Your booking status has changed to " . $request->status);
+
+                // 1. Log to Database
+                $emailLog = EmailNotification::create([
+                    'user_id' => $receiver->id,
+                    'booking_id' => $booking->id,
+                    'recipient_email' => $receiver->email,
+                    'subject' => $emailSubject,
+                    'message' => $emailMessage,
+                    'type' => 'booking_' . $request->status, // e.g., booking_approved
+                    'status' => 'pending',
+                ]);
+
+                // 2. Send Email
+                Mail::to($receiver->email)->send(new BookingEmail($emailSubject, $emailMessage));
+
+                // 3. Update Log Success
+                $emailLog->update(['status' => 'sent', 'sent_at' => Carbon::now()]);
+
+            } catch (\Exception $e) {
+                // 4. Log Failure
+                if (isset($emailLog)) {
+                    $emailLog->update(['status' => 'failed']);
+                }
+                \Log::error("Status Update Email Failed: " . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'success' => true,
