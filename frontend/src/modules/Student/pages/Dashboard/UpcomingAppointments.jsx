@@ -3,73 +3,73 @@ import GradIcon from '../../../../components/global-img/graduation-cap.svg';
 
 function UpcomingAppointments({ upcomingEvents, fetchMore, hasMore }) {
   // TODO: Comment out when done testing - Dummy data for testing
-  const dummyData = [
-    {
-      id: 1,
-      title: "Academic Advising Session",
-      details: {
-        student: "John Doe",
-        office: "Guidance and Counseling",
-        status: "pending",
-        service_type: "Academic Consultation"
-      },
-      dateString: "December 15, 2025",
-      time: "10:00 AM"
-    },
-    {
-      id: 2,
-      title: "Career Planning Meeting",
-      details: {
-        student: "Jane Smith", 
-        office: "Student Affairs",
-        status: "approved",
-        service_type: "Career Guidance"
-      },
-      dateString: "December 16, 2025", 
-      time: "2:30 PM"
-    },
-    {
-      id: 3,
-      title: "IT Support Request",
-      details: {
-        student: "Mike Johnson",
-        office: "IT Services",
-        status: "rescheduled", 
-        service_type: "Technical Support"
-      },
-      dateString: "December 18, 2025",
-      time: "11:15 AM"
-    },
-    {
-      id: 4,
-      title: "Financial Aid Consultation",
-      details: {
-        student: "Sarah Wilson",
-        office: "Financial Aid Office",
-        status: "pending",
-        service_type: "Financial Consultation"
-      },
-      dateString: "December 20, 2025",
-      time: "9:00 AM"
-    },
-    {
-      id: 5,
-      title: "Health Services Appointment",
-      details: {
-        student: "Alex Brown",
-        office: "Medical Services", 
-        status: "approved",
-        service_type: "Health Checkup"
-      },
-      dateString: "December 22, 2025",
-      time: "1:45 PM"
-    }
-  ];
+  // const dummyData = [
+  //   {
+  //     id: 1,
+  //     title: "Academic Advising Session",
+  //     details: {
+  //       student: "John Doe",
+  //       office: "Guidance and Counseling",
+  //       status: "pending",
+  //       service_type: "Academic Consultation"
+  //     },
+  //     dateString: "December 15, 2025",
+  //     time: "10:00 AM"
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Career Planning Meeting",
+  //     details: {
+  //       student: "Jane Smith", 
+  //       office: "Student Affairs",
+  //       status: "approved",
+  //       service_type: "Career Guidance"
+  //     },
+  //     dateString: "December 16, 2025", 
+  //     time: "2:30 PM"
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "IT Support Request",
+  //     details: {
+  //       student: "Mike Johnson",
+  //       office: "IT Services",
+  //       status: "rescheduled", 
+  //       service_type: "Technical Support"
+  //     },
+  //     dateString: "December 18, 2025",
+  //     time: "11:15 AM"
+  //   },
+  //   {
+  //     id: 4,
+  //     title: "Financial Aid Consultation",
+  //     details: {
+  //       student: "Sarah Wilson",
+  //       office: "Financial Aid Office",
+  //       status: "pending",
+  //       service_type: "Financial Consultation"
+  //     },
+  //     dateString: "December 20, 2025",
+  //     time: "9:00 AM"
+  //   },
+  //   {
+  //     id: 5,
+  //     title: "Health Services Appointment",
+  //     details: {
+  //       student: "Alex Brown",
+  //       office: "Medical Services", 
+  //       status: "approved",
+  //       service_type: "Health Checkup"
+  //     },
+  //     dateString: "December 22, 2025",
+  //     time: "1:45 PM"
+  //   }
+  // ];
 
   // Use dummy data instead of API data for testing
-  const eventsArray = dummyData;
+  // const eventsArray = dummyData;
   // TODO: Uncomment when done testing
-  // const eventsArray = Array.isArray(upcomingEvents) ? upcomingEvents : [];
+  const eventsArray = Array.isArray(upcomingEvents) ? upcomingEvents : [];
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
