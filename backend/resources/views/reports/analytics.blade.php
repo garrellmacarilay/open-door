@@ -48,6 +48,34 @@
             font-size: 10px;
             color: #555;
         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+            font-size: 11px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #E3F2FD;
+            font-weight: bold;
+        }
+
+        td:first-child, th:first-child {
+            text-align: left;
+        }
+
+        .table-summary {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
@@ -98,9 +126,43 @@
         @endforeach
     </div>
 </div>
+<table>
+    <thead>
+        <tr>
+            <th>Office</th>
+            <th>Total Consultations</th>
+            <th>Completed</th>
+            <th>Cancelled</th>
+            <th>Percentage</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($officeBreakdown as $office)
+            @php
+                $percentage = $totalConsultations > 0
+                    ? ($office['total'] / $totalConsultations) * 100
+                    : 0;
+            @endphp
+            <tr>
+                <td>{{ $office['name'] }}</td>
+                <td>{{ $office['total'] }}</td>
+                <td>{{ $office['completed'] }}</td>
+                <td>{{ $office['cancelled'] }}</td>
+                <td>{{ round($percentage, 1) }}%</td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+
+<div class="table-summary">
+    <p>Total Consultations: {{ $total }}</p>
+    <p>Completed: {{ $completed }}</p>
+    <p>Cancelled: {{ $cancelled }}</p>
+</div>
+
 
 <div class="footer">
-    Report generated on {{ now()->format('F d, Y H:i') }}
+    Report generated on {{ now()->format('F d, Y') }}
 </div>
 
 </body>

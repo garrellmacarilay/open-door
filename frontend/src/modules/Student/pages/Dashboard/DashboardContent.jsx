@@ -161,6 +161,7 @@ function DashboardContent({ refreshAppointments = 0 }) {
           {/* Calendar Section */}
           <Calendar 
             currentDate={currentDate}
+            events={events}
             isAnimating={isAnimating}
             bookedAppointments={calendarAppointments}
             setBookedAppointments={() => {}}

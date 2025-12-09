@@ -26,7 +26,7 @@ class GoogleController extends Controller
             $email = $googleUser->getEmail();
 
             // 1. Determine Role based on .env
-            $adminEmail = env('ADMIN_EMAIL');
+            $adminEmail = array_map('trim', explode(',', env('ADMIN_EMAIL', '')));
             // Explode converts the comma-separated string into an array, trim removes spaces
             $staffEmails = array_map('trim', explode(',', env('STAFF_EMAILS', '')));
 

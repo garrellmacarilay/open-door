@@ -10,8 +10,6 @@ function StaffDashboardContent() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isAnimating, setIsAnimating] = useState(false);
     
-    // 1. This is your "Source of Truth" for the UI
-    const [eventsList, setEventsList] = useState([]); 
 
     const { loading, error, appointments, fetchDashboard } = useDashboardAppointments();
     const { events, fetchEvents } = useEvents();
@@ -29,13 +27,6 @@ function StaffDashboardContent() {
       }
     }, [events]);
 
-    const handleAddEvent = (newEvent) => {
-      setEventsList((prev) => [...prev, newEvent]);
-    };
-
-    const handleDeleteEvent = (eventId) => {
-      setEventsList((prev) => prev.filter((event) => event.id !== eventId));
-    };
 
     const handleDateNavigation = (direction) => {
       if (isAnimating) return;
@@ -69,6 +60,7 @@ function StaffDashboardContent() {
             <StaffCalendar 
               currentDate={currentDate}
               bookedAppointments={appointments}
+              events={eventsList}
               isAnimating={isAnimating}
             />
           </div>
@@ -86,8 +78,8 @@ function StaffDashboardContent() {
               <StaffUpcomingEvents 
                 // 3. ✅ CRITICAL FIX: Pass 'eventsList' (local state), not 'events' (hook state)
                 upcomingEvents={eventsList} 
-                onAddEvent={handleAddEvent}
-                onDeleteEvent={handleDeleteEvent}
+                onAddEvent={fetchEvents}
+                onDeleteEvent={fetchEvents}
               />
             </div>
           </div>

@@ -1,45 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom'; // 1. Import useLocation
+import { useLocation } from 'react-router-dom'; 
 import { useAdminBookings } from '../../../../hooks/adminHooks';
-import { useUpdateAppointmentStatus } from '../../../../hooks/adminHooks';
 
 function AdminConsultationSummary() {
-  const location = useLocation(); // 2. Get location
+  const location = useLocation(); 
   
   const [selectedConsultation, setSelectedConsultation] = useState();
   const [showDetailModal, setShowDetailModal] = useState(false);
   
   // Use existing hooks
   const { bookings, search, setSearch, status, setStatus, handleSearchChange, fetchBookings, loading } = useAdminBookings();
-  const { loading: isUpdating, updateStatus } = useUpdateAppointmentStatus();
-  const [updatingId, setUpdatingId] = useState(null);
 
   // 3. DEEP LINKING EFFECT
-  // Checks URL for ?bookingId=123 when bookings are loaded
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const bookingIdFromUrl = params.get('bookingId');
 
     if (bookingIdFromUrl && bookings.length > 0) {
-      // Find the booking in the loaded list
       const targetBooking = bookings.find(b => b.id.toString() === bookingIdFromUrl);
       
       if (targetBooking) {
         handleViewDetails(targetBooking);
-        
-        // Optional: Remove query param from URL after opening so refresh doesn't reopen it
-        // window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
   }, [location.search, bookings]);
-
-
-  const handleStatusUpdate = async (id, newStatus) => {
-    setUpdatingId(id);
-    await updateStatus(id, newStatus.toLowerCase());
-    await fetchBookings(search, status);
-    setUpdatingId(null);
-  };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -48,6 +32,7 @@ function AdminConsultationSummary() {
       case 'cancelled': return 'bg-red-100! text-red-800';
       case 'approved': return 'bg-green-100! text-green-800';
       case 'pending': return 'bg-yellow-100! text-yellow-800';
+      case 'rescheduled': return 'bg-purple-100! text-purple-800';
       default: return 'bg-gray-100! text-gray-800';
     }
   };
@@ -133,38 +118,14 @@ function AdminConsultationSummary() {
                     <div className="text-gray-800">{new Date(consultation.consultation_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
                     <div className="text-sm text-gray-500">{new Date(consultation.consultation_date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</div>
                   </td>
+                  
+                  {/* ✅ UPDATED STATUS COLUMN (Static Badge) */}
                   <td className="p-4 border-b">
-                    <div className="relative inline-block w-full max-w-[140px]">
-                      {(() => {
-                        const isUpdating = updatingId === consultation.id;
-                        return (
-                          <>
-                            <select
-                              value={consultation.status ? consultation.status.charAt(0).toUpperCase() + consultation.status.slice(1).toLowerCase() : "Pending"}
-                              onChange={(e) => handleStatusUpdate(consultation.id, e.target.value)}
-                              disabled={isUpdating || isUpdating}
-                              className={`w-full appearance-none px-3 py-1 pr-8 rounded-full text-xs font-medium border-none outline-none cursor-pointer transition-colors shadow-sm ${getStatusColor(consultation.status)} disabled:opacity-70 disabled:cursor-not-allowed`}
-                            >
-                              <option value="Pending" className="bg-white text-gray-800">Pending</option>
-                              <option value="Approved" className="bg-white text-gray-800">Approved</option>
-                              <option value="Completed" className="bg-white text-gray-800">Completed</option>
-                              <option value="Cancelled" className="bg-white text-gray-800">Cancelled</option>
-                              <option value="Rescheduled" className="bg-white text-gray-800">Rescheduled</option>
-                              <option value="Declined" className="bg-white text-gray-800">Declined</option>
-                              <option value="No Show" className="bg-white text-gray-800">No Show</option>
-                            </select>
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-current opacity-70">
-                              {isUpdating ? (
-                                <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                              ) : (
-                                <svg className="h-3 w-3 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-                              )}
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block capitalize ${getStatusColor(consultation.status)}`}>
+                      {consultation.status || 'Pending'}
+                    </span>
                   </td>
+
                   <td className="p-4 border-b">
                     {consultation.feedback?.rating ? renderStars(consultation.feedback.rating) : <span className="text-gray-400 text-xs">No rating</span>}
                   </td>
@@ -175,6 +136,9 @@ function AdminConsultationSummary() {
               ))}
             </tbody>
           </table>
+          {bookings.length === 0 && !loading && (
+             <div className="text-center py-10 text-gray-500">No consultations found.</div>
+          )}
         </div>
       </div>
       </div>

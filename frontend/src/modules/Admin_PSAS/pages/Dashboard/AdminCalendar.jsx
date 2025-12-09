@@ -1,14 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import GradIcon from '../../../../components/global-img/graduation-cap.svg';
 
-function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) {
+function AdminCalendar({ 
+  currentDate, 
+  isAnimating, 
+  calendarAppointments = [], 
+  events = [] // Accept events prop
+}) {
   const [showAppointmentHoverModal, setShowAppointmentHoverModal] = useState(false);
   const [hoveredAppointment, setHoveredAppointment] = useState(null);
+  const hoverTimeoutRef = useRef(null);
 
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    };
+  }, []);
+
+  // ---------------------------------------------------------
+  // 1. MERGE & PROCESS DATA (Appointments + Events)
+  // ---------------------------------------------------------
+  const itemsByDate = useMemo(() => {
+    const map = {};
+    const dateKey = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+
+    // A. Process Appointments
+    calendarAppointments.forEach((appt) => {
+      const apptDate = new Date(appt.start);
+      const localDate = new Date(apptDate.getFullYear(), apptDate.getMonth(), apptDate.getDate());
+      const key = dateKey(localDate);
+
+      const normalized = {
+        id: appt.id,
+        type: 'appointment',
+        // Preserve existing fields you were using
+        studentName: appt.studentName || appt.details?.studentName || 'Unknown',
+        office: appt.office || appt.details?.officeName || 'Unknown',
+        serviceType: appt.serviceType || appt.details?.serviceType || 'Consultation',
+        status: appt.status || 'pending',
+        start: appt.start,
+        dateObj: apptDate,
+        time: apptDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true }),
+        dateString: localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+      };
+
+      if (!map[key]) map[key] = [];
+      map[key].push(normalized);
+    });
+
+    // B. Process Events (Safe Parsing)
+    events.forEach((event) => {
+      if (!event.event_date) return;
+
+      // Manual split to avoid timezone shifts (YYYY-MM-DD)
+      const [y, m, d] = event.event_date.split('-').map(Number);
+      
+      let hours = 8, minutes = 0;
+      if (event.event_time) {
+         [hours, minutes] = event.event_time.split(':').map(Number);
+      }
+
+      // Create date (Month is 0-indexed)
+      const eventDate = new Date(y, m - 1, d, hours, minutes);
+      
+      if (isNaN(eventDate.getTime())) return;
+
+      const localDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+      const key = dateKey(localDate);
+
+      const normalized = {
+        id: event.id || `evt-${Math.random()}`,
+        type: 'event',
+        title: event.event_title || 'School Event',
+        description: event.description || '',
+        dateObj: eventDate,
+        time: eventDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true }),
+        dateString: localDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      };
+
+      if (!map[key]) map[key] = [];
+      map[key].push(normalized);
+    });
+
+    // Sort by time
+    Object.keys(map).forEach(k => {
+      map[k].sort((a, b) => a.dateObj - b.dateObj);
+    });
+
+    return map;
+  }, [calendarAppointments, events]);
+
+  // ---------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------
   const getDaysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const getFirstDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
-    // Get status-based colors for appointments
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'approved':
@@ -19,6 +107,28 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
         return 'bg-[#B45309]'; // default to pending color
     }
   };
+
+  const handleMouseEnter = (e, item, isViewAll = false, allItems = []) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setHoveredAppointment({
+      ...(isViewAll ? { allItems, isViewAll: true } : item),
+      position: { x: rect.left, y: rect.top }
+    });
+    setShowAppointmentHoverModal(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setShowAppointmentHoverModal(false);
+      setHoveredAppointment(null);
+    }, 100);
+  };
+
+  // ---------------------------------------------------------
+  // Render Logic
+  // ---------------------------------------------------------
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDay = getFirstDayOfMonth(currentDate);
@@ -27,6 +137,7 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
     const currentYear = currentDate.getFullYear();
     const totalCells = 42;
     const daysArray = [];
+    const dateKey = (d) => `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
 
     for (let i = 0; i < totalCells; i++) {
       const dayNumber = i - firstDay + 1;
@@ -41,18 +152,13 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
           today.getMonth() === currentMonth &&
           today.getFullYear() === currentYear;
 
-        const dayAppointments = calendarAppointments.filter((appointment) => {
-          const dateObj = new Date(appointment.start);
-          return (
-            dateObj.getDate() === dayNumber &&
-            dateObj.getMonth() === currentMonth &&
-            dateObj.getFullYear() === currentYear
-          );
-        });
+        const cellDate = new Date(currentYear, currentMonth, dayNumber);
+        const dayKey = dateKey(cellDate);
+        const dayItems = itemsByDate[dayKey] || [];
 
         const maxVisible = 2;
-        const visibleAppointments = dayAppointments.slice(0, maxVisible);
-        const hasMoreAppointments = dayAppointments.length > maxVisible;
+        const visibleItems = dayItems.slice(0, maxVisible);
+        const hasMore = dayItems.length > maxVisible;
 
         daysArray.push(
           <div
@@ -70,61 +176,45 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
               {dayNumber}
             </span>
 
-            {/* Appointment indicators */}
-            {dayAppointments.length > 0 && (
+            {/* Indicators */}
+            {dayItems.length > 0 && (
               <div className="absolute bottom-1 left-1 right-1 space-y-0.5">
-                {visibleAppointments.map((appointment, index) => (
+                {visibleItems.map((item, index) => (
                   <div
-                    key={`appointment-${index}`}
-                    className={`${getStatusColor(appointment.status)} rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10`}
-                    onMouseEnter={(e) => {
-                      setHoveredAppointment({
-                        ...appointment,
-                        position: {
-                          x: e.currentTarget.getBoundingClientRect().left,
-                          y: e.currentTarget.getBoundingClientRect().top,
-                        },
-                      });
-                      setShowAppointmentHoverModal(true);
-                    }}
-                    onMouseLeave={() => {
-                      setShowAppointmentHoverModal(false);
-                      setHoveredAppointment(null);
-                    }}
+                    key={item.id || index}
+                    className={`${item.type === 'event' ? 'bg-[#122141]' : getStatusColor(item.status)} rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10`}
+                    onMouseEnter={(e) => handleMouseEnter(e, item)}
+                    onMouseLeave={handleMouseLeave}
                   >
-                    <span
-                      className="text-white text-[10px] font-bold leading-none"
-                      style={{ fontFamily: 'Poppins' }}
-                    >
-                      {appointment.serviceType}
-                    </span>
+                    {item.type === 'event' ? (
+                       <div className="flex items-center gap-1">
+                          <img src={GradIcon} alt="Event" className="w-3 h-3 invert brightness-0 filter" style={{filter: 'brightness(0) invert(1)'}} /> 
+                          <span className="text-white text-[9px] font-bold leading-none truncate max-w-[50px]" style={{ fontFamily: 'Poppins' }}>
+                            {item.title}
+                          </span>
+                       </div>
+                    ) : (
+                        <span
+                          className="text-white text-[10px] font-bold leading-none"
+                          style={{ fontFamily: 'Poppins' }}
+                        >
+                          {item.serviceType}
+                        </span>
+                    )}
                   </div>
                 ))}
 
-                {hasMoreAppointments && (
+                {hasMore && (
                   <div
                     className="bg-[#122141] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
-                    onMouseEnter={(e) => {
-                      setHoveredAppointment({
-                        allAppointments: dayAppointments,
-                        isViewAll: true,
-                        position: {
-                          x: e.currentTarget.getBoundingClientRect().left,
-                          y: e.currentTarget.getBoundingClientRect().top,
-                        },
-                      });
-                      setShowAppointmentHoverModal(true);
-                    }}
-                    onMouseLeave={() => {
-                      setShowAppointmentHoverModal(false);
-                      setHoveredAppointment(null);
-                    }}
+                    onMouseEnter={(e) => handleMouseEnter(e, null, true, dayItems)}
+                    onMouseLeave={handleMouseLeave}
                   >
                     <span
                       className="text-white text-[12px] font-bold leading-none"
                       style={{ fontFamily: 'Poppins' }}
                     >
-                      View all ({dayAppointments.length})
+                      View all ({dayItems.length})
                     </span>
                   </div>
                 )}
@@ -184,6 +274,11 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
               <div className="w-2 h-2 bg-[#B45309] rounded-full"></div>
               <span className="text-xs" style={{ fontFamily: 'Poppins' }}>Pending</span>
             </div>
+            {/* Added Event Legend */}
+            <div className="flex items-center gap-1">
+               <img src={GradIcon} className="w-3 h-3" alt="event"/>
+               <span className="text-xs" style={{ fontFamily: 'Poppins' }}>Event</span>
+            </div>
           </div>
         </div>
       </div>
@@ -191,8 +286,8 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
       {/* Appointment Hover Modal */}
       {showAppointmentHoverModal && hoveredAppointment && (
         <div
-          className={`fixed bg-white rounded-[10px] rounded-br-none shadow-lg z-50 pointer-events-none ${
-            hoveredAppointment.isViewAll ? 'w-[280px]' : 'w-[210px] h-[153px]'
+          className={`fixed bg-white rounded-[10px] rounded-br-none shadow-lg z-50 pointer-events-none border border-gray-200 ${
+            hoveredAppointment.isViewAll ? 'w-[280px]' : 'w-[210px]'
           }`}
           style={{
             left: `${
@@ -201,91 +296,100 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
                 : hoveredAppointment.position.x + 10
             }px`,
             top: `${
-              hoveredAppointment.position.y -
-              (hoveredAppointment.isViewAll
-                ? 10 + hoveredAppointment.allAppointments.length * 45 + 12
-                : 160)
+              hoveredAppointment.position.y - 100
             }px`,
           }}
         >
           {/* Modal Header */}
           <div className="bg-[#122141] rounded-t-[10px] h-9 flex items-center px-4">
             <h3 className="text-white text-[8px] font-bold" style={{ fontFamily: 'Poppins' }}>
-              {hoveredAppointment.isViewAll ? 'All Consultation Schedules' : 'Consultation Schedule'}
+              {hoveredAppointment.isViewAll ? 'All Schedules' : (hoveredAppointment.type === 'event' ? 'Event Details' : 'Consultation Schedule')}
             </h3>
           </div>
 
           {/* Modal Content */}
           <div className="p-3 space-y-2">
             {hoveredAppointment.isViewAll ? (
-              hoveredAppointment.allAppointments.map((appointment, index) => (
+              // List View
+              hoveredAppointment.allItems.map((item, index) => (
                 <div key={index} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0 scroll">
-                  {/* Name */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
-                      {appointment.studentName}
-                    </span>
-                  </div>
-
-                  {/* Office */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <svg width="10" height="8" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 4L6 1L11 4V9C11 9.26522 10.8946 9.51957 10.7071 9.70711C10.5196 9.89464 10.2652 10 10 10H2C1.73478 10 1.48043 9.89464 1.29289 9.70711C1.10536 9.51957 1 9.26522 1 9V4Z" stroke="#0059FF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
-                      {appointment.office}
-                    </span>
-                  </div>
-
+                  {item.type === 'event' ? (
+                     // Event List Item
+                     <div className="flex items-center gap-2 mb-1">
+                        <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
+                        <span className="text-black text-[9px] font-bold">{item.title}</span>
+                     </div>
+                  ) : (
+                     // Appointment List Item
+                     <div className="flex items-center gap-2 mb-1">
+                        <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
+                        <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
+                          {item.studentName}
+                        </span>
+                     </div>
+                  )}
+                  {item.type === 'appointment' && (
+                     <div className="flex items-center gap-2 mb-1">
+                        <div className={`w-2 h-2 rounded-full ${getStatusColor(item.status)}`}></div>
+                        <span className="text-black text-[9px] font-medium">{item.serviceType}</span>
+                     </div>
+                  )}
+                  
                   {/* Time */}
                   <div className="flex items-center gap-2">
-                    <svg width="9" height="9" viewBox="0 0 10.5 10.5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="5.25" cy="5.25" r="4.75" stroke="#9D4400" strokeWidth="1"/>
-                      <path d="M5.25 2.625V5.25L7 7" stroke="#9D4400" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
-                      {new Date(appointment.start).toLocaleTimeString('en-US', {
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        hour12: true
-                      })}
+                    <span className="text-gray-500 text-[8px] block ml-5">
+                      {item.time}
                     </span>
                   </div>
                 </div>
               ))
             ) : (
+              // Single Item View
               <>
-                {/* Single Appointment */}
-                <div className="flex items-center gap-2">
-                  <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
-                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
-                    {hoveredAppointment.studentName}
-                  </span>
-                </div>
+                {hoveredAppointment.type === 'event' ? (
+                   // Single Event
+                   <>
+                    <div className="flex items-center gap-2">
+                       <img src={GradIcon} className="w-3 h-3" alt="event" />
+                       <span className="text-black text-[10px] font-bold">{hoveredAppointment.title}</span>
+                    </div>
+                    {hoveredAppointment.description && (
+                       <p className="text-gray-600 text-[8px] mt-1">{hoveredAppointment.description}</p>
+                    )}
+                    <div className="flex items-center gap-2 mt-1">
+                       <span className="text-gray-500 text-[8px]">{hoveredAppointment.dateString} at {hoveredAppointment.time}</span>
+                    </div>
+                   </>
+                ) : (
+                   // Single Appointment
+                   <>
+                    <div className="flex items-center gap-2">
+                      <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
+                      <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
+                        {hoveredAppointment.studentName}
+                      </span>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <svg width="10" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 4L6 1L11 4V9C11 9.26522 10.8946 9.51957 10.7071 9.70711C10.5196 9.89464 10.2652 10 10 10H2C1.73478 10 1.48043 9.89464 1.29289 9.70711C1.10536 9.51957 1 9.26522 1 9V4Z" stroke="#0059FF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
-                    {hoveredAppointment.office}
-                  </span>
-                </div>
+                    <div className="flex items-center gap-2">
+                      <svg width="10" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1 4L6 1L11 4V9C11 9.26522 10.8946 9.51957 10.7071 9.70711C10.5196 9.89464 10.2652 10 10 10H2C1.73478 10 1.48043 9.89464 1.29289 9.70711C1.10536 9.51957 1 9.26522 1 9V4Z" stroke="#0059FF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
+                        {hoveredAppointment.office}
+                      </span>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <svg width="10.5" height="10.5" viewBox="0 0 10.5 10.5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="5.25" cy="5.25" r="4.75" stroke="#9D4400" strokeWidth="1"/>
-                    <path d="M5.25 2.625V5.25L7 7" stroke="#9D4400" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
-                    {new Date(hoveredAppointment.start).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: 'numeric',
-                      hour12: true
-                    })}
-                  </span>
-                </div>
+                    <div className="flex items-center gap-2">
+                      <svg width="10.5" height="10.5" viewBox="0 0 10.5 10.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="5.25" cy="5.25" r="4.75" stroke="#9D4400" strokeWidth="1"/>
+                        <path d="M5.25 2.625V5.25L7 7" stroke="#9D4400" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>
+                        {hoveredAppointment.time}
+                      </span>
+                    </div>
+                   </>
+                )}
               </>
             )}
           </div>
