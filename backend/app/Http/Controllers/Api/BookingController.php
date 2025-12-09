@@ -298,7 +298,7 @@ class BookingController extends Controller
             ]);
     }
 
-    public function reschedule(Request $request, $id)
+   public function reschedule(Request $request, $id)
     {
         $request->validate([
             'consultation_date' => [
@@ -307,7 +307,6 @@ class BookingController extends Controller
                 function ($_, $value, $fail) {
                     $consultationDate = Carbon::parse($value);
                     $minDate = Carbon::now()->addDays(2)->startOfDay();
-
                     if ($consultationDate->lessThan($minDate)) {
                         $fail('You can only reschedule a consultation at least 2 days ahead.');
                     }
@@ -316,10 +315,34 @@ class BookingController extends Controller
             'uploaded_file_url' => 'nullable|file|mimes:pdf,jpg,png|max:5120'
         ]);
 
-        $booking = Booking::findOrFail($id);
+        $booking = Booking::with(['office.users', 'student.user'])->findOrFail($id);
+        $currentUser = Auth::user(); // The person performing the action
 
+        // ---------------------------------------------------------
+        // DETERMINE RECEIVER AND CONTEXT
+        // ---------------------------------------------------------
+        $studentUser = $booking->student->user;
+
+        // Default: Assume the logged-in user is the Staff, so notify the Student
+        $receiver = $studentUser;
+        $notificationContext = "Staff initiated";
+
+        // Logic: If the current logged-in user IS the student, notify the Staff/Admin
+        if ($currentUser->id === $studentUser->id) {
+            // Get the staff/admin associated with this office
+            // Note: If an office has multiple staff, this grabs the first one.
+            // Ideally, you might loop through all of them.
+            $receiver = $booking->office->staff()->first();
+
+            if (!$receiver) {
+                // Fallback protection if no staff is assigned to office
+                return response()->json(['success' => false, 'message' => 'No office staff found to notify.'], 500);
+            }
+            $notificationContext = "Student initiated";
+        }
+
+        // Check for Event Conflicts
         $consultationDay = Carbon::parse($request->consultation_date)->toDateString();
-
         $eventExists = Event::where('event_date', $consultationDay)->exists();
 
         if ($eventExists) {
@@ -329,20 +352,78 @@ class BookingController extends Controller
             ], 422);
         }
 
-        $updated = [
-            'consultation_date' => $request->consultation_date,
-            'status' => 'rescheduled',
-        ];
+        // 1. DATABASE TRANSACTION
+        $emailLog = DB::transaction(function () use ($booking, $request, $currentUser, $receiver, $notificationContext) {
+            // Update Booking Data
+            $updatedData = [
+                'consultation_date' => $request->consultation_date,
+                'status' => 'rescheduled',
+            ];
 
-        if ($request->hasFile('uploaded_file_url')) {
-            $path = $request->file('uploaded_file_url')->store('attachments', 'public');
-            $updated['uploaded_file_url'] = '/storage/' . $path;
-        } else {
-            // If no new file uploaded, keep the existing one
-            $updated['uploaded_file_url'] = $booking->uploaded_file_url;
+            if ($request->hasFile('uploaded_file_url')) {
+                $path = $request->file('uploaded_file_url')->store('attachments', 'public');
+                $updatedData['uploaded_file_url'] = '/storage/' . $path;
+            }
+
+            $booking->update($updatedData);
+
+            $formattedDate = Carbon::parse($request->consultation_date)->format('M d, h:i A');
+
+            // ✅ Dynamic Message Construction
+            if ($notificationContext === "Student initiated") {
+                // Message for STAFF
+                $modalMsg = "Student ({$currentUser->name}) has RESCHEDULED Booking #{$booking->reference_code} to {$formattedDate}.";
+                $emailSubject = "Reschedule Alert: Booking #{$booking->reference_code}";
+                $emailBody = "Hi {$receiver->name},\n\n" .
+                             "The student ({$currentUser->name}) has RESCHEDULED their appointment at {$booking->office->office_name}.\n" .
+                             "New Date: " . $formattedDate;
+            } else {
+                // Message for STUDENT
+                $modalMsg = "Your booking #{$booking->reference_code} has been RESCHEDULED by the office to {$formattedDate}.";
+                $emailSubject = "Appointment Rescheduled: Booking #{$booking->reference_code}";
+                $emailBody = "Hi {$receiver->name},\n\n" .
+                             "The office staff has RESCHEDULED your appointment at {$booking->office->office_name}.\n" .
+                             "New Date: " . $formattedDate;
+            }
+
+            // ✅ Insert modal notification
+            (new ModalNotificationCreated(
+                $booking,
+                $currentUser, // Sender
+                'reschedule',
+                $modalMsg
+            ))->handleCustomInsert($receiver);
+
+            // ✅ Create Email Log
+            return EmailNotification::create([
+                'user_id'         => $receiver->id,
+                'booking_id'      => $booking->id,
+                'recipient_email' => $receiver->email,
+                'subject'         => $emailSubject,
+                'message'         => $emailBody,
+                'type'            => 'booking_rescheduled',
+                'status'          => 'pending',
+            ]);
+        });
+
+        // 2. SEND EMAIL (Outside Transaction)
+        if ($emailLog) {
+            try {
+                $htmlMessage = view('emails.booking_notification', [
+                    'emailSubject' => $emailLog->subject,
+                    'bodyContent'  => $emailLog->message
+                ])->render();
+
+                $gmail = new GmailService();
+                $sent = $gmail->sendEmail($emailLog->recipient_email, $emailLog->subject, $htmlMessage);
+
+                $emailLog->update(['status' => $sent ? 'sent' : 'failed', 'sent_at' => $sent ? now() : null]);
+
+            } catch (\Exception $e) {
+                Log::error("Reschedule Email Failed: " . $e->getMessage());
+                $emailLog->update(['status' => 'failed']);
+            }
         }
-
-        $booking->update($updated);
 
         return response()->json([
             'success' => 'Booking successfully rescheduled',
@@ -352,7 +433,8 @@ class BookingController extends Controller
 
     public function cancel(Request $request, $id)
     {
-        $booking = Booking::findOrFail($id);
+        $booking = Booking::with(['office.staff.user', 'student.user'])->findOrFail($id);
+        $currentUser = Auth::user();
 
         if ($booking->status === 'cancelled') {
             return response()->json([
@@ -361,7 +443,90 @@ class BookingController extends Controller
             ], 422);
         }
 
-        $booking->update(['status' => 'cancelled']);
+        // ---------------------------------------------------------
+        // DETERMINE RECEIVER AND CONTEXT
+        // ---------------------------------------------------------
+        $studentUser = $booking->student->user;
+
+        // Default: Assume Staff is acting, notify Student
+        $receiver = $studentUser;
+        $notificationContext = "Staff initiated";
+
+        // If Student is acting, notify Staff/Admin
+        if ($currentUser->id === $studentUser->id) {
+
+            // Get the Staff model first
+            $staffMember = $booking->office->staff()->first();
+
+            // Check if staff exists AND if that staff has a linked user
+            if (!$staffMember || !$staffMember->user) {
+                return response()->json(['success' => false, 'message' => 'No office staff user found to notify.'], 500);
+            }
+
+            // Set receiver to the USER associated with the staff
+            $receiver = $staffMember->user;
+
+            $notificationContext = "Student initiated";
+        }
+
+        // 1. DATABASE TRANSACTION
+        $emailLog = DB::transaction(function () use ($booking, $currentUser, $receiver, $notificationContext) {
+            // Update Status
+            $booking->update(['status' => 'cancelled']);
+
+            // ✅ Dynamic Message Construction
+            if ($notificationContext === "Student initiated") {
+                 // Message for STAFF
+                $modalMsg = "Student ({$currentUser->name}) has CANCELLED Booking #{$booking->reference_code}.";
+                $emailSubject = "Cancellation Alert: Booking #{$booking->reference_code}";
+                $emailBody = "Hi {$receiver->name},\n\n" .
+                             "The student ({$currentUser->name}) has CANCELLED their appointment at {$booking->office->office_name}.";
+            } else {
+                // Message for STUDENT
+                $modalMsg = "Your booking at ({$booking->office->office_name}) has been CANCELLED by the office.";
+                $emailSubject = "Appointment Cancelled: Booking #{$booking->reference_code}";
+                $emailBody = "Hi {$receiver->name},\n\n" .
+                             "Your booking at {$booking->office->office_name} has been CANCELLED by the staff.";
+            }
+
+            // ✅ Insert modal notification
+            (new ModalNotificationCreated(
+                $booking,
+                $currentUser,
+                'cancellation',
+                $modalMsg
+            ))->handleCustomInsert($receiver);
+
+            // ✅ Create Email Log
+            return EmailNotification::create([
+                'user_id'         => $receiver->id,
+                'booking_id'      => $booking->id,
+                'recipient_email' => $receiver->email,
+                'subject'         => $emailSubject,
+                'message'         => $emailBody,
+                'type'            => 'booking_cancelled',
+                'status'          => 'pending',
+            ]);
+        });
+
+        // 2. SEND EMAIL (Outside Transaction)
+        if ($emailLog) {
+            try {
+                $htmlMessage = view('emails.booking_notification', [
+                    'emailSubject' => $emailLog->subject,
+                    'bodyContent'  => $emailLog->message
+                ])->render();
+
+                $gmail = new GmailService();
+                $sent = $gmail->sendEmail($emailLog->recipient_email, $emailLog->subject, $htmlMessage);
+
+                $emailLog->update(['status' => $sent ? 'sent' : 'failed', 'sent_at' => $sent ? now() : null]);
+
+            } catch (\Exception $e) {
+                Log::error("Cancel Email Failed: " . $e->getMessage());
+                $emailLog->update(['status' => 'failed']);
+            }
+        }
 
         return response()->json([
             'success' => true,
