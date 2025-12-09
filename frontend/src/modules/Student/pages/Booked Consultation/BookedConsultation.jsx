@@ -3,6 +3,8 @@ import CancelModal from './CancelModal';
 import RescheduleModal from './RescheduleModal';
 import { useReschedule, useCancel } from '../../../../hooks/studentHooks';
 import LoadingBlock from '../../../../loading/LoadingBlock';
+// Import dummy data for testing - DUMMY
+import { getBookedConsultations } from '../../../../utils/dummyData';
 
 export default function BookedConsultation({ recentBookings }) {
   const { rescheduleBooking, isRescheduling } = useReschedule();
@@ -10,6 +12,10 @@ export default function BookedConsultation({ recentBookings }) {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  
+  // Use dummy data for testing - comment out when using real API - DUMMY
+  const dummyBookings = getBookedConsultations();
+  const bookingsToUse = recentBookings || dummyBookings;
 
   const handleCancelClick = (booking) => {
     setSelectedBooking(booking);
@@ -49,7 +55,7 @@ export default function BookedConsultation({ recentBookings }) {
     }
   };
 
-  const isLoading = recentBookings === null || recentBookings === undefined;
+  const isLoading = !recentBookings && !dummyBookings;
 
   if (isLoading) {
     return (

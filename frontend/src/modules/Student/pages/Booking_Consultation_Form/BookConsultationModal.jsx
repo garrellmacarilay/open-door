@@ -92,7 +92,7 @@ export default function BookConsultationModal({
                 {/* Time */}
                 <div className="space-y-1 flex-1">
                   <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
-                    Time *
+                    Time <span className="text-red-500">*</span> 
                   </label>
                   <div className="relative w-full">
                     <input

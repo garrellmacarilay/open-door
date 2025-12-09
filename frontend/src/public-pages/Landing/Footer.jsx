@@ -71,9 +71,6 @@ export default function Footer({ onContactUsClick, onAboutUsClick }) {
       <div className="bg-black text-center py-3 border-t border-white/20">
         <p className="text-sm font-semibold">
           © 2025 OpenDoor. All rights reserved. |{" "}
-          <span className="text-yellow-400 hover:underline cursor-pointer">
-            Privacy Policy
-          </span>
         </p>
       </div>
     </footer>
