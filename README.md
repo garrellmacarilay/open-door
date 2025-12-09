@@ -38,7 +38,7 @@ Students need a convenient way to book or schedule appointments with PSAS and it
 <table>
   <tr>
     <td align="center">
-      <img src="eun.png" width="140" alt="Project Manager" /><br /><br />
+      <img src="https://drive.google.com/file/d/1zAork9g3SKe8_TMbidi4jwUzqZTrX9IQ/view?usp=drive_link" width="140" alt="Project Manager" /><br /><br />
       <b>Project Manager</b><br />
       <sub>Eunice Lugtu</sub>
     </td>
