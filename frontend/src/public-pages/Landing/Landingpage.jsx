@@ -17,6 +17,7 @@ export const FrameLandingPage = () => {
   const [modalPosition, setModalPosition] = useState({ top: 1000, right: 0 });
   const [loginButtonVisible, setLoginButtonVisible] = useState(true);
   const [psasLogoVisible, setpsasLogoVisible] = useState(true);
+  const [copiedEmail, setCopiedEmail] = useState(null);
   const contactButtonRef = useRef(null);
   const aboutUsRef = useRef(null);
   const navigate = useNavigate()
@@ -35,37 +36,61 @@ export const FrameLandingPage = () => {
   const contactInfo = [
     {
       id: 1,
-      title: "Medical and Dental Services",
+      title: "Prefect and Assistant Prefect",
+      email: "prefect@laverdad.edu.ph",
+      icon: "👨‍💼"
+    },
+    {
+      id: 2,
+      title: "Guidance",
+      email: "prefect.guidance@laverdad.edu.ph",
+      icon: "🧭"
+    },
+    {
+      id: 3,
+      title: "Medical Clinic",
       email: "prefect.clinic@laverdad.edu.ph",
       icon: "🏥"
     },
     {
-      id: 2,
-      title: "Communications",
-      email: "communications@laverdad.edu.ph",
-      icon: "📢"
+      id: 4,
+      title: "Sports Development and Management",
+      email: "prefect.sports@laverdad.edu.ph",
+      icon: "⚽"
     },
     {
-      id: 3,
+      id: 5,
+      title: "Student Assistance and Experiential Learning",
+      email: "prefect.assistance@laverdad.edu.ph",
+      icon: "🎓"
+    },
+    {
+      id: 6,
+      title: "Student Discipline",
+      email: "prefect.discipline.highered@laverdad.edu.ph",
+      icon: "📋"
+    },
+    {
+      id: 7,
       title: "Student Internship",
       email: "studentinternship@laverdad.edu.ph",
-      icon: "👨‍💼"
+      icon: "💼"
     },
     {
-      id: 4,
-      title: "Student IT Support and services",
+      id: 8,
+      title: "IT Support Services",
       email: "prefect.its@laverdad.edu.ph",
       icon: "💻"
     },
     {
-      id: 5,
-      title: "Student Organization",
+      id: 9,
+      title: "Student Organizations",
       email: "prefect.sorg@laverdad.edu.ph",
       icon: "👥"
     },
     {
-      id: 6,
-      title: "Student Publication",
+      id: 10,
+      title: "Student Publications",
       email: "prefect.publications@laverdad.edu.ph",
       icon: "📰"
     }
@@ -76,21 +101,29 @@ export const FrameLandingPage = () => {
   }
 
   const handleEmailClick = (email) => {
-    // Create mailto link with subject line
-    const subject = encodeURIComponent('Inquiry from OpenDoor Website');
-    const mailtoLink = `mailto:${email}?subject=${subject}`;
-    
-    // Try to open email client
-    try {
-      window.location.href = mailtoLink;
-    } catch (error) {
-      // Fallback: copy email to clipboard
-      navigator.clipboard.writeText(email).then(() => {
-        alert(`Email address copied to clipboard: ${email}`);
-      }).catch(() => {
-        alert(`Please send your email to: ${email}`);
-      });
-    }
+    // Copy email to clipboard
+    navigator.clipboard.writeText(email).then(() => {
+      setCopiedEmail(email);
+      console.log('Email copied to clipboard:', email);
+      // Clear the copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedEmail(null);
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy email:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = email;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      // Also show copied effect for fallback
+      setCopiedEmail(email);
+      setTimeout(() => {
+        setCopiedEmail(null);
+      }, 2000);
+    });
   };
 
   const handleContactUs = () => {
@@ -270,7 +303,7 @@ export const FrameLandingPage = () => {
         <>
           
           {/* Modal */}
-          <div className="absolute top-350 right-192 flex items-center justify-center z-50 p-4">
+          <div className="absolute top-364 right-171 flex items-center justify-center z-50 p-4">
             <div 
               className="contact-modal bg-white rounded-2xl shadow-lg w-full max-w-md mx-auto"
               style={{ maxHeight: '80vh' }}
@@ -296,30 +329,56 @@ export const FrameLandingPage = () => {
                 <div
                   key={contact.id}
                   onClick={() => handleEmailClick(contact.email)}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors border-transparent! hover:border-blue-200 group"
-                  title={`Click to send email to ${contact.email}`}
+                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-300 border-transparent! group ${
+                    copiedEmail === contact.email 
+                      ? 'bg-green-100 border-green-300 shadow-md' 
+                      : 'hover:bg-blue-50 hover:border-blue-200'
+                  }`}
+                  title={copiedEmail === contact.email ? 'Email copied to clipboard!' : `Click to copy ${contact.email} to clipboard`}
                 >
                   {/* Avatar/Icon */}
-                  <div className="w-12 h-12 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center text-lg group-hover:bg-blue-100 transition-colors">
+                  <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center text-lg transition-all duration-300 ${
+                    copiedEmail === contact.email
+                      ? 'bg-green-200 border-green-400'
+                      : 'bg-gray-100 border-gray-200 group-hover:bg-blue-100'
+                  }`}>
                     {contact.icon}
                   </div>
 
                   {/* Contact Info */}
                   <div className="flex-1">
-                    <h3 className="text-sm font-bold text-black leading-tight group-hover:text-blue-700 transition-colors" style={{ fontFamily: 'Roboto' }}>
+                    <h3 className={`text-sm font-bold leading-tight transition-colors ${
+                      copiedEmail === contact.email
+                        ? 'text-green-700'
+                        : 'text-black group-hover:text-blue-700'
+                    }`} style={{ fontFamily: 'Roboto' }}>
                       {contact.title}
                     </h3>
-                    <p className="text-sm font-light text-blue-600 group-hover:text-blue-800 transition-colors hover:underline" style={{ fontFamily: 'Roboto' }}>
-                      {contact.email}
+                    <p className={`text-sm font-light transition-colors hover:underline ${
+                      copiedEmail === contact.email
+                        ? 'text-green-600'
+                        : 'text-blue-600 group-hover:text-blue-800'
+                    }`} style={{ fontFamily: 'Roboto' }}>
+                      {copiedEmail === contact.email ? '✓ Copied to clipboard!' : contact.email}
                     </p>
                   </div>
 
-                  {/* Email Icon Indicator */}
-                  <div className="text-gray-400 group-hover:text-blue-600 transition-colors">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                  {/* Copy Icon Indicator */}
+                  <div className={`transition-colors ${
+                    copiedEmail === contact.email
+                      ? 'text-green-600'
+                      : 'text-gray-400 group-hover:text-blue-600'
+                  }`}>
+                    {copiedEmail === contact.email ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 4H18C19.1046 4 20 4.89543 20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V6C4 4.89543 4.89543 4 6 4H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
                   </div>
                 </div>
               ))}
@@ -328,7 +387,7 @@ export const FrameLandingPage = () => {
             {/* Modal Footer */}
             <div className="p-4 border-t text-center bg-gray-50">
               <p className="text-xs text-gray-600 mb-1" style={{ fontFamily: 'Poppins' }}>
-                 Click on any contact to send an email
+                 Click on any contact to copy email address
               </p>
               <p className="text-xs text-gray-500" style={{ fontFamily: 'Poppins' }}>
                
