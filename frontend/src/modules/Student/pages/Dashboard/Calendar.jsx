@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import GradIcon from '../../../../components/global-img/graduation-cap.svg';
 
 function Calendar({ 
@@ -9,6 +9,16 @@ function Calendar({
 }) {
   const [showAppointmentHoverModal, setShowAppointmentHoverModal] = useState(false);
   const [hoveredAppointment, setHoveredAppointment] = useState(null);
+  const hoverTimeoutRef = useRef(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Precompute normalized appointments grouped by local date key to avoid remapping in each cell
   const apptsByDate = useMemo(() => {
@@ -118,44 +128,63 @@ function Calendar({
             
             {/* Appointment Indicators */}
             {hasAppointments && (
-              <div className="absolute inset-x-1 bottom-2 flex flex-col items-center gap-1 px-1 pb-2 pointer-events-auto z-20">
-                {visibleAppointments.map((appointment) => (
-                  <div
+              <div className="absolute bottom-1 left-1 right-1 space-y-0.5">
+                {/* Visible appointment indicators */}
+                {visibleAppointments.map((appointment, index) => (
+                  <div 
                     key={appointment.id || `${appointment.office}-${appointment.time}`}
-                    className="bg-[#FDE68A] rounded-[10px] px-3 py-1 flex items-center justify-center cursor-pointer z-10 shadow-sm w-[86%] max-w-full overflow-hidden"
+                    className="bg-[#FF9500] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
                     onMouseEnter={(e) => {
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                      }
+                      const rect = e.currentTarget.getBoundingClientRect();
                       setHoveredAppointment({
                         ...appointment,
-                        position: { x: e.currentTarget.getBoundingClientRect().left, y: e.currentTarget.getBoundingClientRect().top }
+                        position: { x: rect.left, y: rect.top, width: rect.width, height: rect.height }
                       });
                       setShowAppointmentHoverModal(true);
                     }}
                     onMouseLeave={() => {
-                      setShowAppointmentHoverModal(false);
-                      setHoveredAppointment(null);
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                      }
+                      hoverTimeoutRef.current = setTimeout(() => {
+                        setShowAppointmentHoverModal(false);
+                        setHoveredAppointment(null);
+                      }, 100);
                     }}
-                    title={`${appointment.time} • ${appointment.service_type || appointment.service || appointment.office || appointment.office_name || 'Appointment Schedule'}`}
                   >
-                    <span className="text-[#9A5A00] text-[12px] font-semibold leading-none truncate" style={{ fontFamily: 'Poppins' }}>
-                      {appointment.service_type || appointment.service || appointment.office || appointment.office_name || 'Appointment Schedule'}
+                    <span className="text-white text-[10px] font-bold leading-none" style={{ fontFamily: 'Poppins' }}>
+                      {appointment.office || appointment.office_name || 'Appointment'}
                     </span>
                   </div>
                 ))}
-
+                
+                {/* View all indicator */}
                 {hasMoreAppointments && (
-                  <div
-                    className="bg-[#122141] rounded-[8px] px-3 py-1 flex items-center justify-center cursor-pointer z-10 w-[86%] shadow-sm"
+                  <div 
+                    className="bg-[#122141] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
                     onMouseEnter={(e) => {
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                      }
+                      const rect = e.currentTarget.getBoundingClientRect();
                       setHoveredAppointment({
                         allAppointments: dayAppointments,
                         isViewAll: true,
-                        position: { x: e.currentTarget.getBoundingClientRect().left, y: e.currentTarget.getBoundingClientRect().top }
+                        position: { x: rect.left, y: rect.top, width: rect.width, height: rect.height }
                       });
                       setShowAppointmentHoverModal(true);
                     }}
                     onMouseLeave={() => {
-                      setShowAppointmentHoverModal(false);
-                      setHoveredAppointment(null);
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                      }
+                      hoverTimeoutRef.current = setTimeout(() => {
+                        setShowAppointmentHoverModal(false);
+                        setHoveredAppointment(null);
+                      }, 100);
                     }}
                   >
                     <span className="text-white text-[12px] font-bold leading-none" style={{ fontFamily: 'Poppins' }}>
@@ -184,11 +213,11 @@ function Calendar({
           {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, index) => (
             <div 
               key={day} 
-              className={`bg-gray-50 border border-[#EFEFEF] h-[34px] flex items-center justify-center ${
-                index === 0 ? 'rounded-tl-[10px]' : index === 6 ? 'rounded-tr-[10px]' : ''
+              className={`bg-gray-50 border border-[#EFEFEF] h-[2.125rem] flex items-center justify-center ${
+                index === 0 ? 'rounded-tl-[0.625rem]' : index === 6 ? 'rounded-tr-[0.625rem]' : ''
               }`}
             >
-              <span className="text-black text-[15px] font-semibold" style={{ fontFamily: 'Inter' }}>
+              <span className="text-black text-[0.9375rem] font-semibold" style={{ fontFamily: 'Inter' }}>
                 {day}
               </span>
             </div>
@@ -229,17 +258,18 @@ function Calendar({
       {/* Appointment Hover Modal */}
       {showAppointmentHoverModal && hoveredAppointment && (
         <div 
-          className={`fixed bg-white rounded-[10px] rounded-br-none shadow-lg z-50 pointer-events-none ${
-            hoveredAppointment.isViewAll ? 'w-[280px]' : 'w-[210px] h-[153px]'
+          className={`fixed bg-white rounded-[0.625rem] rounded-br-none shadow-lg pointer-events-none border border-gray-200 ${
+            hoveredAppointment.isViewAll ? 'w-[280px]' : 'w-[210px]'
           }`}
           style={{
-            left: `${hoveredAppointment.isViewAll ? hoveredAppointment.position.x - 290 : hoveredAppointment.position.x + 10}px`,
-            top: `${hoveredAppointment.position.y - (hoveredAppointment.isViewAll ? (10 + (hoveredAppointment.allAppointments.length * 45) + 12) : 160)}px`
+            left: `${Math.max(10, hoveredAppointment.position.x - (hoveredAppointment.isViewAll ? 290 : 220))}px`,
+            top: `${Math.max(10, hoveredAppointment.position.y - (hoveredAppointment.isViewAll ? Math.min(300, hoveredAppointment.allAppointments?.length * 45 + 60) : 150))}px`,
+            zIndex: 1000
           }}
         >
           {/* Modal Header */}
-          <div className="bg-[#122141] rounded-t-[10px] h-9 flex items-center px-4">
-            <h3 className="text-white text-[8px] font-bold" style={{ fontFamily: 'Poppins' }}>
+          <div className="bg-[#122141] rounded-t-[0.625rem] h-9 flex items-center px-4">
+            <h3 className="text-white text-[0.5rem] font-bold" style={{ fontFamily: 'Poppins' }}>
               {hoveredAppointment.isViewAll ? 'All Consultation Schedules' : 'Consultation Schedule'}
             </h3>
           </div>
@@ -250,66 +280,71 @@ function Calendar({
               // Show all appointments when "View all" is hovered
               hoveredAppointment.allAppointments.map((appointment, index) => (
                 <div key={index} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
+                  {/* Student Name */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
+                    <span className="text-black text-[0.5625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.student || appointment.studentName || 'You'}</span>
+                  </div>
 
                   {/* Office */}
                   <div className="flex items-center gap-2 mb-1">
-                    <svg width="10" height="8" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="0.625rem" height="0.5rem" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M1 4L6 1L11 4V9C11 9.26522 10.8946 9.51957 10.7071 9.70711C10.5196 9.89464 10.2652 10 10 10H2C1.73478 10 1.48043 9.89464 1.29289 9.70711C1.10536 9.51957 1 9.26522 1 9V4Z" stroke="#0059FF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.office}</span>
+                    <span className="text-black text-[0.5625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.office}</span>
                   </div>
-
-                   {/* <div className="flex items-center gap-2 mb-1">
-                    <svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 2H2C1.44772 2 1 2.44772 1 3V9C1 9.55228 1.44772 10 2 10H8C8.55228 10 9 9.55228 9 9V3C9 2.44772 8.55228 2 8 2Z" fill="white"/>
-                      <path d="M7 1V3M3 1V3M1 5H9" stroke="#360055" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.date}</span>
-                  </div> */}
 
                   {/* Time */}
                   <div className="flex items-center gap-2">
-                    <svg width="9" height="9" viewBox="0 0 10.5 10.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="0.5625rem" height="0.5625rem" viewBox="0 0 10.5 10.5" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="5.25" cy="5.25" r="4.75" stroke="#9D4400" strokeWidth="1"/>
                       <path d="M5.25 2.625V5.25L7 7" stroke="#9D4400" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    <span className="text-black text-[9px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.time}</span>
+                    <span className="text-black text-[0.5625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.time}</span>
                   </div>
                 </div>
               ))
             ) : (
               // Show single appointment details
               <>
+                {/* Student Name */}
+                <div className="flex items-center gap-2">
+                  <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
+                  <span className="text-black text-[0.625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.student || hoveredAppointment.studentName || 'You'}</span>
+                </div>
+
                 {/* Office */}
                 <div className="flex items-center gap-2">
-                  <svg width="10" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="0.625rem" height="0.625rem" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M1 4L6 1L11 4V9C11 9.26522 10.8946 9.51957 10.7071 9.70711C10.5196 9.89464 10.2652 10 10 10H2C1.73478 10 1.48043 9.89464 1.29289 9.70711C1.10536 9.51957 1 9.26522 1 9V4Z" stroke="#0059FF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.office}</span>
+                  <span className="text-black text-[0.625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.office}</span>
                 </div>
 
                 {/* Date */}
                 <div className="flex items-center gap-2">
-                  <svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="0.625rem" height="0.75rem" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M8 2H2C1.44772 2 1 2.44772 1 3V9C1 9.55228 1.44772 10 2 10H8C8.55228 10 9 9.55228 9 9V3C9 2.44772 8.55228 2 8 2Z" fill="white"/>
                     <path d="M7 1V3M3 1V3M1 5H9" stroke="#360055" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.dateString}</span>
+                  <span className="text-black text-[0.625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.dateString}</span>
                 </div>
 
                 {/* Time */}
                 <div className="flex items-center gap-2">
-                  <svg width="10.5" height="10.5" viewBox="0 0 10.5 10.5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="0.65625rem" height="0.65625rem" viewBox="0 0 10.5 10.5" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="5.25" cy="5.25" r="4.75" stroke="#9D4400" strokeWidth="1"/>
                     <path d="M5.25 2.625V5.25L7 7" stroke="#9D4400" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-black text-[10px] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.time}</span>
+                  <span className="text-black text-[0.625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.time}</span>
                 </div>
               </>
             )}
           </div>
         </div>
       )}
+
+
     </>
   );
 }

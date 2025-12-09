@@ -184,21 +184,19 @@ function StaffUpcomingAppointments({ upcomingEvents }) {
                 </div> 
 
                 {/* Status Badge */}
-                <div className="absolute top-2 right-3">
-                  <div className={`px-3 py-1 rounded-[5px] ${
-                    status === 'pending' ? 'bg-[#FFE168]' :
-                    status === 'approved' ? 'bg-[#9EE2AA]' :
-                    status === 'completed' ? 'bg-blue-200' :
+                <div className="absolute top-2.5 right-3">
+                  <div className={`px-2 h-5 rounded-[5px] flex items-center justify-center ${
+                    status === 'pending' ? 'bg-[#b8ce28]' :
+                    status === 'approved' ? 'bg-[#3b7846]' :
                     status === 'rescheduled' ? 'bg-[#961bb5]' :
                     'bg-red-200'
                   }`}>
-                    <span className={`text-base font-medium items-center  ${
-                      status === 'pending' ? 'text-[#9D6B00]' :
-                      status === 'approved' ? 'text-[#009812]' :
-                      status === 'completed' ? 'text-blue-800' :
+                    <span className={`${
+                      status === 'pending' ? 'text-white' :
+                      status === 'approved' ? 'text-white' :
                       status === 'rescheduled' ? 'text-white' :
                       'text-red-700'
-                    }`} style={{ fontFamily: 'Poppins' , fontSize: '10px' }}>
+                    }`} style={{ fontFamily: 'Poppins', fontSize: '10px' }}>
                       {status || 'Unknown'}
                     </span>
                   </div>
@@ -245,7 +243,7 @@ function StaffUpcomingAppointments({ upcomingEvents }) {
                   </div>
 
                   {/* Status Badge in Modal */}
-                  <div className={`px-3 py-[6px] rounded-[5px] whitespace-nowrap ${
+                  <div className={`px-3  py-[6px] rounded-[5px] whitespace-nowrap ${
                     selectedAppointment.status === "pending" ? "bg-[#FFE168] text-[#9D6B00]" :
                     selectedAppointment.status === "approved" ? "bg-[#9EE2AA] text-[#009812]" :
                     selectedAppointment.status === "completed" ? "bg-blue-200 text-blue-800" :

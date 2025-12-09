@@ -143,40 +143,43 @@ function DashboardContent({ refreshAppointments = 0 }) {
 
   return (
     <>
-      {/* Calendar Header */}
-      <CalendarHeader
-        currentDate={currentDate}
-        isAnimating={isAnimating}
-        navigateMonth={navigateMonth}
-        getMonthName={getMonthName}
-        showReminderModal={showReminderModal}
-        openReminder={openReminder}
-        closeReminder={closeReminder}
-      />
-      
-      <div className="flex-1 px-4 flex gap-3 overflow-hidden rounded-lg h-[116%]">
-        {/* Calendar Section */}
-        <Calendar 
-          currentDate={currentDate}
-          isAnimating={isAnimating}
-          bookedAppointments={calendarAppointments}
-          setBookedAppointments={() => {}}
-          
-        />
+    <div className="flex flex-col h-full">
+        {/* Calendar Header */}
+          <CalendarHeader
+            currentDate={currentDate}
+            isAnimating={isAnimating}
+            navigateMonth={navigateMonth}
+            getMonthName={getMonthName}
+            showReminderModal={showReminderModal}
+            openReminder={openReminder}
+            closeReminder={closeReminder}
+          />
+        {/* Main Content Grid */}
+      <div className="flex-1 px-4 pb-4 flex gap-2 overflow-hidden min-h-0">
+        {/*Left Sidebar - Calendar Section */}
+        <div className="flex-1 min-w-0 flex flex-col min-h-0">
+          {/* Calendar Section */}
+          <Calendar 
+            currentDate={currentDate}
+            isAnimating={isAnimating}
+            bookedAppointments={calendarAppointments}
+            setBookedAppointments={() => {}}
+          />
+        </div>
 
-        {/* Right Sidebar - Two Modals */}
-        <div className="w-80 flex flex-col gap-3 shrink-0 min-h-0">
+        {/* Right Sidebar - Upcoming Appointments */} 
+        <div className="w-80 flex flex-col gap-2 shrink-0 min-h-0 h-full">
           {/* Upcoming Appointments Component */}
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 flex">
             <UpcomingAppointments upcomingEvents={appointments} fetchMore={fetchAppointments} hasMore={hasMore}/>
           </div>
-          
           {/* Upcoming Events Component */}
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 flex">
             <UpcomingEvents upcomingEvents={events || [] } />
           </div>
         </div>
       </div>
+    </div>
 
       <BookConsultationModal 
         isOpen={showBookingModal}
