@@ -186,8 +186,8 @@ function StaffUpcomingAppointments({ upcomingEvents }) {
                 {/* Status Badge */}
                 <div className="absolute top-2.5 right-3">
                   <div className={`px-2 h-5 rounded-[5px] flex items-center justify-center ${
-                    status === 'pending' ? 'bg-[#15803D]' :
-                    status === 'approved' ? 'bg-[#B45309]' :
+                    status === 'pending' ? 'bg-[#B45309]' :
+                    status === 'approved' ? 'bg-[#15803D]' :
                     status === 'rescheduled' ? 'bg-[#961bb5]' :
                     'bg-red-200'
                   }`}>
