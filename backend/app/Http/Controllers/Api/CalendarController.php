@@ -14,7 +14,9 @@ class CalendarController extends Controller
     {
         $bookings = Booking::with(['student.user', 'office', 'staff'])
             ->whereIn('status', ['approved', 'pending', 'rescheduled']
-            )->get();
+            )->
+            orderBy('consultation_date', 'desc')
+            ->get();
 
         $appointments = $bookings->map(function ($bookings) {
             return [
