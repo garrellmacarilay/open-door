@@ -9,24 +9,27 @@ import { useEvents } from '../../../../hooks/globalHooks';
 function StaffDashboardContent() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isAnimating, setIsAnimating] = useState(false);
-    
 
+    // 1. Use hooks to get data
     const { loading, error, appointments, fetchDashboard } = useDashboardAppointments();
     const { events, fetchEvents } = useEvents();
 
+    // 2. Initial Fetch + Real-Time Polling
     useEffect(() => {
+      // A. Fetch immediately on load
       fetchDashboard();
       fetchEvents();
-    }, []);
 
-    // 2. ✅ CRITICAL FIX: Sync fetched data to local state
-    // When the API returns data ('events'), update your local 'eventsList'
-    useEffect(() => {
-      if (events) {
-        setEventsList(events);
-      }
-    }, [events]);
+      // B. Set up polling to refresh data every 15 seconds
+      // This keeps the dashboard in sync without refreshing the page
+      const intervalId = setInterval(() => {
+        fetchDashboard(); 
+        fetchEvents();
+      }, 15000); 
 
+      // C. Cleanup timer when component unmounts
+      return () => clearInterval(intervalId);
+    }, []); 
 
     const handleDateNavigation = (direction) => {
       if (isAnimating) return;
@@ -60,7 +63,7 @@ function StaffDashboardContent() {
             <StaffCalendar 
               currentDate={currentDate}
               bookedAppointments={appointments}
-              events={eventsList}
+              events={events} // ✅ Passing events directly from the hook
               isAnimating={isAnimating}
             />
           </div>
@@ -70,16 +73,18 @@ function StaffDashboardContent() {
             
             {/* Upcoming Consultations */}
             <div className="flex-1 min-h-0 mt-2"> 
-              <StaffUpcomingAppointments upcomingEvents={appointments} />
+              <StaffUpcomingAppointments 
+                upcomingEvents={appointments} 
+                onUpdate={fetchDashboard} // ✅ Triggers refresh when status changes
+              />
             </div>
             
             {/* Upcoming Events */}
             <div className="flex-1 min-h-0">
               <StaffUpcomingEvents 
-                // 3. ✅ CRITICAL FIX: Pass 'eventsList' (local state), not 'events' (hook state)
-                upcomingEvents={eventsList} 
-                onAddEvent={fetchEvents}
-                onDeleteEvent={fetchEvents}
+                upcomingEvents={events} 
+                onAddEvent={fetchEvents}    // ✅ Triggers refresh when event added
+                onDeleteEvent={fetchEvents} // ✅ Triggers refresh when event deleted
               />
             </div>
           </div>
