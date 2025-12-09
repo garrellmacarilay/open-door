@@ -321,7 +321,7 @@ export function useAdminBookings() {
     fetchBookings(search, value);
   }
 
-  return { bookings, search, status, setStatus, loading, error, fetchBookings, handleSearchChange, handleStatusChange };
+  return { bookings, search, setSearch ,status, setStatus, loading, error, fetchBookings, handleSearchChange, handleStatusChange };
 }
 
 

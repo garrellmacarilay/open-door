@@ -89,6 +89,21 @@ function StaffConsultationSummary() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 border text-gray-900 border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                 />
+                
+                {/* ✅ CLEAR SEARCH BUTTON */}
+                {searchQuery && (
+                  <button 
+                    onClick={() => { 
+                      setSearchQuery(''); // Clear state
+                      fetchSummary('');   // Force immediate fetch (bypasses debounce wait)
+                    }} 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer z-10 text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
               
               {/* Status Filter */}
@@ -241,7 +256,6 @@ function StaffConsultationSummary() {
                         </div>
                    </div>
 
-                   {/* Safe check for feedback */}
                    {selectedConsultation.feedback && (
                        <div>
                             <label className="text-sm font-bold text-gray-500">Feedback</label>

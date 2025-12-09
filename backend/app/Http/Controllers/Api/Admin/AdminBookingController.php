@@ -84,24 +84,31 @@ class AdminBookingController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-
         $status = $request->input('status');
 
         $bookings = Booking::with(['student.user', 'office', 'feedback'])
+            // 1. Filter by Status
             ->when($status && $status !== 'All', function($q) use ($status){
                 $q->where('status', $status);
             })
+            // 2. Filter by Search (Case-Insensitive Fix)
             ->when($search, function ($query) use ($search) {
+                $searchTerm = strtolower($search); // Convert input to lowercase once
 
-                $query->whereHas('student.user', function ($q) use ($search) {
-                    $q->where('full_name', 'LIKE', "%{$search}%");
-                })
-                ->orWhereHas('office', function($q) use ($search) {
-                    $q->where('office_name', 'LIKE', "%{$search}%");
-                })
-                ->orWhere('reference_code', 'LIKE', "%{$search}%")
-                ->orWhere('service_type', 'LIKE', "%{$search}%")
-                ->orWhere('status', 'LIKE', "%{$search}%");
+                $query->where(function($q) use ($searchTerm) {
+                    // A. Search Student Name (via Relationship)
+                    $q->whereHas('student.user', function ($subQ) use ($searchTerm) {
+                        $subQ->whereRaw('LOWER(full_name) LIKE ?', ["%{$searchTerm}%"]);
+                    })
+                    // B. Search Office Name (via Relationship)
+                    ->orWhereHas('office', function($subQ) use ($searchTerm) {
+                        $subQ->whereRaw('LOWER(office_name) LIKE ?', ["%{$searchTerm}%"]);
+                    })
+                    // C. Search Direct Columns
+                    ->orWhereRaw('LOWER(reference_code) LIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('LOWER(service_type) LIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('LOWER(status) LIKE ?', ["%{$searchTerm}%"]);
+                });
             })
             ->orderBy('created_at', 'desc')
             ->get()
