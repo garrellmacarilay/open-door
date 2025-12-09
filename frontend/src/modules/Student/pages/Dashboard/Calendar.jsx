@@ -93,10 +93,12 @@ function Calendar({
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'approved': return 'bg-green-500';
-      case 'pending': return 'bg-orange-500';
-      case 'declined': return 'bg-red-500';
-      default: return 'bg-orange-500';
+      case 'approved':
+        return 'bg-[#15803D]';
+      case 'pending':
+        return 'bg-[#B45309]';
+      default:
+        return 'bg-[#B45309]'; // default to pending color
     }
   };
 
@@ -220,11 +222,11 @@ function Calendar({
           {/* Legend */}
           <div className="p-2 border-t border-gray-200 flex gap-4 shrink-0 text-black!">
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-[#15803D] rounded-full"></div>
               <span className="text-xs" style={{ fontFamily: 'Poppins' }}>Approved</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-[#B45309] rounded-full"></div>
               <span className="text-xs" style={{ fontFamily: 'Poppins' }}>Pending</span>
             </div>
             <div className="flex items-center gap-1">

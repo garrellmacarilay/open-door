@@ -140,8 +140,8 @@ function UpcomingAppointments({ upcomingEvents, fetchMore, hasMore }) {
               {/* Status Badge */}
               <div className="absolute top-2.5 right-3">
                 <div className={`px-2 h-5 rounded-[5px] flex items-center justify-center ${
-                  event.details?.status === 'pending' ? 'bg-[#b8ce28]' :
-                  event.details?.status === 'approved' ? 'bg-[#3b7846]' :
+                  event.details?.status === 'pending' ? 'bg-[#B45309]' :
+                  event.details?.status === 'approved' ? 'bg-[#15803D]' :
                   event.details?.status === 'rescheduled' ? 'bg-[#961bb5]' :
                   'bg-red-200'
                 }`}>
