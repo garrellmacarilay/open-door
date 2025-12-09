@@ -23,10 +23,10 @@ function AdminCalendarFilter({ selectedOffice, onOfficeChange, offices = [] }) {
           {/* Dropdown Button */}
           <button
             onClick={toggleDropdown}
-            className="bg-[#d7d7d7]! rounded-[10px] w-[201px] h-[34px] flex items-center justify-center gap-[65px] px-2.5 hover:bg-gray-200 transition-colors"
+            className="bg-[#d7d7d7]! rounded-[10px] w-66 h-[34px] flex items-center justify-center -gap-3 px-2.5 hover:bg-gray-200 transition-colors"
           >
             <span 
-              className="text-[#848484]! font-medium text-[15px] flex-1 text-left whitespace-nowrap overflow-hidden"
+              className="text-[#848484]! font-medium text-[15px] flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis"
               style={{ fontFamily: 'Inter', lineHeight: '1.21em' }}
             >
               {selectedOfficeName}

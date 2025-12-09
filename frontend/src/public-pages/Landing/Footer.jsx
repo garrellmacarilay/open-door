@@ -4,7 +4,7 @@ import LVCCLogo from "../../assets/img/LV_Logo.png";
 
 export default function Footer({ onContactUsClick, onAboutUsClick }) {
   return (
-    <footer className="bg-black text-white">
+    <footer className="bg-black text-white ">
       {/* Top Section */}
       <div className="flex flex-col md:flex-row justify-evenly items-center  md:items-start px-6 md:px-16 py-10 border-t border-white/30">
         {/* Left Section */}
@@ -70,7 +70,7 @@ export default function Footer({ onContactUsClick, onAboutUsClick }) {
       {/* Bottom Section */}
       <div className="bg-black text-center py-3 border-t border-white/20">
         <p className="text-sm font-semibold">
-          © 2025 OpenDoor. All rights reserved. |{" "}
+          © 2025 OpenDoor — All rights reserved.
         </p>
       </div>
     </footer>

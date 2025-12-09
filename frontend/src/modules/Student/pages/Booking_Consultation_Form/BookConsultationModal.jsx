@@ -27,7 +27,7 @@ export default function BookConsultationModal({
             {/* Office */}
             <div className="space-y-1 -pt-3">
               <label className="block text-black  text-base font-semibold" style={{ fontFamily: 'Inter' }}>
-                Office *
+                Office <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                     <select
@@ -55,7 +55,7 @@ export default function BookConsultationModal({
             {/* Service Type */}
             <div className="space-y-1">
               <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
-                Type of Service *
+                Type of Service <span className="text-red-500">*</span>
               </label>
               <select
                 value={form.service_type}
@@ -76,7 +76,7 @@ export default function BookConsultationModal({
                 {/* Date */}
                 <div className="space-y-1 flex-1">
                     <label className="block text-black text-base font-semibold" style={{ fontFamily: 'Inter' }}>
-                      Date *
+                      Date <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -113,7 +113,7 @@ export default function BookConsultationModal({
             {/* Concern Description */}
             <div className="space-y-1">
               <label className="block text-black font-semibold" style={{ fontFamily: 'Inter' }}>
-                Concern Description *
+                Concern Description <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={form.concern_description}
