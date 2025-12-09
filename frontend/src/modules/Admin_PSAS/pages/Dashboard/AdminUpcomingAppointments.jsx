@@ -155,58 +155,33 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
 
                 {/* Time Row */}
                 <div className="flex items-center gap-2 mb-3">
-                  <svg width="14.5" height="14.5" viewBox="0 0 14.5 14.5" fill="none"><circle cx="7.25" cy="7.25" r="6.25" stroke="#9D4400" strokeWidth="2"/><path d="M7.25 3.625V7.25L9.625 9.625" stroke="#9D4400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="14.5" height="14.5" viewBox="0 0 14.5 14.5" fill="none">
+                    <circle cx="7.25" cy="7.25" r="6.25" stroke="#9D4400" strokeWidth="2"/>
+                    <path d="M7.25 3.625V7.25L9.625 9.625" stroke="#9D4400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                   <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{time}</span>
-                </div> 
+                </div>
 
-<<<<<<< HEAD
-            {/* Time Row */}
-              <div className="flex items-center gap-2 mb-3">
-                <svg width="14.5" height="14.5" viewBox="0 0 14.5 14.5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="7.25" cy="7.25" r="6.25" stroke="#9D4400" strokeWidth="2"/>
-                  <path d="M7.25 3.625V7.25L9.625 9.625" stroke="#9D4400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span className="text-xs text-black" style={{ fontFamily: 'Inter' }}>{time}</span>
-              </div> 
-
-              {/* Status Badge */}
-              <div className="absolute top-2.5 right-3 ">
-                <div className={`px-2 h-5 rounded-[5px] flex items-center justify-center ${
-                  status === 'pending' ? 'bg-[#b8ce28]' :
-                  status === 'approved' ? 'bg-[#3b7846]' :
-                  status === 'rescheduled' ? 'bg-[#961bb5]' :
-                  'bg-red-200'
-                }`}>
-                  <span className={`${
-                    status === 'pending' ? 'text-white' :
-                    status === 'approved' ? 'text-white' :
-                    status === 'rescheduled' ? 'text-white' :
-                    'text-red-700'
-                  }`} style={{ fontFamily: 'Poppins', fontSize: '10px' }}>
-                    {status || 'Unknown'}
-                  </span>
-=======
                 {/* Status Badge */}
-                <div className="absolute top-2 right-3">
-                  <div className={`px-3 py-1 rounded-[5px] ${
-                    status === 'pending' ? 'bg-[#FFE168]' :
-                    status === 'approved' ? 'bg-[#9EE2AA]' :
+                <div className="absolute top-2.5 right-3">
+                  <div className={`px-2 h-5 rounded-[5px] flex items-center justify-center ${
+                    status === 'pending' ? 'bg-[#b8ce28]' :
+                    status === 'approved' ? 'bg-[#3b7846]' :
                     status === 'rescheduled' ? 'bg-[#961bb5]' :
-                    'bg-gray-200'
+                    'bg-red-200'
                   }`}>
-                    <span className={`text-base font-medium items-center  ${
-                      status === 'pending' ? 'text-[#9D6B00]' :
-                      status === 'approved' ? 'text-[#009812]' :
+                    <span className={`${
+                      status === 'pending' ? 'text-white' :
+                      status === 'approved' ? 'text-white' :
                       status === 'rescheduled' ? 'text-white' :
-                      'text-gray-700'
-                    }`} style={{ fontFamily: 'Poppins' , fontSize: '10px' }}>
+                      'text-red-700'
+                    }`} style={{ fontFamily: 'Poppins', fontSize: '10px' }}>
                       {status || 'Unknown'}
                     </span>
                   </div>
->>>>>>> 0bec7bc20df4b9af6d6e1575559330d8d61be19b
                 </div>
               </div>
-            )
+            );
           })
         )}
       </div>
@@ -243,7 +218,7 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
                   </div>
 
                   {/* Status Badge in Modal */}
-                  <div className={`px-3 py-[6px] rounded-[5px] whitespace-nowrap ${
+                  <div className={`px-3 py-1.5 rounded-[5px] whitespace-nowrap ${
                     selectedAppointment.status === "pending" ? "bg-[#FFE168] text-[#9D6B00]" :
                     selectedAppointment.status === "approved" ? "bg-[#9EE2AA] text-[#009812]" :
                     selectedAppointment.status === "rescheduled" ? "bg-[#961bb5] text-white" :

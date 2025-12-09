@@ -52,20 +52,22 @@ function UpcomingAppointments({ upcomingEvents, fetchMore, hasMore }) {
                 </div>
 
                 {/* Status Badge */}
-                <div className={`px-2 py-0.5 rounded-[3px] absolute top-2 right-2 ${
-                    event.details?.status === 'pending' ? 'bg-[#FFE168]' 
-                    : event.details?.status === 'approved' ? 'bg-[#9EE2AA]' 
-                    : event.details?.status === 'rescheduled' ? 'bg-[#961bb5]' 
-                    : 'bg-red-200'
-                }`}>
-                    <span className={`text-[9px] font-bold capitalize ${
-                        event.details?.status === 'pending' ? 'text-[#9D6B00]' 
-                        : event.details?.status === 'approved' ? 'text-[#009812]' 
-                        : event.details?.status === 'rescheduled' ? 'text-white' 
-                        : 'text-red-700'
-                    }`} style={{ fontFamily: 'Poppins' }}>
-                        {event.details?.status || 'Unknown'}
+                <div className="absolute top-2.5 right-3">
+                  <div className={`px-2 h-5 rounded-[5px] flex items-center justify-center ${
+                    event.details?.status === 'pending' ? 'bg-[#b8ce28]' :
+                    event.details?.status === 'approved' ? 'bg-[#3b7846]' :
+                    event.details?.status === 'rescheduled' ? 'bg-[#961bb5]' :
+                    'bg-red-200'
+                  }`}>
+                    <span className={`${
+                      event.details?.status === 'pending' ? 'text-white' :
+                      event.details?.status === 'approved' ? 'text-white' :
+                      event.details?.status === 'rescheduled' ? 'text-white' :
+                      'text-red-700'
+                    }`} style={{ fontFamily: 'Poppins', fontSize: '10px' }}>
+                      {event.details?.status || 'Unknown'}
                     </span>
+                  </div>
                 </div>
               </div>
 
