@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\EmailNotification;
 use App\Models\ModalNotification;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -67,32 +68,22 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
-        $student = Student::where('user_id', $request->user()->id)->first();
+        $student = Student::where('user_id', $request->user()->id)->firstOrFail();
 
-        if (!$student) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Student not found'
-            ], 404);
-        }
-
-        $val = $request->validate([
-            'office_id' => 'required|integer|exists:offices,id',
+        $data = $request->validate([
+            'office_id' => 'required|exists:offices,id',
             'service_type' => 'required|string',
             'consultation_date' => [
                 'required',
                 'date_format:Y-m-d\TH:i',
                 function ($_, $value, $fail) {
-                    $consultationDate = Carbon::parse($value);
-                    $minDate = Carbon::now()->addDays(2)->startOfDay();
+                    $date = Carbon::parse($value);
 
-                    if ($consultationDate->lessThan($minDate)) {
+                    if ($date->lt(now()->addDays(2)->startOfDay())) {
                         $fail('You can only book a consultation at least 2 days in advance.');
                     }
 
-                    $hour = $consultationDate->hour;
-
-                    if ($hour < 8 || $hour >= 17) {
+                    if ($date->hour < 8 || $date->hour >= 17) {
                         $fail('Booking time must be between 8:00 AM and 5:00 PM.');
                     }
                 }
@@ -102,110 +93,101 @@ class BookingController extends Controller
             'uploaded_file_url' => 'nullable|file|mimes:pdf,jpg,png|max:5120',
         ]);
 
-        $consultationDay = Carbon::parse($val['consultation_date'])->toDateString();
-
-        $eventExists = Event::where('event_date', $consultationDay)->exists();
-
-        if ($eventExists) {
+        // ✅ Block booking if there is an event that day
+        if (Event::whereDate(
+            'event_date',
+            Carbon::parse($data['consultation_date'])->toDateString()
+        )->exists()) {
             return response()->json([
                 'success' => false,
                 'errors' => [
-                    'consultation_date' => ['Booking not allowed. There is an event scheduled for this date']
+                    'consultation_date' => ['Booking not allowed. There is an event on this date.']
                 ]
             ], 422);
         }
 
+        // ✅ Upload file (still synchronous — unavoidable)
         if ($request->hasFile('uploaded_file_url')) {
             try {
                 $file = $request->file('uploaded_file_url');
-                $path = $file->getRealPath();
 
-                $uploaded = Cloudinary::uploadApi()->upload($path, [
-                    'folder' => 'attachments',
-                    'resource_type' => 'auto',
-                    'access_mode' => 'public'
-                ]);
+                $upload = Cloudinary::uploadApi()->upload(
+                    $file->getRealPath(),
+                    ['folder' => 'attachments', 'resource_type' => 'auto']
+                );
 
-                $val['uploaded_file_url'] = $uploaded['secure_url'];
-                $val['uploaded_file_name'] = $file->getClientOriginalName();
-                $val['uploaded_file_mime'] = $file->getMimeType();
-                $val['uploaded_file_size'] = $file->getSize();
+                $data['uploaded_file_url']  = $upload['secure_url'];
+                $data['uploaded_file_name'] = $file->getClientOriginalName();
+                $data['uploaded_file_mime'] = $file->getMimeType();
+                $data['uploaded_file_size'] = $file->getSize();
 
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'File upload failed: ' . $e->getMessage()
+                    'message' => 'File upload failed.'
                 ], 500);
             }
-        } else {
-            $val['uploaded_file_url'] = null;
-            $val['uploaded_file_name'] = null;
-            $val['uploaded_file_mime'] = null;
-            $val['uploaded_file_size'] = null;
         }
 
-        $office = Office::findOrFail($val['office_id']);
+        // ✅ Create booking inside transaction
+        $booking = DB::transaction(function () use ($data, $student) {
 
-        $booking = Booking::create(array_merge($val, [
-            'student_id' => $student->id,
-            'staff_id' => null, // Assign staff later
-            'office_id' => $office->id,
-            'reference_code' => Str::upper(Str::random(10)),
-            'status' => 'pending',
-        ]));
-
-        $admins = User::where('role', 'admin')->get();
-
-        $officeStaffUsers = User::whereHas('staff', function ($query) use ($office) {
-            $query->where('office_id', $office->id);
-        })->get();
-
-        $allRecipients = $admins->merge($officeStaffUsers)->unique('id');
-
-        foreach ($allRecipients as $recipient) {
-            $type = 'booking_request';
-            $message = "A student booked an appointment ({$booking->reference_code}).";
-
-            $notification = new ModalNotificationCreated($booking, $student->user, $type, $message);
-            $notification->handleCustomInsert($recipient);
-        }
-
-        try {
-            $emailSubject = "Booking Request Received: #" . $booking->reference_code;
-            $emailMessage = "Hi " . $request->user()->name . ",\n\nWe have received your booking request for " . $office->office_name . " on " . $booking->consultation_date . ".\n\nStatus: Pending review.";
-
-            // 1. Log to Database
-            $emailLog = EmailNotification::create([
-                'user_id' => $request->user()->id,
-                'booking_id' => $booking->id,
-                'recipient_email' => $request->user()->email,
-                'subject' => $emailSubject,
-                'message' => $emailMessage,
-                'type' => 'booking_request', // Ensure 'booking_request' is in your DB enum or add it
-                'status' => 'pending',
+            return Booking::create([
+                ...$data,
+                'student_id'     => $student->id,
+                'staff_id'       => null,
+                'reference_code' => Str::upper(Str::random(10)),
+                'status'         => 'pending',
             ]);
+        });
 
-            // 2. Send Email
-            Mail::to($request->user()->email)->send(new BookingEmail($emailSubject, $emailMessage));
+        // ✅ Notify admins + office staff
+        $recipients = User::query()
+            ->where('role', 'admin')
+            ->orWhereHas('staff', fn ($q) =>
+                $q->where('office_id', $booking->office_id)
+            )->get();
 
-            // 3. Update Log Success
-            $emailLog->update(['status' => 'sent', 'sent_at' => Carbon::now()]);
-
-        } catch (\Exception $e) {
-            // 4. Log Failure (Don't break the booking flow if email fails)
-            if (isset($emailLog)) {
-                $emailLog->update(['status' => 'failed']);
-            }
-            \Log::error("Booking Email Failed: " . $e->getMessage());
+        foreach ($recipients as $recipient) {
+            (new ModalNotificationCreated(
+                $booking,
+                $request->user(),
+                'booking_request',
+                "A new booking request ({$booking->reference_code}) was created."
+            ))->handleCustomInsert($recipient);
         }
+
+        // ✅ Queue confirmation email
+        $subject = "Booking Request Received #{$booking->reference_code}";
+        $body = "Hi {$request->user()->name},\n\n" .
+                "We received your booking request for {$booking->office->office_name}.\n\n" .
+                "Status: Pending review.";
+
+        $emailLog = EmailNotification::create([
+            'user_id' => $request->user()->id,
+            'booking_id' => $booking->id,
+            'recipient_email' => $request->user()->email,
+            'subject' => $subject,
+            'message' => $body,
+            'type' => 'booking_request',
+            'status' => 'pending',
+        ]);
+
+        Mail::to($request->user()->email)
+            ->queue(new BookingEmail($subject, $body));
+
+        $emailLog->update([
+            'status' => 'sent',
+            'sent_at' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Booking created successfully',
             'booking' => $booking
         ], 201);
-
     }
+
 
     public function history(Request $request)
     {

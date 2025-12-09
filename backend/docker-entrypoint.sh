@@ -34,6 +34,15 @@ php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
 
+# ───────────────────────────────────────────────
+# Start Queue Worker (Background)
+# ───────────────────────────────────────────────
+
+if [ "$QUEUE_CONNECTION" = "database" ]; then
+    echo "[entrypoint] Starting Laravel queue worker in background"
+    php artisan queue:work --sleep=3 --tries=3 &
+fi
+
 # ─────────────────────────────────────────────────────
 # Start Server
 # ─────────────────────────────────────────────────────
