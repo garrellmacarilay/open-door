@@ -81,11 +81,6 @@
             </div>
 
             <p>Please log in to your dashboard to view full details.</p>
-
-            {{-- Optional: Link to your app --}}
-            <center>
-                <a href="{{ url('/') }}" class="btn">Go to Dashboard</a>
-            </center>
         </div>
 
         <div class="footer">

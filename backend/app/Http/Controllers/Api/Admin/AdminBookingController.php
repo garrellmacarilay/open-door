@@ -190,7 +190,7 @@ class AdminBookingController extends Controller
         $notification = new ModalNotificationCreated($booking, $sender, $type, $message);
         $notification->handleCustomInsert($receiver);
 
-        if (in_array($request->status, ['approved', 'declined', 'cancelled', 'rescheduled'])) {
+        if (in_array($request->status, ['approved', 'declined', 'cancelled', 'rescheduled', 'completed'])) {
 
             try {
                 $emailSubject = "Update on Booking #" . $booking->reference_code;
@@ -200,7 +200,8 @@ class AdminBookingController extends Controller
                     'approved' => "Great news! Your booking at {$booking->office->office_name} has been APPROVED.",
                     'declined' => "We are sorry, but your booking at {$booking->office->office_name} has been DECLINED.",
                     'cancelled' => "Your booking at {$booking->office->office_name} has been CANCELLED.",
-                    'rescheduled' => "Your booking at {$booking->office->office_name} has been RESCHEDULED."
+                    'rescheduled' => "Your booking at {$booking->office->office_name} has been RESCHEDULED.",
+                    'completed' => "Great news! Your booking at {$booking->office->office_name} has been COMPLETED.",
                 ];
 
                 $emailMessage = "Hi " . $receiver->name . ",\n\n" . ($messages[$request->status] ?? "Your booking status has changed to " . $request->status);
