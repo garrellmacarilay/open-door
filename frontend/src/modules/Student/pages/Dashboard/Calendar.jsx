@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import GradIcon from '../../../../components/global-img/graduation-cap.svg';
 
 function Calendar({ 
@@ -9,6 +9,16 @@ function Calendar({
 }) {
   const [showAppointmentHoverModal, setShowAppointmentHoverModal] = useState(false);
   const [hoveredAppointment, setHoveredAppointment] = useState(null);
+  const hoverTimeoutRef = useRef(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Precompute normalized appointments grouped by local date key to avoid remapping in each cell
   const apptsByDate = useMemo(() => {
@@ -125,15 +135,24 @@ function Calendar({
                     key={appointment.id || `${appointment.office}-${appointment.time}`}
                     className="bg-[#FF9500] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
                     onMouseEnter={(e) => {
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                      }
+                      const rect = e.currentTarget.getBoundingClientRect();
                       setHoveredAppointment({
                         ...appointment,
-                        position: { x: e.currentTarget.getBoundingClientRect().left, y: e.currentTarget.getBoundingClientRect().top }
+                        position: { x: rect.left, y: rect.top, width: rect.width, height: rect.height }
                       });
                       setShowAppointmentHoverModal(true);
                     }}
                     onMouseLeave={() => {
-                      setShowAppointmentHoverModal(false);
-                      setHoveredAppointment(null);
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                      }
+                      hoverTimeoutRef.current = setTimeout(() => {
+                        setShowAppointmentHoverModal(false);
+                        setHoveredAppointment(null);
+                      }, 100);
                     }}
                   >
                     <span className="text-white text-[10px] font-bold leading-none" style={{ fontFamily: 'Poppins' }}>
@@ -147,16 +166,25 @@ function Calendar({
                   <div 
                     className="bg-[#122141] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
                     onMouseEnter={(e) => {
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                      }
+                      const rect = e.currentTarget.getBoundingClientRect();
                       setHoveredAppointment({
                         allAppointments: dayAppointments,
                         isViewAll: true,
-                        position: { x: e.currentTarget.getBoundingClientRect().left, y: e.currentTarget.getBoundingClientRect().top }
+                        position: { x: rect.left, y: rect.top, width: rect.width, height: rect.height }
                       });
                       setShowAppointmentHoverModal(true);
                     }}
                     onMouseLeave={() => {
-                      setShowAppointmentHoverModal(false);
-                      setHoveredAppointment(null);
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                      }
+                      hoverTimeoutRef.current = setTimeout(() => {
+                        setShowAppointmentHoverModal(false);
+                        setHoveredAppointment(null);
+                      }, 100);
                     }}
                   >
                     <span className="text-white text-[12px] font-bold leading-none" style={{ fontFamily: 'Poppins' }}>
@@ -230,12 +258,13 @@ function Calendar({
       {/* Appointment Hover Modal */}
       {showAppointmentHoverModal && hoveredAppointment && (
         <div 
-          className={`fixed bg-white rounded-[0.625rem] rounded-br-none shadow-lg z-50 pointer-events-none ${
-            hoveredAppointment.isViewAll ? 'w-[17.5rem]' : 'w-[13.125rem] h-[9.5625rem]'
+          className={`fixed bg-white rounded-[0.625rem] rounded-br-none shadow-lg pointer-events-none border border-gray-200 ${
+            hoveredAppointment.isViewAll ? 'w-[280px]' : 'w-[210px]'
           }`}
           style={{
-            left: `${hoveredAppointment.isViewAll ? hoveredAppointment.position.x - 18.125 : hoveredAppointment.position.x + 0.625}rem`,
-            top: `${hoveredAppointment.position.y - (hoveredAppointment.isViewAll ? (0.625 + (hoveredAppointment.allAppointments.length * 2.8125) + 0.75) : 10)}rem`
+            left: `${Math.max(10, hoveredAppointment.position.x - (hoveredAppointment.isViewAll ? 290 : 220))}px`,
+            top: `${Math.max(10, hoveredAppointment.position.y - (hoveredAppointment.isViewAll ? Math.min(300, hoveredAppointment.allAppointments?.length * 45 + 60) : 150))}px`,
+            zIndex: 1000
           }}
         >
           {/* Modal Header */}
@@ -251,6 +280,11 @@ function Calendar({
               // Show all appointments when "View all" is hovered
               hoveredAppointment.allAppointments.map((appointment, index) => (
                 <div key={index} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
+                  {/* Student Name */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
+                    <span className="text-black text-[0.5625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.student || appointment.studentName || 'You'}</span>
+                  </div>
 
                   {/* Office */}
                   <div className="flex items-center gap-2 mb-1">
@@ -259,14 +293,6 @@ function Calendar({
                     </svg>
                     <span className="text-black text-[0.5625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.office}</span>
                   </div>
-
-                   {/* <div className="flex items-center gap-2 mb-1">
-                    <svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 2H2C1.44772 2 1 2.44772 1 3V9C1 9.55228 1.44772 10 2 10H8C8.55228 10 9 9.55228 9 9V3C9 2.44772 8.55228 2 8 2Z" fill="white"/>
-                      <path d="M7 1V3M3 1V3M1 5H9" stroke="#360055" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                    <span className="text-black text-[0.5625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.date}</span>
-                  </div> */}
 
                   {/* Time */}
                   <div className="flex items-center gap-2">
@@ -281,6 +307,12 @@ function Calendar({
             ) : (
               // Show single appointment details
               <>
+                {/* Student Name */}
+                <div className="flex items-center gap-2">
+                  <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
+                  <span className="text-black text-[0.625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.student || hoveredAppointment.studentName || 'You'}</span>
+                </div>
+
                 {/* Office */}
                 <div className="flex items-center gap-2">
                   <svg width="0.625rem" height="0.625rem" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -311,6 +343,8 @@ function Calendar({
           </div>
         </div>
       )}
+
+
     </>
   );
 }
