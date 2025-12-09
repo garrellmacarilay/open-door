@@ -219,8 +219,8 @@ function AdminUpcomingAppointments({ upcomingEvents }) {
 
                   {/* Status Badge in Modal */}
                   <div className={`px-3 py-1.5 rounded-[5px] whitespace-nowrap ${
-                    selectedAppointment.status === "pending" ? "bg-[#FFE168] text-[#9D6B00]" :
-                    selectedAppointment.status === "approved" ? "bg-[#9EE2AA] text-[#009812]" :
+                    selectedAppointment.status === "pending" ? "bg-[#B45309] text-white" :
+                    selectedAppointment.status === "approved" ? "bg-[#15803D] text-white" :
                     selectedAppointment.status === "rescheduled" ? "bg-[#961bb5] text-white" :
                     "bg-gray-200 text-gray-700"
                   } text-xs font-medium`} style={{ fontFamily: "Poppins" }}>
