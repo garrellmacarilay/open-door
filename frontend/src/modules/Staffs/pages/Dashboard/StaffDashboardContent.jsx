@@ -55,7 +55,7 @@ function StaffDashboardContent() {
 
     return (
       <div className="flex flex-col h-full">
-        <div className="flex-1 px-4 pb-4 flex gap-3 overflow-hidden min-h-0">
+        <div className="flex-1 px-4 pb-4 flex gap-2 overflow-hidden min-h-0">
           
           {/* Left Column (Calendar) */}
           <div className="flex-1 min-w-0 flex flex-col min-h-0">
@@ -74,7 +74,7 @@ function StaffDashboardContent() {
           </div>
           
           {/* Right Column (Sidebar) */}
-          <div className="w-80 flex flex-col gap-3 shrink-0 min-h-0">
+          <div className="w-80 flex flex-col gap-2 shrink-0 min-h-0">
             
             {/* Upcoming Consultations */}
             <div className="flex-1 min-h-0 mt-2"> 
