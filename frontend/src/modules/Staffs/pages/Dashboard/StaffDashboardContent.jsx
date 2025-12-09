@@ -12,13 +12,15 @@ function StaffDashboardContent() {
     const [eventsList, setEventsList] = useState([]);
     
 
+    // 1. Use hooks to get data
     const { loading, error, appointments, fetchDashboard } = useDashboardAppointments();
     const { events, fetchEvents } = useEvents();
 
+    // 2. Initial Fetch + Real-Time Polling
     useEffect(() => {
+      // A. Fetch immediately on load
       fetchDashboard();
       fetchEvents();
-    }, []);
 
     // Sync fetched data to local state
     // When the API returns data ('events'), update your local 'eventsList'
@@ -28,6 +30,9 @@ function StaffDashboardContent() {
       }
     }, [events]);
 
+      // C. Cleanup timer when component unmounts
+      return () => clearInterval(intervalId);
+    }, []); 
 
     const handleDateNavigation = (direction) => {
       if (isAnimating) return;
@@ -61,7 +66,7 @@ function StaffDashboardContent() {
             <StaffCalendar 
               currentDate={currentDate}
               bookedAppointments={appointments}
-              events={eventsList}
+              events={events} // ✅ Passing events directly from the hook
               isAnimating={isAnimating}
             />
           </div>
@@ -71,16 +76,18 @@ function StaffDashboardContent() {
             
             {/* Upcoming Consultations */}
             <div className="flex-1 min-h-0 mt-2"> 
-              <StaffUpcomingAppointments upcomingEvents={appointments} />
+              <StaffUpcomingAppointments 
+                upcomingEvents={appointments} 
+                onUpdate={fetchDashboard} // ✅ Triggers refresh when status changes
+              />
             </div>
             
             {/* Upcoming Events */}
             <div className="flex-1 min-h-0">
               <StaffUpcomingEvents 
-                // 3. ✅ CRITICAL FIX: Pass 'eventsList' (local state), not 'events' (hook state)
-                upcomingEvents={eventsList} 
-                onAddEvent={fetchEvents}
-                onDeleteEvent={fetchEvents}
+                upcomingEvents={events} 
+                onAddEvent={fetchEvents}    // ✅ Triggers refresh when event added
+                onDeleteEvent={fetchEvents} // ✅ Triggers refresh when event deleted
               />
             </div>
           </div>
