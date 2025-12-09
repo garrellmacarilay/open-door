@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use Log;
+
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Event;
@@ -12,6 +13,7 @@ use App\Models\Student;
 use App\Mail\BookingEmail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Services\GmailService;
 use App\Models\EmailNotification;
 use App\Models\ModalNotification;
 use Illuminate\Support\Facades\DB;
@@ -106,7 +108,7 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // ✅ Upload file (still synchronous — unavoidable)
+        // ✅ Upload file
         if ($request->hasFile('uploaded_file_url')) {
             try {
                 $file = $request->file('uploaded_file_url');
@@ -131,7 +133,6 @@ class BookingController extends Controller
 
         // ✅ Create booking inside transaction
         $booking = DB::transaction(function () use ($data, $student) {
-
             return Booking::create([
                 ...$data,
                 'student_id'     => $student->id,
@@ -141,7 +142,7 @@ class BookingController extends Controller
             ]);
         });
 
-        // ✅ Notify admins + office staff
+        // ✅ Notify admins + office staff (Modal Notifications)
         $recipients = User::query()
             ->where('role', 'admin')
             ->orWhereHas('staff', fn ($q) =>
@@ -157,29 +158,55 @@ class BookingController extends Controller
             ))->handleCustomInsert($recipient);
         }
 
-        // ✅ Queue confirmation email
-        $subject = "Booking Request Received #{$booking->reference_code}";
-        $body = "Hi {$request->user()->name},\n\n" .
-                "We received your booking request for {$booking->office->office_name}.\n\n" .
-                "Status: Pending review.";
+        // ✅ SEND EMAIL VIA GMAIL API SERVICE
+        try {
+            $subject = "Booking Request Received #{$booking->reference_code}";
 
-        $emailLog = EmailNotification::create([
-            'user_id' => $request->user()->id,
-            'booking_id' => $booking->id,
-            'recipient_email' => $request->user()->email,
-            'subject' => $subject,
-            'message' => $body,
-            'type' => 'booking_request',
-            'status' => 'pending',
-        ]);
+            // 1. Prepare Text for DB Log (Readable text)
+            $plainMessage = "Hi {$request->user()->name},\n\n" .
+                            "We received your booking request for {$booking->office->office_name}.\n\n" .
+                            "Status: Pending review.";
 
-        Mail::to($request->user()->email)
-            ->queue(new BookingEmail($subject, $body));
+            // 2. Prepare HTML for Gmail API (Render Blade to String)
+            $htmlMessage = view('emails.booking_notification', [
+                'emailSubject' => $subject,
+                'bodyContent'  => $plainMessage // The blade file will handle nl2br()
+            ])->render();
 
-        $emailLog->update([
-            'status' => 'sent',
-            'sent_at' => now(),
-        ]);
+            // 3. Create DB Log (Pending)
+            $emailLog = EmailNotification::create([
+                'user_id'         => $request->user()->id,
+                'booking_id'      => $booking->id,
+                'recipient_email' => $request->user()->email,
+                'subject'         => $subject,
+                'message'         => $plainMessage, // Store plain text in DB
+                'type'            => 'booking_request',
+                'status'          => 'pending',
+            ]);
+
+            // 4. Send using Gmail Service
+            $gmail = new GmailService();
+            $sent = $gmail->sendEmail($request->user()->email, $subject, $htmlMessage);
+
+            // 5. Update Log based on result
+            if ($sent) {
+                $emailLog->update([
+                    'status'  => 'sent',
+                    'sent_at' => now(),
+                ]);
+            } else {
+                $emailLog->update(['status' => 'failed']);
+            }
+
+        } catch (\Exception $e) {
+            // Log the error internally so you can debug later
+            Log::error("Booking Email Failed: " . $e->getMessage());
+
+            // Mark as failed in DB if the log was created
+            if (isset($emailLog)) {
+                $emailLog->update(['status' => 'failed']);
+            }
+        }
 
         return response()->json([
             'success' => true,
