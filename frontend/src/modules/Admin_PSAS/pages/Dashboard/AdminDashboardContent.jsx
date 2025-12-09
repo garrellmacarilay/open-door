@@ -92,6 +92,7 @@ function AdminDashboardContent() {
             <AdminCalendar 
               currentDate={currentDate}
               calendarAppointments={calendarAppointments}
+              events={events}
               setBookedAppointments={() => {}}
               isAnimating={isAnimating}
             />
@@ -108,7 +109,8 @@ function AdminDashboardContent() {
             <div className="flex-1 min-h-0">
               <AdminUpcomingEvents 
                 upcomingEvents={events}
-                refreshEvents={fetchEvents}
+                onAddEvent={fetchEvents}
+                onDeleteEvent={fetchEvents}
               />
             </div>
           </div>

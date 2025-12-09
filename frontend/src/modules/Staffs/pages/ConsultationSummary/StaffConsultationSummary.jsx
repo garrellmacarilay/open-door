@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useConsultationSummary } from '../../../../hooks/staffHooks';
-import { useUpdateAppointmentStatus } from '../../../../hooks/adminHooks';
 
 function StaffConsultationSummary() {
-  // 1. Destructure setConsultations to allow local updates
-  const { consultations = [], setConsultations, fetchSummary, loading, error } = useConsultationSummary();
-  const { updateStatus } = useUpdateAppointmentStatus();
+  const { consultations = [], fetchSummary, loading, error } = useConsultationSummary();
   
   const [selectedConsultation, setSelectedConsultation] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -13,9 +10,8 @@ function StaffConsultationSummary() {
   // State Variables
   const [filterStatus, setFilterStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState(''); 
-  const [updatingId, setUpdatingId] = useState(null);
 
-  // 2. Connect Search (Only fetches when search query changes)
+  // Connect Search (Only fetches when search query changes)
   useEffect(() => {
     const timer = setTimeout(() => {
         fetchSummary(searchQuery);
@@ -28,29 +24,6 @@ function StaffConsultationSummary() {
     if (filterStatus === 'All') return true;
     return consultation.status?.toLowerCase() === filterStatus.toLowerCase();
   });
-
-  // ✅ 3. OPTIMISTIC UPDATE HANDLER
-  const handleStatusUpdate = async (id, newStatus) => {
-      setUpdatingId(id); // Start spinner for this specific row
-
-      try {
-        // A. Call API
-        await updateStatus(id, newStatus.toLowerCase());
-
-        // B. Update Local State (Instant Update, No Page Reload)
-        setConsultations(prev => prev.map(item => 
-            item.id === id 
-                ? { ...item, status: newStatus } // Update only this item
-                : item
-        ));
-
-      } catch (err) {
-        console.error("Failed to update status", err);
-        alert("Failed to update status. Please try again.");
-      } finally {
-        setUpdatingId(null); // Stop spinner
-      }
-  };
 
   // Helper functions
   const getStatusColor = (status) => {
@@ -195,60 +168,11 @@ function StaffConsultationSummary() {
                           </div>
                         </td>
                         <td className="p-4 border-b">
-                          <div className="relative inline-block w-full max-w-[140px]">
-                            {/* Update Status Dropdown with Loading Spinner */}
-                            {(() => {
-                              const isUpdating = updatingId === consultation.id;
-                              
-                              // Helper to format status for "value" prop (Title Case to match Options)
-                              const currentStatus = consultation.status 
-                                ? consultation.status.charAt(0).toUpperCase() + consultation.status.slice(1).toLowerCase() 
-                                : "Pending";
-
-                              return (
-                                <>
-                                  <select
-                                    value={currentStatus}
-                                    onChange={(e) => handleStatusUpdate(consultation.id, e.target.value)}
-                                    disabled={isUpdating} 
-                                    className={`
-                                      w-full appearance-none px-3 py-1 pr-8 
-                                      rounded-full text-xs font-medium 
-                                      border-none outline-none cursor-pointer 
-                                      transition-colors shadow-sm
-                                      ${getStatusColor(consultation.status)}
-                                      disabled:opacity-70 disabled:cursor-not-allowed
-                                      focus:ring-2 focus:ring-offset-1 focus:ring-blue-500
-                                    `}
-                                  >
-                                    <option value="Pending" className="bg-white text-gray-800">Pending</option>
-                                    <option value="Approved" className="bg-white text-gray-800">Approved</option>
-                                    <option value="Completed" className="bg-white text-gray-800">Completed</option>
-                                    <option value="Cancelled" className="bg-white text-gray-800">Cancelled</option>
-                                    <option value="Rescheduled" className="bg-white text-gray-800">Rescheduled</option>
-                                    <option value="Declined" className="bg-white text-gray-800">Declined</option>
-                                    <option value="No Show" className="bg-white text-gray-800">No Show</option>
-                                  </select>
-
-                                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-current opacity-70">
-                                    {isUpdating ? (
-                                      <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                      </svg>
-                                    ) : (
-                                      <svg className="h-3 w-3 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                      </svg>
-                                    )}
-                                  </div>
-                                </>
-                              );
-                            })()}
-                          </div>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block capitalize ${getStatusColor(consultation.status)}`}>
+                            {consultation.status || 'Pending'}
+                          </span>
                         </td>
                         <td className="p-4 border-b">
-                            {/* Safe access for feedback/rating */}
                             {consultation.feedback?.rating 
                                 ? renderStars(consultation.feedback.rating) 
                                 : renderStars(null)

@@ -100,7 +100,7 @@
 </div>
 
 <div class="footer">
-    Report generated on {{ now()->format('F d, Y H:i') }}
+    Report generated on {{ now()->format('F d, Y') }}
 </div>
 
 </body>
