@@ -102,6 +102,14 @@ function StaffCalendar({
         return 'bg-[#15803D]';
       case 'pending':
         return 'bg-[#B45309]';
+      case 'declined':
+        return 'bg-red-500';
+      case 'cancelled':
+        return 'bg-red-500';
+      case 'completed':
+        return 'bg-blue-500';
+      case 'rescheduled':
+        return 'bg-purple-500';
       default:
         return 'bg-[#B45309]'; // default to pending color
     }

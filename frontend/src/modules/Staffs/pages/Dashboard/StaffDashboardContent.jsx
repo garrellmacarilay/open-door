@@ -9,6 +9,8 @@ import { useEvents } from '../../../../hooks/globalHooks';
 function StaffDashboardContent() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isAnimating, setIsAnimating] = useState(false);
+    const [eventsList, setEventsList] = useState([]);
+    
 
     // 1. Use hooks to get data
     const { loading, error, appointments, fetchDashboard } = useDashboardAppointments();
@@ -20,12 +22,13 @@ function StaffDashboardContent() {
       fetchDashboard();
       fetchEvents();
 
-      // B. Set up polling to refresh data every 15 seconds
-      // This keeps the dashboard in sync without refreshing the page
-      const intervalId = setInterval(() => {
-        fetchDashboard(); 
-        fetchEvents();
-      }, 15000); 
+    // Sync fetched data to local state
+    // When the API returns data ('events'), update your local 'eventsList'
+    useEffect(() => {
+      if (events) {
+        setEventsList(events);
+      }
+    }, [events]);
 
       // C. Cleanup timer when component unmounts
       return () => clearInterval(intervalId);

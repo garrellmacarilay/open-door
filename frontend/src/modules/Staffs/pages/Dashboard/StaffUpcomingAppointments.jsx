@@ -243,12 +243,12 @@ function StaffUpcomingAppointments({ upcomingEvents }) {
                   </div>
 
                   {/* Status Badge in Modal */}
-                  <div className={`px-3  py-[6px] rounded-[5px] whitespace-nowrap ${
-                    selectedAppointment.status === "pending" ? "bg-[#FFE168] text-[#9D6B00]" :
-                    selectedAppointment.status === "approved" ? "bg-[#9EE2AA] text-[#009812]" :
-                    selectedAppointment.status === "completed" ? "bg-blue-200 text-blue-800" :
-                    selectedAppointment.status === "rescheduled" ? "bg-[#961bb5] text-white" :
-                    "bg-red-200 text-red-700"
+                  <div className={`px-3  py-1 rounded-[5px] whitespace-nowrap ${
+                    selectedAppointment.status === "pending" ? "bg-[#B45309] text-white" :
+                    selectedAppointment.status === "approved" ? "bg-[#15803D] text-white" :
+                    selectedAppointment.status === "completed" ? "bg-blue-500 text-white" :
+                    selectedAppointment.status === "rescheduled" ? "bg-purple-500 text-white" :
+                    "bg-red-500 text-white"
                   } text-xs font-medium`} style={{ fontFamily: "Poppins" }}>
                     {selectedAppointment.status || "Unknown"}
                   </div>
