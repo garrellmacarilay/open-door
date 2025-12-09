@@ -40,6 +40,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 # ─────────────────────────────
 COPY . .
 
+RUN composer dump-autoload --optimize
+
 # ─────────────────────────────
 # Permissions & Directory Setup
 # ─────────────────────────────
