@@ -70,7 +70,7 @@ export default function Footer({ onContactUsClick, onAboutUsClick }) {
       {/* Bottom Section */}
       <div className="bg-black text-center py-3 border-t border-white/20">
         <p className="text-sm font-semibold">
-          © 2025 OpenDoor. All rights reserved. |{" "}
+          © 2025 OpenDoor — All rights reserved.
         </p>
       </div>
     </footer>
