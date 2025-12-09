@@ -147,6 +147,7 @@ function DashboardContent({ refreshAppointments = 0 }) {
         {/* Calendar Header */}
           <CalendarHeader
             currentDate={currentDate}
+            setCurrentDate={setCurrentDate}
             isAnimating={isAnimating}
             navigateMonth={navigateMonth}
             getMonthName={getMonthName}

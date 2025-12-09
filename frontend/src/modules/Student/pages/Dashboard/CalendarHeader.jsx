@@ -5,24 +5,38 @@ function CalendarHeader({
   isAnimating, 
   navigateMonth, 
   getMonthName, 
-  openReminder 
+  openReminder,
+  setCurrentDate // Add this prop to directly set the current date
 }) {
   const handleTodayClick = () => {
     const today = new Date();
-    const isCurrentMonth = today.getMonth() === currentDate.getMonth() && 
-                          today.getFullYear() === currentDate.getFullYear();
     
-    if (!isCurrentMonth) {
-      // Navigate to today's month
-      while (currentDate.getMonth() !== today.getMonth() || currentDate.getFullYear() !== today.getFullYear()) {
-        if (currentDate < today) {
-          navigateMonth('next');
-        } else {
-          navigateMonth('prev');
+    // If setCurrentDate is available, use it to navigate directly
+    if (setCurrentDate) {
+      setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
+    } else {
+      // Fallback: Calculate the difference in months between current displayed date and today
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth();
+      const todayYear = today.getFullYear();
+      const todayMonth = today.getMonth();
+      
+      const monthDifference = (todayYear - currentYear) * 12 + (todayMonth - currentMonth);
+      
+      // If not in current month, navigate to today's month
+      if (monthDifference !== 0) {
+        // Navigate step by step to today's month
+        const direction = monthDifference > 0 ? 'next' : 'prev';
+        const steps = Math.abs(monthDifference);
+        
+        // Navigate one month at a time
+        for (let i = 0; i < steps; i++) {
+          setTimeout(() => {
+            navigateMonth(direction);
+          }, i * 100); // Reduced delay for faster navigation
         }
       }
     }
-    // If already in current month, the calendar will show today's date highlighted
   };
 
   return (
