@@ -8,6 +8,19 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
   const getDaysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const getFirstDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
+    // Get status-based colors for appointments
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'approved':
+        return 'bg-green-500';
+      case 'pending':
+        return 'bg-orange-500';
+      case 'declined':
+        return 'bg-red-500';
+      default:
+        return 'bg-orange-500'; // default to pending color
+    }
+  };
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDay = getFirstDayOfMonth(currentDate);
@@ -65,7 +78,7 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
                 {visibleAppointments.map((appointment, index) => (
                   <div
                     key={`appointment-${index}`}
-                    className="bg-[#FF9500] rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10"
+                    className={`${getStatusColor(appointment.status)} rounded-[3px] px-1 py-0.5 flex items-center justify-center cursor-pointer z-10`}
                     onMouseEnter={(e) => {
                       setHoveredAppointment({
                         ...appointment,
@@ -172,10 +185,6 @@ function AdminCalendar({ currentDate, isAnimating, calendarAppointments = [] }) 
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
               <span className="text-xs" style={{ fontFamily: 'Poppins' }}>Pending</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <span className="text-xs" style={{ fontFamily: 'Poppins' }}>Declined</span>
             </div>
           </div>
         </div>
