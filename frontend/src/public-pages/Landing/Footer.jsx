@@ -4,7 +4,7 @@ import LVCCLogo from "../../assets/img/LV_Logo.png";
 
 export default function Footer({ onContactUsClick, onAboutUsClick }) {
   return (
-    <footer className="bg-black text-white">
+    <footer className="bg-black text-white ">
       {/* Top Section */}
       <div className="flex flex-col md:flex-row justify-evenly items-center  md:items-start px-6 md:px-16 py-10 border-t border-white/30">
         {/* Left Section */}
