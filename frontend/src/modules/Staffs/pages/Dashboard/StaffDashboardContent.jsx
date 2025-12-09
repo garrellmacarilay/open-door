@@ -9,6 +9,7 @@ import { useEvents } from '../../../../hooks/globalHooks';
 function StaffDashboardContent() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isAnimating, setIsAnimating] = useState(false);
+    const [eventsList, setEventsList] = useState([]);
     
 
     const { loading, error, appointments, fetchDashboard } = useDashboardAppointments();
@@ -19,7 +20,7 @@ function StaffDashboardContent() {
       fetchEvents();
     }, []);
 
-    // 2. ✅ CRITICAL FIX: Sync fetched data to local state
+    // Sync fetched data to local state
     // When the API returns data ('events'), update your local 'eventsList'
     useEffect(() => {
       if (events) {
