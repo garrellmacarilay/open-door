@@ -54,11 +54,11 @@ function StaffDashboardContent() {
     };
 
     return (
-      <div className="flex flex-col h-full overflow-hidden">
-        <div className="flex-1 px-4 pb-6 flex gap-3 overflow-y-auto">
+      <div className="flex flex-col h-full">
+        <div className="flex-1 px-4 pb-4 flex gap-3 overflow-hidden min-h-0">
           
           {/* Left Column (Calendar) */}
-          <div className="flex-1 min-w-0 flex flex-col min-h-[600px]">
+          <div className="flex-1 min-w-0 flex flex-col min-h-0">
             <StaffCalendarHeader 
                 currentDate={currentDate}
                 navigateMonth={handleDateNavigation}
@@ -74,10 +74,10 @@ function StaffDashboardContent() {
           </div>
           
           {/* Right Column (Sidebar) */}
-          <div className="w-80 flex flex-col gap-3 shrink-0 min-h-[600px]">
+          <div className="w-80 flex flex-col gap-3 shrink-0 min-h-0">
             
             {/* Upcoming Consultations */}
-            <div className="flex-1 min-h-0 pt-[58px]"> 
+            <div className="flex-1 min-h-0 mt-2"> 
               <StaffUpcomingAppointments upcomingEvents={appointments} />
             </div>
             

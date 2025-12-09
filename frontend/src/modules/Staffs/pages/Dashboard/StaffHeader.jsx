@@ -24,7 +24,7 @@ function StaffHeader() {
   return (
     <>
       {/* Header */}
-      <header className="bg-white shadow-lg p-4 flex items-center justify-between shrink-0 relative">
+      <header className="bg-white h-19! shadow-lg p-4 flex items-center justify-between shrink-0 relative">
         <h1 className="text-black text-3xl! md:text-3xl font-bold" style={{ fontFamily: 'Poppins' }}>
           {getCurrentPageTitle()}
         </h1>
