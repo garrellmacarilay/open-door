@@ -225,7 +225,7 @@ export const FrameLandingPage = () => {
         <div className="flex-1 space-y-4 pl-10">
           <h2 className="text-4xl font-semibold">What Makes Us Unique</h2>
           <p className="text-lg leading-relaxed">
-            <span className="font-bold text-[#ff6a00]">
+            <span className="font-bold text-[#d7cd06]">
               Full Scholarship Grant  <span className="font-bold text-white">(“Study Now, Pay Never”)</span>
             </span>{" "}
            <br />

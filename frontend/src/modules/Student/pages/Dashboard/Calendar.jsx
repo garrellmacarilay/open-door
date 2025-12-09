@@ -289,11 +289,6 @@ function Calendar({
               // Show all appointments when "View all" is hovered
               hoveredAppointment.allAppointments.map((appointment, index) => (
                 <div key={index} className="border-b border-gray-200 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
-                  {/* Student Name */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
-                    <span className="text-black text-[0.5625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{appointment.student || appointment.studentName || 'You'}</span>
-                  </div>
 
                   {/* Office */}
                   <div className="flex items-center gap-2 mb-1">
@@ -316,12 +311,6 @@ function Calendar({
             ) : (
               // Show single appointment details
               <>
-                {/* Student Name */}
-                <div className="flex items-center gap-2">
-                  <img src={GradIcon} alt="Graduation Cap" className="w-3 h-3 pr-0" />
-                  <span className="text-black text-[0.625rem] font-medium" style={{ fontFamily: 'Inter', letterSpacing: '-2%' }}>{hoveredAppointment.student || hoveredAppointment.studentName || 'You'}</span>
-                </div>
-
                 {/* Office */}
                 <div className="flex items-center gap-2">
                   <svg width="0.625rem" height="0.625rem" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
