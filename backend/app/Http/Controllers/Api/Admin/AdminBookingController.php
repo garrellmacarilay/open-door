@@ -59,6 +59,7 @@ class AdminBookingController extends Controller
         $calendarBookings = (clone $bookingQuery)
             ->with('student.user', 'office')
             ->whereMonth('consultation_date', $month)
+            ->where('status', ['approved', 'pending'])
             ->whereYear('consultation_date', $year)
             ->get()
             ->map(function ($booking) {
