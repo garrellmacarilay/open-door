@@ -55,7 +55,7 @@ Students need a convenient way to book or schedule appointments with PSAS and it
       <sub>Vincent Duriga</sub>
     </td>
     <td align="center">
-      <img src="./README_img/garrell.png" width="140" alt="Frontend Developer" /><br /><br />
+      <img src="./README_img/garrell.png" width="140" alt="Dev Lead/Frontend Developer" /><br /><br />
       <b>Frontend Developer</b><br />
       <sub>Garrell Macarilay</sub>
     </td>
