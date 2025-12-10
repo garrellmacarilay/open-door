@@ -50,6 +50,7 @@ export function useAdminOfficeAppointments(currentDate) { // 1. Accept currentDa
             studentName: booking.student_name,
             serviceType: booking.service_type,
             dateTime: booking.consultation_date,
+            status: booking.status,
             office: booking.office,
             start: booking.consultation_date,
             end: booking.consultation_date,
