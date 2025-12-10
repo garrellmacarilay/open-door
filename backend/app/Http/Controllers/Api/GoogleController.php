@@ -86,7 +86,9 @@ class GoogleController extends Controller
                 }
             }
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $expiresAt = now()->addMinutes(30);
+
+            $token = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
             // Pass the role to the frontend so you can redirect them to /admin or /dashboard

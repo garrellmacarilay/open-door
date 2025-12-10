@@ -100,14 +100,19 @@ class OfficeController extends Controller
 
         $bookings = Booking::with(['student.user', 'office'])
             ->where('office_id', $officeId) // ✅ Only this office
+            // ✅ Case-Insensitive Search Fix
             ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use  ($search) {
-                    $q->whereHas('student.user', function ($q2) use ($search) {
-                        $q2->where('full_name', 'LIKE', '%{$search}%');
+                $searchTerm = strtolower($search); // Convert input to lowercase
+
+                $query->where(function ($q) use ($searchTerm) {
+                    // 1. Search Student Name (via Relationship)
+                    $q->whereHas('student.user', function ($subQ) use ($searchTerm) {
+                        $subQ->whereRaw('LOWER(full_name) LIKE ?', ["%{$searchTerm}%"]);
                     })
-                    ->orWhere('reference_code', 'LIKE', "%{$search}%")
-                    ->orWhere('service_type', 'LIKE', "%{$search}%")
-                    ->orWhere('status', 'LIKE', "%{$search}%");
+                    // 2. Search Direct Columns (Reference, Service, Status)
+                    ->orWhereRaw('LOWER(reference_code) LIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('LOWER(service_type) LIKE ?', ["%{$searchTerm}%"])
+                    ->orWhereRaw('LOWER(status) LIKE ?', ["%{$searchTerm}%"]);
                 });
             })
             ->orderBy('created_at', 'desc')
@@ -122,6 +127,11 @@ class OfficeController extends Controller
                     'color' => $this->getStatusColor($booking->status),
                     'consultation_date' => $booking->consultation_date,
                     'status' => ucfirst($booking->status),
+                    // Added feedback safely in case you need it here too
+                    'feedback' => [
+                        'rating' => $booking->feedback->rating ?? '',
+                        'comment' => $booking->feedback->comment ?? ''
+                    ]
                 ];
             });
 

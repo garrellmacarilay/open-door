@@ -15,7 +15,11 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $expiration = $request->boolean('remember_me')
+                ? now()->addDays(30)
+                : now()->addMinutes(30);
+
+            $token = $user->createToken('auth_token', ['*'], $expiration)->plainTextToken;
 
             return response()->json([
                 'success' => true,
