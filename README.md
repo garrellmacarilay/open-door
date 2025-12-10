@@ -1,38 +1,76 @@
-# OpenDoor – PSAS Consultation Booking System
+[OpenDoor](opendoor_logo.png)
+<div align=”center”>[OpenDoor Website](https://open-door-on2h.onrender.com/)</div>
 
-A web application for managing student consultation bookings with PSAS offices.  
-Built with **Laravel**, **React**, **Tailwind CSS**, and **JavaScript**.
+# OpenDoor: Appointment Scheduling System for PSAS at La Verdad Christian College, Inc. - Apalit, Pampanga
 
----
+Students can conveniently schedule consultations and inquiries with PSAS and its affiliated offices through a centralized online system.
 
-## 🎯 Purpose
-OpenDoor provides an efficient platform for students, staff, and administrators to manage consultations.  
-It aims to:
-- Simplify the **booking process** for students  
-- Provide **staff** with easy availability and approval tools  
-- Give **administrators** oversight with reports and analytics  
+## Overview
 
----
+**OpenDoor** is a web-based appointment scheduling system designed to streamline how students book consultations with PSAS and related offices. It helps both students and staff manage schedules, track appointment statuses, and maintain clear communication.
 
-## 🌐 Summary of Features
-- Student Dashboard with **calendar view** of availability  
-- Book consultations (individual or group) with filters and attachments  
-- Booking statuses: Approved, Rescheduled, Cancelled, Completed  
-- Staff Dashboard for **approving/declining/rescheduling** consultations  
-- Admin Dashboard with **analytics, restrictions, and reports (PDF export)**  
-- Notifications via **system modals + email**  
-- Contact page with office details  
-- Color scheme: **Blue / Yellow / White**
+## Business Need
 
----
+Students need a convenient way to book or schedule appointments with PSAS and its affiliated offices online for consultations and inquiries. The system also shows available consultation dates and upcoming PSAS-related events or activities, helping students choose appropriate days and times for their appointments.
 
-## 🛠️ Tech Stack
-- **Backend:** [Laravel](https://laravel.com/) (PHP framework)  
-- **Frontend:** [React](https://react.dev/) + [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript)  
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)  
-- **Database:** MySQL  
-- **Version Control:** Git & GitHub  
+## Main Features
 
----
+- **Appointment booking**: Students can instantly book consultation slots with PSAS and affiliated offices.
+- **Automated notifications**: Appointment confirmations and updates are sent via email and in-app notifications.
+- **Status updates**: Appointments can be tracked through statuses such as **Pending**, **Approved**, **Completed**, **Declined**, **Rescheduled**, and **Cancelled**.
+- **Feedback system**: After consultations, students can rate and leave feedback to help improve service quality.
 
+## Technologies Used
 
+<p align="left">
+  <img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
+  <img src="https://img.shields.io/badge/Render-000000?style=for-the-badge&logo=render&logoColor=46E3B7" alt="Render" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=000000" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
+  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" alt="Git" />
+  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+</p>
+
+## Project Members
+<div align=”center”>
+<table>
+  <tr>
+   <td align="center">
+      <img src="https://drive.google.com/uc?export=view&id=1zAork9g3SKe8_TMbidi4jwUzqZTrX9IQ" width="140" alt="Project Manager" /><br /><br />
+      <b>Project Manager</b><br />
+      <sub>Eunice Lugtu</sub>
+    </td>
+    <td align="center">
+      <img src="marga.png" width="140" alt="Business Analyst" /><br /><br />
+      <b>Business Analyst</b><br />
+      <sub>Margarette Calumpiano</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="vincent.png" width="140" alt="Backend Developer" /><br /><br />
+      <b>Backend Developer</b><br />
+      <sub>Vincent Duriga</sub>
+    </td>
+    <td align="center">
+      <img src="garrell.png" width="140" alt="Frontend Developer" /><br /><br />
+      <b>Frontend Developer</b><br />
+      <sub>Garrell Macarilay</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="lowe.png" width="140" alt="UI/UX Designer" /><br /><br />
+      <b>UI/UX Designer</b><br />
+      <sub>Lowe David Tubat</sub>
+    </td>
+    <td align="center">
+      <img src="eva.png" width="140" alt="SQA Tester" /><br /><br />
+      <b>SQA Tester</b><br />
+      <sub>Evangeline Anggana</sub>
+    </td>
+  </tr>
+</table>
+<div>
