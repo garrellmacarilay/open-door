@@ -37,37 +37,37 @@ Students need a convenient way to book or schedule appointments with PSAS and it
 <div align=”center”>
 <table>
   <tr>
-   <td align="center">
-      <img src="https://drive.google.com/uc?export=view&id=1zAork9g3SKe8_TMbidi4jwUzqZTrX9IQ" width="140" alt="Project Manager" /><br /><br />
+    <td align="center">
+      <img src="./README_img/eun.png" width="140" alt="Project Manager" /><br /><br />
       <b>Project Manager</b><br />
       <sub>Eunice Lugtu</sub>
     </td>
     <td align="center">
-      <img src="marga.png" width="140" alt="Business Analyst" /><br /><br />
+      <img src="./README_img/marga.png" width="140" alt="Business Analyst" /><br /><br />
       <b>Business Analyst</b><br />
       <sub>Margarette Calumpiano</sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="vincent.png" width="140" alt="Backend Developer" /><br /><br />
+      <img src="./README_img/vincent.png" width="140" alt="Backend Developer" /><br /><br />
       <b>Backend Developer</b><br />
       <sub>Vincent Duriga</sub>
     </td>
     <td align="center">
-      <img src="garrell.png" width="140" alt="Frontend Developer" /><br /><br />
+      <img src="./README_img/garrell.png" width="140" alt="Frontend Developer" /><br /><br />
       <b>Frontend Developer</b><br />
       <sub>Garrell Macarilay</sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="lowe.png" width="140" alt="UI/UX Designer" /><br /><br />
+      <img src="./README_img/lowe.png" width="140" alt="UI/UX Designer" /><br /><br />
       <b>UI/UX Designer</b><br />
       <sub>Lowe David Tubat</sub>
     </td>
     <td align="center">
-      <img src="eva.png" width="140" alt="SQA Tester" /><br /><br />
+      <img src="./README_img/eva.png" width="140" alt="SQA Tester" /><br /><br />
       <b>SQA Tester</b><br />
       <sub>Evangeline Anggana</sub>
     </td>
