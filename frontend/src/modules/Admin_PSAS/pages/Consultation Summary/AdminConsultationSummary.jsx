@@ -73,9 +73,30 @@ function AdminConsultationSummary() {
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21L16.514 16.506L21 21ZM18 10.5C18 15.194 14.194 19 9.5 19C4.806 19 1 15.194 1 10.5C1 5.806 4.806 2 9.5 2C14.194 2 18 5.806 18 10.5Z" /></svg>
               </div>
-              <input type="text" placeholder="Search consultations..." value={search} onChange={handleSearchChange} className="pl-10 pr-4 py-2 border text-gray-900! border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" style={{ fontFamily: 'Inter' }} />
-              {search && (<button onClick={() => setSearch('')} className="absolute inset-y-0 right-0 pr-3 flex items-center"><svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>)}
+              <input 
+                type="text" 
+                placeholder="Search consultations..." 
+                value={search} 
+                onChange={handleSearchChange} 
+                className="pl-10 pr-4 py-2 border text-gray-900! border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" 
+              />
+              
+              {/* ✅ UPDATED CLEAR BUTTON LOGIC */}
+              {search && (
+                <button 
+                  onClick={() => { 
+                    setSearch('');             // Clear input state
+                    fetchBookings('', status); // Force reload with empty query
+                  }} 
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer z-10 text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
+
             {/* Filter */}
             <div className="sm:col-span-1">
               <select value={status} onChange={(e) => { setStatus(e.target.value); fetchBookings(search, e.target.value); }} className="pl-3 pr-8 py-2 border text-black border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" style={{ fontFamily: 'Inter' }}>
@@ -119,7 +140,7 @@ function AdminConsultationSummary() {
                     <div className="text-sm text-gray-500" style={{ fontFamily: 'Inter' }}>{new Date(consultation.consultation_date).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</div>
                   </td>
                   
-                  {/* ✅ UPDATED STATUS COLUMN (Static Badge) */}
+                  {/* Status Badge */}
                   <td className="p-4 border-b">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block capitalize ${getStatusColor(consultation.status)}`} style={{ fontFamily: 'Inter' }}>
                       {consultation.status || 'Pending'}

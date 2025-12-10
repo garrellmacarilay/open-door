@@ -99,7 +99,7 @@ export default function BookedConsultation({ recentBookings }) {
                     <div>{new Date(booking.consultation_date).toLocaleString()}</div>
                   </div>
 
-                 {(booking.status === 'pending' || 'approved' ) && (
+                {(booking.status === 'pending' || booking.status === 'approved' ) && (
                     <>
                       {/* Reschedule Button */}
                       <div
