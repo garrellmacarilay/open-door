@@ -5,6 +5,7 @@ use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\VerifyController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GoogleController;
 use App\Http\Controllers\Api\BookingController;
@@ -37,6 +38,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/auth/google', [GoogleController::class, 'redirect']);
     Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/verify-email', [VerifyController::class, 'verifyEmail']);
 });
 
 
