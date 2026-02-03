@@ -3,6 +3,51 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../contexts/AuthContext.jsx'
 
+export function useRegister() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const register = async (form) => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const res = await api.post('/register', form)
+      return res.data
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed");
+      throw err;
+
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return { register, loading, error };
+}
+
+export function useVerifyEmail() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const verify = async (email, code) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await api.post('/verify-email', { email, verification_code });
+      return res.data;
+    } catch (err) {
+      setError(err.response?.data?.message || "Verification failed");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }
+  return { verify, loading, error };
+}
+
 export function useGoogleLogin() {
   const navigate = useNavigate()
   
