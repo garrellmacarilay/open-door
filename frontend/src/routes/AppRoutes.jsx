@@ -7,6 +7,7 @@ import StaffContainer from '../modules/Staffs/pages/Dashboard/StaffContainer.jsx
 import AdminContainer from '../modules/Admin_PSAS/pages/Dashboard/AdminContainer.jsx';
 import Landingpage from "../public-pages/Landing/Landingpage.jsx";
 import Login from "../public-pages/Auth/Login.jsx";
+import Register from '../public-pages/Auth/Register.jsx'
 import AuthCallback from '../public-pages/Auth/AuthCallback.jsx';
 import UnauthorizedPage from '../public-pages/Auth/UnauthorizedPage.jsx';
 import ProtectedRoute from './ProtectedRoutes.jsx';
@@ -27,6 +28,7 @@ function AppRoutes() {
               <Route path="/" element={<Landingpage />}/>
               <Route path="*" element={<Navigate to="/" replace />} />
               <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+              <Route path="/register" element={user ? <Navigate to='/dashboard' replace /> : <Register />}></Route>
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
               <Route path="/dashboard/student" element={<ProtectedRoutes roles={['student']}><StudentContainer /></ProtectedRoutes>} />

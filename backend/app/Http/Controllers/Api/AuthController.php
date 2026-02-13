@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Models\Student;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Services\GmailService;
 use App\Http\Controllers\Controller;
@@ -25,7 +27,17 @@ class AuthController extends Controller
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'verification_code' => $code,
+            'role' => 'student',
         ]);
+
+        if ($user->role === 'student') {
+            $student = Student::create([
+                'user_id' => $user->id,
+                'student_number' => 'S' . Str::upper(Str::random(7)),
+            ]);
+
+            $user->update(['student_id' => $student->id]);
+        }
 
         $gmail = new GmailService();
 
@@ -59,7 +71,7 @@ class AuthController extends Controller
                 ? now()->addDays(30)
                 : now()->addMinutes(30);
 
-            $token = $user->createToken('auth_token', ['*'], $expiration)->plainTextToken;
+                $token = $user->createToken('auth_token', ['*'], $expiration)->plainTextToken;
 
             return response()->json([
                 'success' => true,

@@ -30,13 +30,14 @@ export function useRegister() {
 export function useVerifyEmail() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-
+  const navigate = useNavigate()
+  
   const verify = async (email, code) => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await api.post('/verify-email', { email, verification_code });
+      const res = await api.post('/verify-email', { email, verification_code: code });
       return res.data;
     } catch (err) {
       setError(err.response?.data?.message || "Verification failed");

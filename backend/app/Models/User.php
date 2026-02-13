@@ -30,7 +30,9 @@ class User extends Authenticatable
         'role',
         'contact_number',
         'status',
-        'profile_picture'
+        'profile_picture',
+        'verification_code',
+        'email_verified_at'
     ];
 
     /**
@@ -57,7 +59,7 @@ class User extends Authenticatable
     }
     public function student() {
         return $this->hasOne(Student::class);
-    } 
+    }
 
     public function staff()
     {

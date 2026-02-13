@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Carbon\Carbon;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class VerifyController extends Controller
 {
@@ -16,7 +17,7 @@ class VerifyController extends Controller
         $user = User::where('email', $request->email)
                 ->where('verification_code', $request->verification_code)
                 ->first();
-        
+
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -31,6 +32,11 @@ class VerifyController extends Controller
             ], 401);
         }
 
+        $expiration = Carbon::now()->addDays(7);
+
+        $token = $user->createToken('auth_token', ['*'],$expiration)->plainTextToken;
+
+
         $user->update([
             'email_verified_at' => now(),
             'verification_code' => null,
@@ -39,7 +45,9 @@ class VerifyController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Email verified successfully',
-            'user' => $user
+            'user' => $user,
+            'token' => $token,
+            'expires_at' => $expiration,
         ]);
     }
 }
