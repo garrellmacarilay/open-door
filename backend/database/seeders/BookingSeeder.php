@@ -47,8 +47,10 @@ class BookingSeeder extends Seeder
 
             for ($b = 1; $b <= $bookingCount; $b++) {
 
-                $consultDate = Carbon::now()
-                    ->subDays(rand(1, 60))
+                $startDate = Carbon::create(now()->year, 2, 17); // Feb 17 current year
+                $endDate = Carbon::now();
+
+                $consultDate = Carbon::createFromTimeStamp(rand($startDate->timestamp, $endDate->timestamp))
                     ->setTime(rand(8, 16), rand(0, 59));
 
                 Booking::create([
