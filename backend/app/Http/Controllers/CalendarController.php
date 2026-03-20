@@ -51,6 +51,8 @@ class CalendarController extends Controller
         ]);
     }
 
+    
+
     private function getStatusColor($status)
     {
         switch ($status) {

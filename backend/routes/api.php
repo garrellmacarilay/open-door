@@ -59,9 +59,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum'])->group(function() {
     Route::get('/calendar/appointments', [CalendarController::class, 'index']);
-    Route::get('/show/user', [ProfileController::class, 'show']);
 
-    Route::get('/calendar/appointments', [CalendarController::class, 'index']);
+    Route::get('/show/user', [ProfileController::class, 'show']);
+    
+
     Route::get('/offices', function() {
         return response()->json(Office::all());
     });
