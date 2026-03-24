@@ -43,6 +43,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/verify-email', [VerifyController::class, 'verifyEmail']);
 });
 
+Route::middleware('throttle:3,1')->post('/auth/resend-otp', [VerifyController::class, 'resend']);
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     $user = $request->user()->load('student');
@@ -61,7 +63,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::get('/calendar/appointments', [CalendarController::class, 'index']);
 
     Route::get('/show/user', [ProfileController::class, 'show']);
-    
+
 
     Route::get('/offices', function() {
         return response()->json(Office::all());

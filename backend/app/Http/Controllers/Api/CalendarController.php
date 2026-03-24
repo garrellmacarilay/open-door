@@ -9,39 +9,67 @@ use Illuminate\Support\Facades\Auth;
 
 class CalendarController extends Controller
 {
-
-    public function index()
+    public function index(Request $request) // Added Request here
     {
-        $bookings = Booking::with(['student.user', 'office', 'staff'])
-            ->whereIn('status', ['approved', 'pending', 'rescheduled']
-            )->
-            orderBy('consultation_date', 'desc')
-            ->get();
+        $now = now();
 
-        $appointments = $bookings->map(function ($bookings) {
+        $query = Booking::with(['student.user', 'office', 'staff']);
+
+        if ($request->filled('month') && $request->filled('year')) {
+            $query->whereMonth('consultation_date', $request->month)
+                    ->whereYear('consultation_date', $request->year);
+        } else {
+            $query->where('consultation_date', '>=', $now->toDateString()); //only render today's appointment onwards
+        }
+
+
+        // Fixed Office Filter
+        if ($request->filled('office') && $request->office !== 'All Offices') {
+            $query->whereHas('office', function($q) use ($request)  {
+                $q->where('office_name', $request->office);
+            });
+        }
+
+        // Fixed Status Filter
+        if ($request->filled('status') && $request->status !== 'All') {
+            $status = strtolower(trim($request->status));
+            $query->where('status', $status);
+        }
+
+        // Paginate results per 15 request
+        $bookings = $query->orderBy('consultation_date', 'asc')->paginate(15);
+
+        // 5. Map the results
+        $appointments = collect($bookings->items())->map(function ($booking) {
             return [
-                'id' => $bookings->id,
-                'title' => $bookings->student->user->full_name ?? 'Unknown',
-                'start' => $bookings->consultation_date,
-                'end' => $bookings->consultation_date,
-                'color' => $bookings->getStatusColor($bookings->status),
+                'id' => $booking->id,
+                'title' => $booking->student->user->full_name ?? 'Unknown',
+                'start' => $booking->consultation_date,
+                'dateString' => $booking->consultation_date,
+                'color' => $booking->getStatusColor($booking->status),
                 'details' => [
-                    'student' => $bookings->student->user->full_name ?? 'Unknown',
-                    'office' => $bookings->office->office_name ?? 'N/A',
-                    'staff' => $bookings->staff ? $bookings->staff->user->full_name : 'Unassigned',
-                    'concern_description' => $bookings->concern_description,
-                    'attachment' => $bookings->uploaded_file_url,
-                    'attachment_name' => $bookings->uploaded_file_name,
-                    'service_type' => $bookings->service_type,
-                    'status' => $bookings->status,
-                    'reference_code' => $bookings->reference_code,
+                    'student' => $booking->student->user->full_name ?? 'Unknown',
+                    'office' => $booking->office->office_name ?? 'N/A',
+                    'staff' => $booking->staff ? $booking->staff->user->full_name : 'Unassigned',
+                    'concern_description' => $booking->concern_description,
+                    'attachment' => $booking->uploaded_file_url,
+                    'attachment_name' => $booking->uploaded_file_name,
+                    'service_type' => $booking->service_type,
+                    'status' => strtolower($booking->status),
+                    'reference_code' => $booking->reference_code,
                 ]
             ];
         });
 
         return response()->json([
             'success' => true,
-            'data' => $appointments
+            'data' => $appointments,
+            'meta' => [
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'total' => $bookings->total(),
+                'has_more' => $bookings->hasMorePages()
+            ]
         ]);
     }
 }

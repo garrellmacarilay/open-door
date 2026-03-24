@@ -74,7 +74,7 @@ class BookingController extends Controller
 
         $data = $request->validate([
             'office_id' => 'required|exists:offices,id',
-            'service_type' => 'required|string',
+            'service_type' => 'nullable|string',
             'consultation_date' => [
                 'required',
                 'date_format:Y-m-d\TH:i',
@@ -228,7 +228,7 @@ class BookingController extends Controller
         }
 
         $bookings = Booking::where('student_id', $student->id)
-            ->whereIn('status', ['completed'])
+            ->whereIn('status', ['pending', 'completed', 'approved', 'declined'])
             ->with('student.user', 'feedback', 'office')
             ->orderBy('created_at', 'desc')
             ->get()
@@ -241,6 +241,7 @@ class BookingController extends Controller
                     'student_name' => $booking->student->user->full_name ?? 'Unknown',
                     'office_name' => $booking->office->office_name ?? 'Unknown',
                     'service_type' => $booking->service_type,
+                    'group_members' => $booking->group_members,
                     'concern_description' => $booking->concern_description,
                     'consultation_date' => $booking->consultation_date,
                     'feedback' => $booking->feedback ? [
