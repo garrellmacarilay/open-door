@@ -242,6 +242,8 @@ class BookingController extends Controller
                     'office_name' => $booking->office->office_name ?? 'Unknown',
                     'service_type' => $booking->service_type,
                     'group_members' => $booking->group_members,
+                    'attachment_name' => $booking->uploaded_file_name,
+                    'attachment_url' => $booking->uploaded_file_url,
                     'concern_description' => $booking->concern_description,
                     'consultation_date' => $booking->consultation_date,
                     'feedback' => $booking->feedback ? [

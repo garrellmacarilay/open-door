@@ -42,6 +42,7 @@ class NotificationController extends Controller
     public function markAsRead($id)
     {
         $user = Auth::user();
+
         $notif = DB::table('modal_notifications')
             ->where('id', $id)
             ->where('receiver_id', $user->id)
@@ -54,10 +55,26 @@ class NotificationController extends Controller
             ], 404);
         }
 
-        DB::table('modal_notifications')
-            ->where('id', $id)
-            ->update(['status' => 'read']);
+
+        if ($notif->status !== 'read') {
+            DB::table('modal_notifications')
+                ->where('id', $id)
+                ->update([
+                    'status' => 'read',
+                    'updated_at' => now()
+                ]);
+        }
 
         return response()->json(['success' => true]);
+    }
+
+    public function unreadCount()
+    {
+        $count = DB::table('modal_notifications')
+            ->where('receiver_id', Auth::id())
+            ->where('status', 'unread')
+            ->count();
+
+        return response()->json(['success' => true, 'count' => $count]);
     }
 }

@@ -43,7 +43,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/verify-email', [VerifyController::class, 'verifyEmail']);
 });
 
-Route::middleware('throttle:3,1')->post('/auth/resend-otp', [VerifyController::class, 'resend']);
+Route::middleware('throttle:resend-otp')->post('/auth/resend-otp', [VerifyController::class, 'resend']);
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -72,6 +72,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
 
     Route::post('/user/profile', [ProfileController::class, 'updateProfile']);
 
