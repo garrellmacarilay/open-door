@@ -8,7 +8,7 @@ echo "[entrypoint] starting container entrypoint"
 # ─────────────────────────────────────────────────────
 # WARNING: This wipes the database on every restart/deploy
 echo "[entrypoint] Wiping database and running seeds..."
-php artisan migrate:fresh --force || echo "[entrypoint] Migrations/Seeding failed"
+php artisan migrate --force || echo "[entrypoint] Migrations/Seeding failed"
 
 echo "[entrypoint] Running database seeders..."
 php artisan db:seed --force || echo "[entrypoint] Seeding failed"
