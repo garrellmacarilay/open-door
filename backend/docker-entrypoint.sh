@@ -10,8 +10,8 @@ echo "[entrypoint] starting container entrypoint"
 echo "[entrypoint] Wiping database and running seeds..."
 php artisan migrate --force || echo "[entrypoint] Migrations/Seeding failed"
 
-echo "[entrypoint] Running database seeders..."
-php artisan db:seed --force || echo "[entrypoint] Seeding failed"
+# echo "[entrypoint] Running database seeders..."
+# php artisan db:seed --force || echo "[entrypoint] Seeding failed"
 
 # ─────────────────────────────────────────────────────
 # Storage Linking
