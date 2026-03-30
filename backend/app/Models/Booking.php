@@ -28,6 +28,7 @@ class Booking extends Model
         'uploaded_file_size',
         'uploaded_file_mime',
         'reference_code',
+        'declined_reason'
     ];
 
     public function student()

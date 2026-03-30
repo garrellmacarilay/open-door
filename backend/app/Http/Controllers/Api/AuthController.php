@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -79,12 +80,35 @@ class AuthController extends Controller
     }
 
     public function login(Request $request) {
+        //initialize validator
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        //Check for email existance
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'errors' => [
+                    'email' => ['This email address is not registered']
+                ]
+            ], 404);
+        }
 
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-
             $expiration = $request->boolean('remember_me')
                 ? now()->addDays(30)
                 : now()->addMinutes(30);
@@ -99,9 +123,12 @@ class AuthController extends Controller
                 'user' => $user
             ]);
         }
+
         return response()->json([
             'success' => false,
-            'message' => 'Invalid email or password'
+            'errors' => [
+                'password' => ['The password you entered is incorrect.']
+            ]
         ], 401);
     }
 
@@ -114,5 +141,5 @@ class AuthController extends Controller
         ]);
     }
 
-    
+
 }

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class OfficeController extends Controller
 {
-    public function dashboard() {
+    public function dashboard(Request $request) {
 
         $user = Auth::user();
 
@@ -23,24 +23,37 @@ class OfficeController extends Controller
 
         $officeId = $user->staff->office_id;
 
-        $bookings = Booking::with(['student.user', 'office', 'staff.user'])
-            ->where('office_id', $officeId)
-            ->orderBy('consultation_date', 'asc')
-            ->get();
+        $now = now();
 
-        $appointments = $bookings->map(function($booking) {
+       $query = Booking::with(['student.user', 'office', 'staff.user'])
+            ->where('office_id', $officeId);
+
+        if ($request->filled('month') && $request->filled('year')) {
+            $query->whereMonth('consultation_date', $request->month)
+                    ->whereYear('consultation_date', $request->year);
+        } else {
+            $query->where('consultation_date', '>=', $now->toDateString()); //only render today's appointment onwards
+        }
+
+        $bookings = $query->orderBy('consultation_date', 'asc')->paginate(15);
+
+        $appointments = collect($bookings->items())->map(function($booking) {
             return[
                 'id' => $booking->id,
                 'title' => $booking->student->user->full_name ?? 'Unknown',
                 'start' => $booking->consultation_date,
+                'dateString' => $booking->consultation_date,
                 'end' => $booking->consultation_date,
                 'color' => $this->getStatusColor($booking->status),
                 'details' => [
                     'student' => $booking->student->user->full_name ?? 'Unknown',
                     'office' => $booking->office->office_name ?? 'N/A',
                     'staff' => $booking->staff ? $booking->staff->user->full_name : 'Unassigned',
+                    'attachment' => $booking->uploaded_file_url,
+                    'attachment_name' => $booking->uploaded_file_name,
+                    'group_members' => $booking->group_members,
                     'concern_description' => $booking->concern_description,
-                    'status' => $booking->status,
+                    'status' => strtolower($booking->status),
                     'reference_code' => $booking->reference_code,
                 ]
             ];
@@ -48,7 +61,13 @@ class OfficeController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $appointments
+            'data' => $appointments,
+            'meta' => [
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'total' => $bookings->total(),
+                'has_more' => $bookings->hasMorePages()
+            ]
         ]);
     }
 

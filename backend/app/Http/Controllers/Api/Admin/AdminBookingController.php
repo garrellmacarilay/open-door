@@ -161,7 +161,8 @@ class AdminBookingController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|string|in:approved,declined,rescheduled,cancelled,pending,completed'
+            'status' => 'required|string|in:approved,declined,rescheduled,cancelled,pending,completed',
+            'declined_reason' => 'required_if:status,declined|nullable|string|max:1000'
         ]);
 
         $booking = Booking::with(['student.user', 'office'])->find($id);
@@ -187,15 +188,19 @@ class AdminBookingController extends Controller
         // Handles all DB updates (Status, Modal Notification, and creating the initial "Pending" Email Log)
         $emailLog = DB::transaction(function () use ($booking, $request, $sender, $receiver) {
 
+            $updateData = ['status' => $request->status];
+
+            if ($request->status === 'declined') {
+                $updateData['declined_reason'] = $request->declined_reason;
+            }
+
             // ✅ Update status
-            $booking->update([
-                'status' => $request->status
-            ]);
+            $booking->update($updateData);
 
             // ✅ Notification mapping (Modal)
             $statusMap = [
                 'approved'    => ['approval', "Your booking at ({$booking->office->office_name}) has been approved."],
-                'declined'    => ['decline', "Your booking at ({$booking->office->office_name}) has been declined."],
+                'declined'    => ['decline', "Your booking at ({$booking->office->office_name}) has been declined. Reason: {$request->declined_reason}"],
                 'rescheduled' => ['reschedule', "Your booking at ({$booking->office->office_name}) has been rescheduled."],
                 'cancelled'   => ['cancellation', "Your booking at ({$booking->office->office_name}) has been cancelled."],
                 'completed'   => ['completed', "Your booking at ({$booking->office->office_name}) has been completed."],
