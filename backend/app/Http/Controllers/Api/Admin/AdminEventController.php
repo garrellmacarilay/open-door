@@ -10,7 +10,11 @@ class AdminEventController extends Controller
 {
     public function events() {
 
+        $now = now();
+
         $events = Event::orderBy('event_date', 'asc')->get();
+
+        $events->where('event_date', '>=', $now->toDateString());
 
         return response()->json([
             'success' => true,
