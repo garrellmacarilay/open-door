@@ -13,7 +13,7 @@ class StaffSeeder extends Seeder
     public function run(): void
     {
         $offices = [
-            'Communications',
+            'Prefect And Assistant Prefect',
             'Guidance and Counseling',
             'Medical and Dental Services',
             'Sports Development and Management',
