@@ -14,7 +14,7 @@ class OfficeSeeder extends Seeder
     public function run(): void
     {
         $offices = [
-            ['office_name' => 'Communications', 'contact_email' => 'communications@laverdad.edu.ph', 'contact_number' => null, 'status' => 'active'],
+            ['office_name' => 'Prefect and Assistant Prefect', 'contact_email' => 'prefect@laverdad.edu.ph', 'contact_number' => null, 'status' => 'active'],
             ['office_name' => 'Guidance and Counseling', 'contact_email' => 'prefect.guidance@laverdad.edu.ph', 'contact_number' => null, 'status' => 'active'],
             ['office_name' => 'Medical and Dental Services', 'contact_email' => 'prefect.clinic@lavedad.edu.ph', 'contact_number' => null, 'status' => 'active'],
             ['office_name' => 'Sports Development and Management', 'contact_email' => 'prefect.sports@laverdad.edu.ph', 'contact_number' => null, 'status' => 'active'],
