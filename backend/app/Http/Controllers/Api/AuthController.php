@@ -20,16 +20,19 @@ class AuthController extends Controller
         // Incoming request data
         $data = $request->validate([
             'full_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        //check if email already exists
-        if (User::where('email', $data['email'])->exists()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Email already exists'
-            ]);
+        $existingUser = User::where('email', $data['email'])->first();
+
+        if ($existingUser) {
+            if ($existingUser->email_verified_at !== null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email is already verified. Please login.'
+                ], 422);
+            }
         }
 
         //check if email ends with @student.laverdad.edu.ph
@@ -44,16 +47,18 @@ class AuthController extends Controller
 
         try {
             $user = DB::transaction(function() use($data, $code) {
-                $user = User::create([
+                $user = User::updateOrCreate(
+                ['email' => $data['email']],
+                [
                     'full_name' => $data['full_name'],
-                    'email' => $data['email'],
                     'password' => Hash::make($data['password']),
                     'verification_code' => $code,
                     'role' => 'student',
                 ]);
 
-                Student::create([
-                    'user_id' => $user->id,
+                Student::updateOrCreate(
+                ['user_id' => $user->id],
+                [
                     'student_number' => 'S' . Str::upper(Str::random(7)),
                 ]);
 

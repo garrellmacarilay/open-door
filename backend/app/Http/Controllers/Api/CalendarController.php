@@ -31,13 +31,13 @@ class CalendarController extends Controller
         }
 
         // Fixed Status Filter
-        if ($request->filled('status') && $request->status !== 'All') {
+        if ($request->filled('status') && $request->status !== 'all') {
             $status = strtolower(trim($request->status));
             $query->where('status', $status);
         }
 
         // Paginate results per 15 request
-        $bookings = $query->orderBy('consultation_date', 'asc')->paginate(15);
+        $bookings = $query->orderBy('consultation_date', 'asc')->paginate(100);
 
         // 5. Map the results
         $appointments = collect($bookings->items())->map(function ($booking) {
