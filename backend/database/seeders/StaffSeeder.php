@@ -12,37 +12,26 @@ class StaffSeeder extends Seeder
 {
     public function run(): void
     {
-        $offices = [
-            'Prefect And Assistant Prefect',
-            'Guidance and Counseling',
-            'Medical and Dental Services',
-            'Sports Development and Management',
-            'Student Assistance and Experiential Education',
-            'Student Discipline',
-            'Student Internship',
-            'Student IT Support and Services',
-            'Student Organization',
-            'Student Publication',
-        ];
+        $offices = Office::all();
 
-        foreach ($offices as $officeName) {
+        foreach ($offices as $office) {
 
-            $office = Office::where('office_name', $officeName)->first();
+            $office = Office::where('office_name', $office->office_name)->first();
 
             if (!$office) {
-                echo "Office not found: $officeName \n";
+                echo "Office not found: $office->office_name \n";
                 continue;
             }
 
             // Email
-            $emailSlug = strtolower(str_replace(' ', '', $officeName));
+            $emailSlug = strtolower(str_replace(' ', '', $office->office_name));
             $email = "{$emailSlug}.staff@laverdad.edu.ph";
 
             // ✅ Prevent duplicate users
             $user = User::firstOrCreate(
                 ['email' => $email],
                 [
-                    'full_name' => $officeName . " Staff",
+                    'full_name' => $office->office_name . " Staff",
                     'password' => Hash::make('password123'),
                     'role' => 'staff'
                 ]
