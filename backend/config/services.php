@@ -41,4 +41,6 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'school_domain' => env('SCHOOL_ADDRESS')
+
 ];
