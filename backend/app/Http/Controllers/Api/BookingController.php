@@ -134,16 +134,18 @@ class BookingController extends Controller
         // ✅ Create booking inside transaction
         $booking = DB::transaction(function () use ($data, $student) {
 
-            $nextId = Booking::lockForUpdate()->max('id') ?? 0;
-            $referenceCode = 'APPT-' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-            return Booking::create([
+            $booking = Booking::create([
                 ...$data,
                 'student_id'     => $student->id,
                 'staff_id'       => null,
-                'reference_code' => $referenceCode,
+                'reference_code' => 'TEMP-' . Str::random(5),
                 'status'         => 'pending',
             ]);
+
+            $referenceCode = 'APPT-' . str_pad($booking->id, 3, '0', STR_PAD_LEFT);
+            $booking->update(['reference_code' => $referenceCode]);
+
+            return $booking;    
         });
 
         // ✅ Notify admins + office staff (Modal Notifications)
