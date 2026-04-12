@@ -21,7 +21,18 @@ class AuthController extends Controller
         $data = $request->validate([
             'full_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:16',
+                'confirmed',
+                'regex:/^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).+$/'
+                ]
+        ], [
+            'password.regex' => 'The password must contain at least one uppercase letter and one special character.',
+            'password.min' => 'The password must be at least 8 characters.',
+            'password.max' => 'The password may not be greater than 16 characters.',
         ]);
 
         $existingUser = User::where('email', $data['email'])->first();
@@ -30,16 +41,22 @@ class AuthController extends Controller
             if ($existingUser->email_verified_at !== null) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Email is already verified. Please login.'
+                    'message' => 'Validation failed',
+                    'errors' => [
+                        'email' => ['Email is already verified. Please login.']
+                        ]
                 ], 422);
             }
         }
 
         //check if email ends with @student.laverdad.edu.ph
-        if (!str_ends_with($data['email'], '@student.laverdad.edu.ph')) {
+        if (!str_ends_with($data['email'], config('services.school_domain', env('SCHOOL_DOMAIN')))) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email must be a @student.laverdad.edu.ph address'
+                'message' => 'Validation failed',
+                'errors' => [
+                    'email' => ['Email must be a provided by the school.']
+                ]
             ], 422);
         }
 
