@@ -17,6 +17,8 @@ class BookingSeeder extends Seeder
         $statuses = ['approved', 'pending', 'cancelled', 'rescheduled', 'completed', 'declined'];
         $offices = Office::all();
 
+        $counter = (Booking::max('id') ?? 0) + 1;
+
         if ($offices->isEmpty()) {
             $this->command->error("No offices found. Please seed offices first.");
             return;
@@ -63,7 +65,7 @@ class BookingSeeder extends Seeder
                     'status' => $statuses[array_rand($statuses)],
                     'group_members' => null,
                     'uploaded_file_url' => null,
-                    'reference_code' => strtoupper(Str::random(10)),
+                    'reference_code' => 'APPT-' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
                 ]);
             }
         }
