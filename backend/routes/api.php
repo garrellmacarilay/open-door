@@ -123,6 +123,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/analytics/trends', [AnalyticsController::class, 'consultationTrends']);
     Route::get('/admin/analytics/distribution', [AnalyticsController::class, 'serviceDistribution']);
     Route::get('/admin/analytics/generate-report', [AnalyticsController::class, 'generateReport']);
+
+    Route::get('/admin/appointments', [CalendarController::class, 'adminIndex']);
 });
 
 
