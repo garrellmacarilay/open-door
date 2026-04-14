@@ -31,20 +31,20 @@ class AdminOfficeController extends Controller
             'success' => true,
             'message' => 'Office created successfully',
             'office' => $office
-        ]);
+        ], 201);
     }
 
     public function update(Request $request, $id)
     {
         $office = Office::findOrFail($id);
 
-        $request->validate([
-            'office_name' => 'required|string|max:255',
-            'contact_email' => 'required|email|max:255',
-            'status' => 'required|in:active,inactive'
+        $val = $request->validate([
+            'office_name' => 'sometimes|nullable|string|max:255',
+            'contact_email' => 'sometimes|nullable|email|max:255',
+            'status' => 'sometimes|nullable|in:active,inactive'
         ]);
 
-        $office->update($request->only('office_name', 'contact_email', 'status'));
+        $office->update(array_filter($val));
 
         return response()->json([
             'success' => true,
