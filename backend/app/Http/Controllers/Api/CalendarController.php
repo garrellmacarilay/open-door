@@ -35,7 +35,7 @@ class CalendarController extends Controller
             $status = strtolower(trim($request->status));
 
             if ($status === 'all') {
-                $query->whereIn('status', ['pending', 'approved', 'completed', 'declined']);
+                $query->whereIn('status', ['pending', 'approved', 'declined']);
             } else {
                 $query->where('status', $status);
             }

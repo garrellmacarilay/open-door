@@ -40,6 +40,9 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+
+    protected $with = ['staff'];
+    
     protected $hidden = [
         'password',
         'remember_token',
@@ -63,7 +66,7 @@ class User extends Authenticatable
 
     public function staff()
     {
-        return $this->hasOne(Staff::class);
+        return $this->hasOne(Staff::class, 'user_id');
     }
 
     public function admin()

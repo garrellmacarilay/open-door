@@ -145,7 +145,7 @@ class BookingController extends Controller
             $referenceCode = 'APPT-' . str_pad($booking->id, 3, '0', STR_PAD_LEFT);
             $booking->update(['reference_code' => $referenceCode]);
 
-            return $booking;    
+            return $booking;
         });
 
         // ✅ Notify admins + office staff (Modal Notifications)
@@ -324,7 +324,7 @@ class BookingController extends Controller
             'uploaded_file_url' => 'nullable|file|mimes:pdf,jpg,png|max:5120'
         ]);
 
-        $booking = Booking::with(['office.users', 'student.user'])->findOrFail($id);
+        $booking = Booking::with(['office.staff.user', 'student.user'])->findOrFail($id);
         $currentUser = Auth::user(); // The person performing the action
 
         // ---------------------------------------------------------
@@ -338,15 +338,21 @@ class BookingController extends Controller
 
         // Logic: If the current logged-in user IS the student, notify the Staff/Admin
         if ($currentUser->id === $studentUser->id) {
-            // Get the staff/admin associated with this office
-            // Note: If an office has multiple staff, this grabs the first one.
-            // Ideally, you might loop through all of them.
-            $receiver = $booking->office->staff()->first();
+            // 1. Get the Staff record first
+            $staffRecord = $booking->office->staff()->first();
 
-            if (!$receiver) {
-                // Fallback protection if no staff is assigned to office
+            if (!$staffRecord) {
                 return response()->json(['success' => false, 'message' => 'No office staff found to notify.'], 500);
             }
+
+            // 2. IMPORTANT: Set the receiver to the USER associated with the staff
+            // Assuming your Staff model has a 'user' relationship
+            $receiver = $staffRecord->user;
+
+            if (!$receiver || !$receiver->email) {
+                return response()->json(['success' => false, 'message' => 'Staff user account or email not found.'], 500);
+            }
+
             $notificationContext = "Student initiated";
         }
 
@@ -366,7 +372,7 @@ class BookingController extends Controller
             // Update Booking Data
             $updatedData = [
                 'consultation_date' => $request->consultation_date,
-                'status' => 'rescheduled',
+                'status' => 'pending',
             ];
 
             if ($request->hasFile('uploaded_file_url')) {
@@ -410,7 +416,7 @@ class BookingController extends Controller
                 'recipient_email' => $receiver->email,
                 'subject'         => $emailSubject,
                 'message'         => $emailBody,
-                'type'            => 'booking_rescheduled',
+                'type'            => 'booking_request',
                 'status'          => 'pending',
             ]);
         });

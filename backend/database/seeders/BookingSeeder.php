@@ -2,27 +2,38 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Student;
-use App\Models\Office;
 use App\Models\Booking;
-use Illuminate\Support\Str;
+use App\Models\Feedback;
+use App\Models\Office;
+use App\Models\Student;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class BookingSeeder extends Seeder
 {
     public function run(): void
     {
         $statuses = ['approved', 'pending', 'cancelled', 'rescheduled', 'completed', 'declined'];
-        $offices = Office::all();
 
-        $counter = (Booking::max('id') ?? 0) + 1;
+        $comments = [
+            'The staff are very helpful and professional.',
+            'Smooth process, thank you!',
+            'Very accommodating office.',
+            'Consultation was very informative.',
+            'Highly recommended service.',
+            'Great experience overall.'
+        ];
+
+        $offices = Office::all();
 
         if ($offices->isEmpty()) {
             $this->command->error("No offices found. Please seed offices first.");
             return;
         }
+
+        $counter = (Booking::max('id') ?? 0) + 1;
 
         // --- Create 50 students with bookings ---
         for ($i = 1; $i <= 50; $i++) {
@@ -55,7 +66,9 @@ class BookingSeeder extends Seeder
                 $consultDate = Carbon::createFromTimeStamp(rand($startDate->timestamp, $endDate->timestamp))
                     ->setTime(rand(8, 16), rand(0, 59));
 
-                Booking::create([
+                $status = $statuses[array_rand($statuses)];
+
+                $booking =Booking::create([
                     'student_id' => $student->id,
                     'office_id'  => $offices->random()->id,
                     'staff_id'   => null, // optional
@@ -67,6 +80,17 @@ class BookingSeeder extends Seeder
                     'uploaded_file_url' => null,
                     'reference_code' => 'APPT-' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
                 ]);
+
+                if ($status === 'completed') {
+                    Feedback::create([
+                        'booking_id' => $booking->id,
+                        'student_id' => $booking->student_id,
+                        'office_id' => $booking->office_id,
+                        'staff_id' => $booking->staff_id,
+                        'rating' => rand(4, 5),
+                        'comment' => $comments[array_rand($comments)],
+                    ]);
+                }
             }
         }
     }

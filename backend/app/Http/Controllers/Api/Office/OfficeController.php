@@ -160,7 +160,44 @@ class OfficeController extends Controller
         ]);
     }
 
+    public function updateStatus(Request $request, $id) {
+        $user = Auth::user();
 
+        $request->validate([
+            'status' => 'required|in:active,inactive'
+        ]);
+
+        if (!$user->staff || $user->staff->office_id != $id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Staff is not assigned to any office.'
+            ], 403);
+        }
+        $office = Office::findOrFail($id);
+
+        $office->update([
+            'status' => $request->status
+        ]);
+        return response()->json([
+            'success' => true,
+            'message' => "Office status updated to {$request->status}",
+            'data' => $office
+        ]);
+
+    }
+
+    public function showOffice($id) {
+        $office = Office::find($id);
+
+        if (!$office) {
+            return response()->json(['success' => false, 'message' => 'Office not found'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $office // This will include 'status' (active/inactive)
+        ]);
+    }
 
     private function getStatusColor($status)
     {

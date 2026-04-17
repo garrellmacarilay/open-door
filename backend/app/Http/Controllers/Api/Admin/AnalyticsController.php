@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use Carbon\Carbon;
-use App\Models\Office;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\AnalyticsResource;
 use App\Models\Booking;
+use App\Models\Office;
+use App\Models\Feedback;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Spatie\Browsershot\Browsershot;
-use App\Http\Controllers\Controller;
-use App\Http\Resources\AnalyticsResource;
 
 class AnalyticsController extends Controller
 {
@@ -25,14 +26,19 @@ class AnalyticsController extends Controller
 
         //Status Category
 
+        $approved = Booking::where('status', 'approved')
+            ->whereBetween('consultation_date', [$start, $end])
+            ->count();
+
         $completed = Booking::where('status', 'completed')
             ->whereBetween('consultation_date', [$start, $end])
             ->count();
 
-        $cancelled = Booking::where('status', 'cancelled')
+        $declined = Booking::where('status', 'declined')
             ->whereBetween('consultation_date', [$start, $end])
             ->count();
 
+        $pending = $total - ($completed + $declined + $approved);
         //Percentages (Ratio-to-Percentage Conversion)
 
         $percentage = fn($value) => $total > 0 ? round(($value / $total) * 100, 1) : 0;
@@ -41,12 +47,15 @@ class AnalyticsController extends Controller
             'success' => true,
             'stats' => new AnalyticsResource([
                 'total' => $total,
+                'approved' => $approved,
                 'completed' => $completed,
-                'cancelled' => $cancelled,
-                'pending' =>  $total - ($completed + $cancelled),
+                'declined' => $declined,
+                'pending' =>  $pending,
                 'percentages' => [
+                    'approved' => $percentage($approved),
                     'completed' => $percentage($completed),
-                    'cancelled' => $percentage($cancelled),
+                    'declined' => $percentage($declined),
+                    'pending' => $percentage($pending),
                     'total' => $percentage($total)
                 ],
             ])
@@ -86,18 +95,15 @@ class AnalyticsController extends Controller
         ]);
     }
 
+
+
     public function serviceDistribution()
     {
-        $distribution = Booking::selectRaw('office_id, COUNT(*) as total')
-            ->with('office:id,office_name')
-            ->groupBy('office_id')
-            ->get()
-            ->map(function($item) {
-                return [
-                    'office' => $item->office->office_name ?? 'Unknown',
-                    'count' => $item->total
-                ];
-            });
+        $distribution = Booking::query()
+            ->join('offices', 'bookings.office_id', '=', 'offices.id')
+            ->selectRaw('offices.office_name as office, COUNT(bookings.id) as count')
+            ->groupBy('offices.office_name')
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -105,7 +111,7 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function generateReport()
+    public function generateReport(Request $request)
     {
         // 1. Gather Data
         $monthYear = now()->format('F Y');
@@ -195,4 +201,32 @@ class AnalyticsController extends Controller
         // 5. Download and Delete
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
+
+    public function officeFeedback() {
+        $feedbackData = Feedback::with('office')
+        ->whereMonth('created_at', now()->month)
+        ->whereYear('created_at', now()->year)
+        ->get()
+        ->groupBy('office_id')
+        ->map(function ($feedbacks) {
+            $office = $feedbacks->first()->office;
+            return [
+                'id' => $office->id,
+                'office' => $office->office_name,
+                'rating' => $feedbacks->avg('rating') ?? 0,
+                'reviews' => $feedbacks->count(),
+                // Get the 2 most recent comments
+                'feedback' => $feedbacks->sortByDesc('created_at')
+                                       ->take(2)
+                                       ->pluck('comment')
+                                       ->values()
+            ];
+        })
+        ->values();
+
+        return response()->json([
+            'success' => true,
+            'feedback' => $feedbackData
+        ]);
     }
+}

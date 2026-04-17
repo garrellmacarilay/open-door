@@ -96,6 +96,8 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::get('/office/bookings/{id}', [OfficeController::class, 'showBooking']);
     Route::get('/office/bookings', [OfficeController::class, 'consultationSummary']);
 
+    Route::put('/office/update-status/{id}', [OfficeController::class, 'updateStatus']);
+    Route::get('/office/{id}', [OfficeController::class, 'showOffice']);
 });
 
 Route::middleware(['auth:sanctum', 'staffadmin'])->group(function () {
@@ -106,7 +108,7 @@ Route::middleware(['auth:sanctum', 'staffadmin'])->group(function () {
 
 });
 
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+Route::middleware(['sanctum.query', 'auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminBookingController::class, 'dashboard']);
 
     Route::get('/admin/bookings', [AdminBookingController::class, 'index']);
@@ -123,6 +125,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/analytics/trends', [AnalyticsController::class, 'consultationTrends']);
     Route::get('/admin/analytics/distribution', [AnalyticsController::class, 'serviceDistribution']);
     Route::get('/admin/analytics/generate-report', [AnalyticsController::class, 'generateReport']);
+    Route::get('/admin/analytics/office-feedback', [AnalyticsController::class, 'officeFeedback']);
 
     Route::get('/admin/appointments', [CalendarController::class, 'adminIndex']);
 });

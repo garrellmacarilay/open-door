@@ -17,11 +17,15 @@ class AnalyticsResource extends JsonResource
         return [
             'total' => $this['total'],
             'completed' => $this['completed'],
-            'cancelled' => $this['cancelled'],
+            'declined' => $this['declined'],
+            'approved' => $this['approved'],
+            'pending' => $this['pending'],
 
             'percentages' => [
                 'completed' => $this['percentages']['completed'],
-                'cancelled' => $this['percentages']['cancelled'],
+                'declined' => $this['percentages']['declined'],
+                'approved' => $this['percentages']['approved'],
+                'pending' => $this['percentages']['pending'],
             ],
 
             'trends' => $this['trends'] ?? null,
