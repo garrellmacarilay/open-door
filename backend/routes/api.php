@@ -24,7 +24,9 @@ use App\Http\Controllers\Api\Admin\AdminBookingController;
 // Route::middleware(['auth:sanctum'])->group(function () {
 //     Route::get('/calendar/events', [CalendarController::class, 'index']);
 // });
-
+Route::get('/login', function () {
+    return response()->json(['message' => 'Unauthenticated. Please provide a valid token.'], 401);
+})->name('login');
 
 
 Route::get('/test-cloudinary', function () {
@@ -93,6 +95,9 @@ Route::middleware(['auth:sanctum', 'student'])->group(function() {
 
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::get('/office/dashboard', [OfficeController::class, 'dashboard']);
+    Route::get('/office/history-mobile', [OfficeController::class, 'mobileConsultationSummary']);
+    Route::get('/office/history-mobile/{id}', [OfficeController::class, 'getSpecificAppointment']);
+    
     Route::get('/office/bookings/{id}', [OfficeController::class, 'showBooking']);
     Route::get('/office/bookings', [OfficeController::class, 'consultationSummary']);
 
@@ -124,11 +129,14 @@ Route::middleware(['sanctum.query', 'auth:sanctum', 'admin'])->group(function ()
     Route::get('/admin/analytics/stats', [AnalyticsController::class, 'consultationStats']);
     Route::get('/admin/analytics/trends', [AnalyticsController::class, 'consultationTrends']);
     Route::get('/admin/analytics/distribution', [AnalyticsController::class, 'serviceDistribution']);
-    Route::get('/admin/analytics/generate-report', [AnalyticsController::class, 'generateReport']);
+
     Route::get('/admin/analytics/office-feedback', [AnalyticsController::class, 'officeFeedback']);
+
 
     Route::get('/admin/appointments', [CalendarController::class, 'adminIndex']);
 });
+
+Route::get('/admin/analytics/generate-report', [AnalyticsController::class, 'generateReport']);
 
 
 

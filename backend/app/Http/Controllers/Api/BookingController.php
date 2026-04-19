@@ -160,7 +160,7 @@ class BookingController extends Controller
                 $booking,
                 $request->user(),
                 'booking_request',
-                "A new booking request ({$booking->reference_code}) was created."
+                "{$booking->student->user->full_name} requested an appointment at {$booking->office->office_name}."
             ))->handleCustomInsert($recipient);
         }
 
@@ -387,7 +387,7 @@ class BookingController extends Controller
             // ✅ Dynamic Message Construction
             if ($notificationContext === "Student initiated") {
                 // Message for STAFF
-                $modalMsg = "Student ({$currentUser->name}) has RESCHEDULED Booking #{$booking->reference_code} to {$formattedDate}.";
+                $modalMsg = "{$currentUser->name} has rescheduled a booking.";
                 $emailSubject = "Reschedule Alert: Booking #{$booking->reference_code}";
                 $emailBody = "Hi {$receiver->name},\n\n" .
                              "The student ({$currentUser->name}) has RESCHEDULED their appointment at {$booking->office->office_name}.\n" .
@@ -492,10 +492,10 @@ class BookingController extends Controller
             // ✅ Dynamic Message Construction
             if ($notificationContext === "Student initiated") {
                  // Message for STAFF
-                $modalMsg = "Student ({$currentUser->name}) has CANCELLED Booking #{$booking->reference_code}.";
+                $modalMsg = "{$currentUser->full_name} has cancelled a booking.";
                 $emailSubject = "Cancellation Alert: Booking #{$booking->reference_code}";
                 $emailBody = "Hi {$receiver->name},\n\n" .
-                             "The student ({$currentUser->name}) has CANCELLED their appointment at {$booking->office->office_name}.";
+                             "The student {$currentUser->full_name} has CANCELLED their appointment at {$booking->office->office_name}.";
             } else {
                 // Message for STUDENT
                 $modalMsg = "Your booking at ({$booking->office->office_name}) has been CANCELLED by the office.";

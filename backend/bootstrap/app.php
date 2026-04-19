@@ -23,12 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
-
+        
         $middleware->api(prepend: [
             HandleCors::class,
-        ]);
-
-        $middleware->api(append: [
         ]);
 
         $middleware->alias([
@@ -47,5 +44,11 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => 'Too many attempts. Please wait a moment before trying again.'
                 ], 429);
             }
+        });
+        $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e) {
+            if ($request->is('api/*')) {
+                return true;
+            }
+            return $request->expectsJson();
         });
     })->create();

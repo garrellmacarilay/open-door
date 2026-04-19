@@ -18,17 +18,23 @@ class SanctumQueryToken
      */
     public function handle(Request $request, Closure $next)
     {
-        // Check for Bearer token in Authorization header first
-        $bearerToken = $request->bearerToken();
+        $token = $request->query('token') ?: $request->bearerToken();
 
-        // If no Bearer token, check for token in query parameter
-        if (!$bearerToken) {
-            $bearerToken = $request->query('token');
-        }
+        if ($token) {
+            // Clean the token
+            $cleanToken = str_replace('Bearer ', '', $token);
+            
+            // 1. Set the header for current request
+            $request->headers->set('Authorization', 'Bearer ' . $cleanToken);
 
-        // If we have a token, inject it into the Authorization header for Sanctum
-        if ($bearerToken) {
-            $request->headers->set('Authorization', 'Bearer ' . $bearerToken);
+            // 2. Manual Auth Check (If Sanctum is being stubborn)
+            // This ensures the user is actually 'resolved' before reaching 'auth:sanctum'
+            if ($tokenInstance = \Laravel\Sanctum\PersonalAccessToken::findToken($cleanToken)) {
+                $user = $tokenInstance->tokenable;
+                if ($user) {
+                    Auth::login($user); 
+                }
+            }
         }
 
         return $next($request);
