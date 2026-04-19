@@ -21,20 +21,8 @@ class SanctumQueryToken
         $token = $request->query('token') ?: $request->bearerToken();
 
         if ($token) {
-            // Clean the token
             $cleanToken = str_replace('Bearer ', '', $token);
-            
-            // 1. Set the header for current request
             $request->headers->set('Authorization', 'Bearer ' . $cleanToken);
-
-            // 2. Manual Auth Check (If Sanctum is being stubborn)
-            // This ensures the user is actually 'resolved' before reaching 'auth:sanctum'
-            if ($tokenInstance = \Laravel\Sanctum\PersonalAccessToken::findToken($cleanToken)) {
-                $user = $tokenInstance->tokenable;
-                if ($user) {
-                    Auth::login($user); 
-                }
-            }
         }
 
         return $next($request);

@@ -110,7 +110,7 @@ Route::middleware(['auth:sanctum', 'staffadmin'])->group(function () {
 
 });
 
-Route::middleware(['sanctum.query', 'auth:sanctum', 'admin'])->group(function () {
+Route::middleware(['auth:sanctum', 'sanctum.query', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminBookingController::class, 'dashboard']);
 
     Route::get('/admin/bookings', [AdminBookingController::class, 'index']);
