@@ -24,9 +24,6 @@ use App\Http\Controllers\Api\Admin\AdminBookingController;
 // Route::middleware(['auth:sanctum'])->group(function () {
 //     Route::get('/calendar/events', [CalendarController::class, 'index']);
 // });
-Route::get('/login', function () {
-    return response()->json(['message' => 'Unauthenticated. Please provide a valid token.'], 401);
-})->name('login');
 
 
 Route::get('/test-cloudinary', function () {
