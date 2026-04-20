@@ -237,12 +237,18 @@ class OfficeController extends Controller
     }
 
     public function getSpecificAppointment($id) {
+
+        $user = Auth::user();
         // 1. Fetch the single record with relationships
         $booking = Booking::with(['student.user', 'office', 'staff.user', 'feedback'])
             ->find($id);
 
         if (!$booking) {
             return response()->json(['success' => false, 'message' => 'Not found'], 404);
+        }
+
+        if ($user->role === 'staff' && $user->office_id !== $booking->office_id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
         // 2. Return the exact same structure as your list uses

@@ -137,6 +137,59 @@ class AdminBookingController extends Controller
         ]);
     }
 
+    public function mobileAdminConsultationSummary(Request $request) {
+        $query = Booking::with(['student.user', 'office', 'staff.user', 'feedback']);
+
+        if ($request->filled('status')) {
+            $status = strtolower(trim($request->status));
+
+            if ($status === 'all') {
+                $query->whereIn('status', ['pending', 'approved', 'declined', 'completed']);
+            } else {
+                $query->where('status', $status);
+            }
+        }
+
+        $bookings = $query->orderBy('created_at', 'desc')->paginate(100);
+
+        $appointments = collect($bookings->items())->map(function($booking) {
+            return[
+                'id' => $booking->id,
+                'title' => $booking->student->user->full_name ?? 'Unknown',
+                'start' => $booking->consultation_date,
+                'dateString' => $booking->consultation_date,
+                'end' => $booking->consultation_date,
+                'color' => $this->getStatusColor($booking->status),
+                'details' => [
+                    'student' => $booking->student->user->full_name ?? 'Unknown',
+                    'office' => $booking->office->office_name ?? 'N/A',
+                    'staff' => $booking->staff ? $booking->staff->user->full_name : 'Unassigned',
+                    'attachment' => $booking->uploaded_file_url,
+                    'attachment_name' => $booking->uploaded_file_name,
+                    'group_members' => $booking->group_members,
+                    'concern_description' => $booking->concern_description,
+                    'status' => strtolower($booking->status),
+                    'reference_code' => $booking->reference_code,
+                    'feedback' => [
+                        'ratings' => $booking->feedback->rating ?? '',
+                        'comment' => $booking->feedback->comment ?? ''
+                    ]
+                ]
+            ];
+        });
+
+         return response()->json([
+            'success' => true,
+            'data' => $appointments,
+            'meta' => [
+                'current_page' => $bookings->currentPage(),
+                'last_page' => $bookings->lastPage(),
+                'total' => $bookings->total(),
+                'has_more' => $bookings->hasMorePages()
+             ]
+        ]);
+    }
+
     public function show($id) {
 
         $bookings = Booking::with(['student.user', 'office'])->find($id);

@@ -93,8 +93,8 @@ Route::middleware(['auth:sanctum', 'student'])->group(function() {
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::get('/office/dashboard', [OfficeController::class, 'dashboard']);
     Route::get('/office/history-mobile', [OfficeController::class, 'mobileConsultationSummary']);
-    Route::get('/office/history-mobile/{id}', [OfficeController::class, 'getSpecificAppointment']);
-    
+
+
     Route::get('/office/bookings/{id}', [OfficeController::class, 'showBooking']);
     Route::get('/office/bookings', [OfficeController::class, 'consultationSummary']);
 
@@ -107,6 +107,8 @@ Route::middleware(['auth:sanctum', 'staffadmin'])->group(function () {
     Route::put('/update/events/{id}', [AdminEventController::class, 'updateEvent']);
     Route::patch('/bookings/status/{id}', [AdminBookingController::class, 'updateStatus']);
     Route::delete('/delete/event/{id}', [AdminEventController::class, 'deleteEvent']);
+
+    Route::get('/consultation/history-mobile/{id}', [OfficeController::class, 'getSpecificAppointment']);
 
 });
 
@@ -131,6 +133,7 @@ Route::middleware(['auth:sanctum', 'sanctum.query', 'admin'])->group(function ()
 
 
     Route::get('/admin/appointments', [CalendarController::class, 'adminIndex']);
+    Route::get('/admin/history-mobile', [AdminBookingController::class, 'mobileAdminConsultationSummary']);
 });
 
 Route::get('/admin/analytics/generate-report', [AnalyticsController::class, 'generateReport']);
