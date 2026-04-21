@@ -5,10 +5,12 @@ FROM php:8.3.11-fpm
 # ─────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl unzip libsqlite3-dev libonig-dev libzip-dev libpq-dev zip git bash \
-    gnupg2 ca-certificates fonts-liberation fontconfig fonts-dejavu-core \
+    gnupg2 ca-certificates fontconfig fonts-dejavu-core \
+    # Essential Fonts for PDF rendering (Prevents "square" characters)
+    fonts-liberation fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
     # Image Manipulation Dependencies
     libpng-dev libjpeg62-turbo-dev libfreetype6-dev \
-    # Puppeteer/Chrome dependencies (added libglu1 for rendering stability)
+    # Puppeteer/Chrome dependencies
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libcups2 libdbus-1-3 libdrm2 \
     libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libgtk-3-0 \
     libpango-1.0-0 libxshmfence1 libnss3 libxss1 libxkbcommon0 libcurl4 \
@@ -45,7 +47,6 @@ RUN composer dump-autoload --optimize
 # ─────────────────────────────
 # Permissions & Directory Setup
 # ─────────────────────────────
-# Pre-create the reports directory to prevent runtime mkdir failures
 RUN mkdir -p storage/app/reports bootstrap/cache public/storage \
     /var/www/.cache/puppeteer \
     /var/www/.npm \
@@ -62,20 +63,19 @@ RUN chown -R www-data:www-data /var/www \
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
-# 2. Configure Node Environment for www-data
+# 2. Configure Node Environment
 ENV PUPPETEER_CACHE_DIR=/var/www/.cache/puppeteer
 ENV NPM_CONFIG_PREFIX=/var/www/.npm-global
 ENV PATH="$PATH:/var/www/.npm-global/bin:/var/www/node_modules/.bin"
 
-# 3. Switch to www-data to install packages
-USER www-data
-
-# 4. Install Puppeteer and Chrome
-RUN npm install puppeteer \
+# 3. Install Puppeteer and Chrome as root to create symlinks
+RUN npm install -g puppeteer --unsafe-perm \
     && npx puppeteer browsers install chrome
 
-# 5. Switch back to root to set up entrypoint
-USER root
+# 4. CRITICAL: Create the symlink for Render's ENV variable
+# This links the Puppeteer-installed chrome to the path Render expects
+RUN ln -s $(npx puppeteer browsers bin chrome) /usr/bin/google-chrome \
+    && chmod +x /usr/bin/google-chrome
 
 # ─────────────────────────────
 # Entrypoint Script
@@ -86,7 +86,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # ─────────────────────────────
 # Runtime User & Port
 # ─────────────────────────────
-# Ensure we run as www-data for security and Puppeteer compatibility
+# Switch to www-data for runtime safety
 USER www-data
 
 EXPOSE ${PORT:-10000}
