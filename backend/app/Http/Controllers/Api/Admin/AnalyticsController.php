@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AnalyticsResource;
 use App\Models\Booking;
-use App\Models\Office;
 use App\Models\Feedback;
+use App\Models\Office;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Spatie\Browsershot\Browsershot;
 
 class AnalyticsController extends Controller
@@ -113,108 +115,80 @@ class AnalyticsController extends Controller
 
     public function generateReport(Request $request)
     {
-        // 1. Gather Data
-        $monthYear = now()->format('F Y');
-        $now = Carbon::now();
-        $start = $now->copy()->startOfMonth();
-        $end = $now->copy()->endOfMonth();
-
-        $completed = Booking::where('status', 'completed')
-            ->whereMonth('consultation_date', $now->month)
-            ->count();
-
-        $cancelled = Booking::where('status', 'cancelled')
-            ->whereMonth('consultation_date', $now->month)
-            ->count();
-
-        $total = Booking::whereBetween('consultation_date', [$start, $end])->count();
-
-        $distribution = Booking::selectRaw('office_id, COUNT(*) as total')
-            ->with('office:id,office_name')
-            ->whereMonth('consultation_date', $now->month)
-            ->whereYear('consultation_date', $now->year)
-            ->groupBy('office_id')
-            ->get();
-
-        $officeBreakdown = [];
-        $offices = Office::all();
-
-        foreach ($offices as $office) {
-            $query = Booking::where('office_id', $office->id)
-                ->whereMonth('consultation_date', $now->month)
-                ->whereYear('consultation_date', $now->year);
-
-            $officeBreakdown[] = [
-                'name' => $office->office_name,
-                'total' => $query->count(),
-                'completed' => (clone $query)->where('status', 'completed')->count(),
-                'cancelled' => (clone $query)->where('status', 'cancelled')->count()
-            ];
-        }
-
-        // 2. Render HTML
-        $html = view('reports.analytics', compact(
-            'monthYear', 'total', 'completed', 'cancelled', 'distribution', 'officeBreakdown'
-        ))->render();
-
-        // 3. Prepare Directory
-        $directory = storage_path('app/reports');
-        if (!file_exists($directory)) {
-            mkdir($directory, 0755, true);
-        } 
-
-        if (!is_writable($directory)) {
-            Log::error('Reports directory is not writable: ' . $directory);
-            return response()->json(['error' => 'Server configuration error.'], 500);
-        }
-
-        $fileName = 'consultation_report_' . now()->format('Y_m') . '.pdf';
-        $filePath = $directory . '/' . $fileName;
-
-        // 4. Generate PDF
         try {
-            $browsershot = Browsershot::html($html)
-                ->format('A4')
-                ->margins(10, 10, 10, 10)
-                ->showBackground()
-                ->setOption('args', [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                    '--disable-extensions',
-                    ])
-                ->newHeadless();
+            $now = Carbon::now();
+            $start = $now->copy()->startOfMonth();
+            $end = $now->copy()->endOfMonth();
 
-            // 🟢 FIX: Only enforce paths in Production (Docker)
-            // Locally, let Browsershot find Node automatically
-            if (app()->environment('production')) {
-                $browsershot->setNodeBinary('/usr/bin/node');
-                $browsershot->setNpmBinary('/usr/bin/npm');
-                $browsershot->setIncludePath('/usr/local/bin:/usr/bin:/bin:/var/www/node_modules');
-                $browsershot->setNodeModulesPath('/var/www/node_modules');
+            $completed = Booking::where('status', 'completed')
+                ->whereMonth('consultation_date', $now->month)->count();
+            $cancelled = Booking::where('status', 'cancelled')
+                ->whereMonth('consultation_date', $now->month)->count();
+            $total = Booking::whereBetween('consultation_date', [$start, $end])->count();
+            $distribution = Booking::selectRaw('office_id, COUNT(*) as total')
+                ->with('office:id,office_name')
+                ->whereMonth('consultation_date', $now->month)
+                ->whereYear('consultation_date', $now->year)
+                ->groupBy('office_id')->get();
 
-                $chromeMatches = glob('/var/www/.cache/puppeteer/chrome/linux-*/chrome-linux64/chrome');
-                if (!empty($chromeMatches)) {
-                    $browsershot->setChromePath($chromeMatches[0]);
-                } else {
-                    Log::error('Chrome binary not found in Puppeteer cache');
-                    throw new \Exception('Chrome binary not found.');
-                }
+            $officeBreakdown = [];
+            foreach (Office::all() as $office) {
+                $query = Booking::where('office_id', $office->id)
+                    ->whereMonth('consultation_date', $now->month)
+                    ->whereYear('consultation_date', $now->year);
+                $officeBreakdown[] = [
+                    'name' => $office->office_name,
+                    'total' => $query->count(),
+                    'completed' => (clone $query)->where('status', 'completed')->count(),
+                    'cancelled' => (clone $query)->where('status', 'cancelled')->count()
+                ];
             }
 
-            $browsershot->save($filePath);
+            $monthYear = $now->format('F Y');
+
+            try {
+                $html = view('reports.analytics', compact(
+                    'monthYear', 'total', 'completed', 'cancelled', 'distribution', 'officeBreakdown'
+                ))->render();
+            } catch (\Exception $e) {
+                Log::error('View render failed: ' . $e->getMessage());
+                return response()->json(['error' => 'View render failed', 'details' => $e->getMessage()], 500);
+            }
+
+            $directory = storage_path('app/reports');
+            if (!file_exists($directory)) mkdir($directory, 0755, true);
+
+            $jobId = Str::uuid()->toString();
+            $filePath = $directory . '/consultation_report_' . $now->format('Y_m') . '_' . $jobId . '.pdf';
+
+            Cache::put("report_status_{$jobId}", 'processing', 300);
+            \App\Jobs\GenerateReportJob::dispatch($jobId, $filePath, $html);
+
+            return response()->json(['job_id' => $jobId]);
 
         } catch (\Exception $e) {
-            Log::error('PDF Generation Failed: ' . $e->getMessage());
+            Log::error('Generate report failed: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 
-            return response()->json([
-                'error' => 'Failed to generate PDF.',
-                'details' => $e->getMessage()
-            ], 500);
+    public function reportStatus(Request $request, string $jobId)
+    {
+        $status = Cache::get("report_status_{$jobId}");
+
+        if (!$status) {
+            return response()->json(['status' => 'not_found'], 404);
         }
 
-        // 5. Download and Delete
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        if ($status === 'ready') {
+            $filePath = Cache::get("report_path_{$jobId}");
+            if (!$filePath || !file_exists($filePath)) {
+                return response()->json(['status' => 'failed'], 500);
+            }
+            return response()->download($filePath)->deleteFileAfterSend(true);
+        }
+
+        return response()->json(['status' => $status]);
     }
 
     public function officeFeedback() {

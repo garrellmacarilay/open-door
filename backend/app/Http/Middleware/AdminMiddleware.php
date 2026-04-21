@@ -11,7 +11,7 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        $user = Auth::user();
+        $user = Auth::guard('sanctum')->user();
 
         if (!$user || $user->role !== 'admin') {
             return response()->json(['error' => 'Unauthorized'], 403);
