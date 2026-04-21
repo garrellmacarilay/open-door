@@ -159,7 +159,8 @@ class AnalyticsController extends Controller
             if (!file_exists($directory)) mkdir($directory, 0755, true);
 
             $jobId = Str::uuid()->toString();
-            $filePath = $directory . '/consultation_report_' . $now->format('Y_m') . '_' . $jobId . '.pdf';
+            $tempDir = sys_get_temp_dir();
+            $filePath = $tempDir . DIRECTORY_SEPARATOR . 'report_' . $jobId . '.pdf';
 
             Cache::put("report_status_{$jobId}", 'processing', 300);
             \App\Jobs\GenerateReportJob::dispatch($jobId, $filePath, $html);

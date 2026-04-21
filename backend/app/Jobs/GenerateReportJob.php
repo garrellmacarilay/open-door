@@ -59,23 +59,25 @@ use Spatie\Browsershot\Browsershot;
 
                  $browsershot->save($this->filePath);
 
+                 if (!file_exists($this->filePath)) {
+                    throw new \Exception("File was not created at: " . $this->filePath);
+                }
+
                 // 1. Use the direct SDK UploadApi to bypass Facade conflicts
-                // This is the most "bulletproof" way for local Windows testing
                 $uploadApi = new \Cloudinary\Api\Upload\UploadApi();
 
                 $uploaded = $uploadApi->upload($this->filePath, [
                     'folder' => 'reports',
                     'resource_type' => 'raw',
                     'access_mode' => 'public',
-                    'public_id' => 'report_' . $this->jobId . '.pdf',
-                    'raw_convert'   => 'as_is',
+                    'public_id' => 'report_' . $this->jobId,
                     'context' => 'caption=Consultation Report',
                 ]);
 
                 // 2. The SDK returns an array/object. Get the secure_url string.
                 $publicUrl = $uploaded['secure_url'];
-                if (!Str::endsWith($publicUrl, '.pdf')) {
-                    $publicUrl .= '?resource_type=raw';
+                if (!Str::endsWith(strtolower($publicUrl), '.pdf')) {
+                    $publicUrl .= '.pdf';
                 }
 
                 Log::info("Cloudinary Upload Success: " . $publicUrl);
