@@ -191,6 +191,7 @@ class AnalyticsController extends Controller
                 $browsershot->setNodeBinary('/usr/bin/node');
                 $browsershot->setNpmBinary('/usr/bin/npm');
                 $browsershot->setIncludePath('/usr/local/bin:/usr/bin:/bin:/var/www/node_modules');
+                $browsershot->setNodeModulesPath('/var/www/node_modules');
 
                 $chromeMatches = glob('/var/www/.cache/puppeteer/chrome/linux-*/chrome-linux64/chrome');
                 if (!empty($chromeMatches)) {

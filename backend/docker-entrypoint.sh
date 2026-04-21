@@ -50,4 +50,4 @@ fi
 # Start Server
 # ─────────────────────────────────────────────────────
 echo "[entrypoint] starting Laravel server"
-php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
+php -d max_execution_time=120 artisan serve --host=0.0.0.0 --port=${PORT:-10000}
