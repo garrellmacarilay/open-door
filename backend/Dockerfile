@@ -68,14 +68,20 @@ ENV PUPPETEER_CACHE_DIR=/var/www/.cache/puppeteer
 ENV NPM_CONFIG_PREFIX=/var/www/.npm-global
 ENV PATH="$PATH:/var/www/.npm-global/bin:/var/www/node_modules/.bin"
 
-# 3. Install Puppeteer and Chrome as root to create symlinks
-RUN npm install -g puppeteer --unsafe-perm \
-    && npx puppeteer browsers install chrome
+# 3. Install Puppeteer and Chrome
+# We install puppeteer locally in the project to ensure the binary is tracked
+RUN npm install puppeteer --unsafe-perm
 
-# 4. CRITICAL: Create the symlink for Render's ENV variable
-# This links the Puppeteer-installed chrome to the path Render expects
-RUN ln -s $(npx puppeteer browsers bin chrome) /usr/bin/google-chrome \
-    && chmod +x /usr/bin/google-chrome
+# 4. Install the browser and create the symlink
+# We use a subshell to find the exact path where Puppeteer just put the chrome binary
+RUN npx puppeteer browsers install chrome && \
+    CHROME_BIN=$(npx puppeteer browsers bin chrome) && \
+    if [ -f "$CHROME_BIN" ]; then \
+        ln -s "$CHROME_BIN" /usr/bin/google-chrome; \
+    else \
+        echo "Chrome binary not found at $CHROME_BIN"; exit 1; \
+    fi && \
+    chmod +x /usr/bin/google-chrome
 
 # ─────────────────────────────
 # Entrypoint Script
