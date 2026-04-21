@@ -161,6 +161,11 @@ class AnalyticsController extends Controller
         $directory = storage_path('app/reports');
         if (!file_exists($directory)) {
             mkdir($directory, 0755, true);
+        } 
+
+        if (!is_writable($directory)) {
+            Log::error('Reports directory is not writable: ' . $directory);
+            return response()->json(['error' => 'Server configuration error.'], 500);
         }
 
         $fileName = 'consultation_report_' . now()->format('Y_m') . '.pdf';
@@ -186,12 +191,15 @@ class AnalyticsController extends Controller
                 $browsershot->setNodeBinary('/usr/bin/node');
                 $browsershot->setNpmBinary('/usr/bin/npm');
                 $browsershot->setIncludePath('/usr/local/bin:/usr/bin:/bin:/var/www/node_modules');
+
+                $chromeMatches = glob('/var/www/.cache/puppeteer/chrome/linux-*/chrome-linux64/chrome');
+                if (!empty($chromeMatches)) {
+                    $browsershot->setChromePath($chromeMatches[0]);
+                } else {
+                    Log::error('Chrome binary not found in Puppeteer cache');
+                    throw new \Exception('Chrome binary not found.');
+                }
             }
-            // Optional: If you are on Mac/Linux Localhost and it still fails,
-            // you might need to uncomment and set your local path:
-            // else {
-            //    $browsershot->setNodeBinary('/usr/local/bin/node');
-            // }
 
             $browsershot->save($filePath);
 
