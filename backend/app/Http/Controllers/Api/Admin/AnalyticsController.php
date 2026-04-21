@@ -172,7 +172,12 @@ class AnalyticsController extends Controller
                 ->format('A4')
                 ->margins(10, 10, 10, 10)
                 ->showBackground()
-                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
+                ->setOption('args', [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-extensions',
+                    ])
                 ->newHeadless();
 
             // 🟢 FIX: Only enforce paths in Production (Docker)
@@ -180,6 +185,7 @@ class AnalyticsController extends Controller
             if (app()->environment('production')) {
                 $browsershot->setNodeBinary('/usr/bin/node');
                 $browsershot->setNpmBinary('/usr/bin/npm');
+                $browsershot->setIncludePath('/usr/local/bin:/usr/bin:/bin:/var/www/node_modules');
             }
             // Optional: If you are on Mac/Linux Localhost and it still fails,
             // you might need to uncomment and set your local path:
