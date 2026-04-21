@@ -42,6 +42,7 @@ class GenerateReportJob implements ShouldQueue
                     '--disable-dev-shm-usage',
                     '--disable-extensions',
                     '--disable-gpu',
+                    '--remote-debugging-port=9222'
                 ])
                 ->newHeadless();
 
@@ -50,7 +51,10 @@ class GenerateReportJob implements ShouldQueue
             if (app()->environment('production')) {
                 $browsershot->setNodeBinary('/usr/bin/node')
                     ->setNpmBinary('/usr/bin/npm')
-                    ->setChromePath('/usr/bin/google-chrome');
+                    ->setChromePath('/usr/bin/google-chrome')
+
+                    ->setIncludePath('/usr/local/bin:/usr/bin:/bin:/var/www/node_modules/.bin')
+                    ->setNodeModulesPath('/var/www/node_modules');
             }
 
             // 3. Generate the PDF

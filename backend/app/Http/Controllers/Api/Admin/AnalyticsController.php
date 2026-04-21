@@ -160,7 +160,7 @@ class AnalyticsController extends Controller
 
             $jobId = Str::uuid()->toString();
             $tempDir = sys_get_temp_dir();
-            $filePath = $tempDir . DIRECTORY_SEPARATOR . 'report_' . $jobId . '.pdf';
+            $filePath = $directory . DIRECTORY_SEPARATOR . 'report_' . $jobId . '.pdf';
 
             Cache::put("report_status_{$jobId}", 'processing', 300);
             \App\Jobs\GenerateReportJob::dispatch($jobId, $filePath, $html);
