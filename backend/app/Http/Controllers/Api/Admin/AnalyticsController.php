@@ -181,24 +181,22 @@ class AnalyticsController extends Controller
         }
 
         if ($status === 'ready') {
-            $filePath = Cache::get("report_path_{$jobId}");
+            $fileUrl = Cache::get("report_path_{$jobId}");
 
-            if (!$filePath || !file_exists($filePath)) {
-                Log::error("PDF File missing for Job: {$jobId} at path: {$filePath}");
-                return response()->json(['status' => 'failed', 'error' => 'File not found on server'], 500);
+            if (!$fileUrl) {
+                return response()->json(['status' => 'failed', 'error' => 'URL missing'], 500);
             }
 
-            // Return the download with a clear Content-Type
-            return response()->download($filePath, "Consultation_Report.pdf", [
-                'Content-Type' => 'application/pdf',
-                'Access-Control-Expose-Headers' => 'Content-Type' // Helpful for Expo/Fetch
+                // Return the download with a clear Content-Type
+            return response()->json([
+                'status' => 'ready',
+                'download_url' => $fileUrl
             ]);
         }
 
         // Explicitly return JSON for pending/processing
         return response()->json([
             'status' => $status,
-            'job_id' => $jobId
         ]);
     }
 

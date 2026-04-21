@@ -37,6 +37,7 @@ return [
      * Upload Preset From Cloudinary Dashboard
      */
     'upload_preset' => env('CLOUDINARY_UPLOAD_PRESET', null),
+    'upload_pdf' => env('CLOUDINARY_UPLOAD_PDF', null),
 
     /**
      * Route to get cloud_image_url from Blade Upload Widget
