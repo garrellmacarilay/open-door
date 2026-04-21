@@ -134,9 +134,11 @@ Route::middleware(['auth:sanctum', 'sanctum.query', 'admin'])->group(function ()
 
     Route::get('/admin/appointments', [CalendarController::class, 'adminIndex']);
     Route::get('/admin/history-mobile', [AdminBookingController::class, 'mobileAdminConsultationSummary']);
+
+    Route::get('/admin/analytics/generate-report', [AnalyticsController::class, 'generateReport']);
 });
 
-Route::get('/admin/analytics/generate-report', [AnalyticsController::class, 'generateReport']);
+
 
 
 

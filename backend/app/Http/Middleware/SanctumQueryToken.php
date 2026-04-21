@@ -18,13 +18,14 @@ class SanctumQueryToken
      */
     public function handle(Request $request, Closure $next)
     {
-        $token = $request->query('token') ?: $request->bearerToken();
+        // 1. Check for token in query string
+        $token = $request->query('token');
 
         if ($token) {
-            $cleanToken = str_replace('Bearer ', '', $token);
-            $request->headers->set('Authorization', 'Bearer ' . $cleanToken);
+            // 2. Set the header so auth:sanctum can find it
+            $request->headers->set('Authorization', 'Bearer ' . $token);
         }
 
         return $next($request);
-    }
+    }   
 }
