@@ -72,7 +72,7 @@ class GenerateReportJob implements ShouldQueue
                 'folder'        => 'reports',
                 'resource_type' => 'raw',
                 'access_mode'   => 'public',
-                'public_id'     => 'report_' . $this->jobId, // No .pdf here
+                'public_id'     => 'report_' . $this->jobId . '.pdf', // No .pdf here
                 'context'       => 'caption=Consultation Report',
             ];
 
@@ -85,11 +85,6 @@ class GenerateReportJob implements ShouldQueue
 
             // 5. Secure URL Handling
             $publicUrl = $uploaded['secure_url'];
-
-            // Ensure URL ends in .pdf for mobile app file detection
-            if (!Str::endsWith(strtolower($publicUrl), '.pdf')) {
-                $publicUrl .= '.pdf';
-            }
 
             Log::info("Cloudinary Upload Success: " . $publicUrl);
 
