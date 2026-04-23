@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\GmailService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -152,6 +153,85 @@ class AuthController extends Controller
                 'password' => ['The password you entered is incorrect.']
             ]
         ], 401);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email|exists:users,email']);
+
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // email is the primary key in your migration
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => $code,
+                'created_at' => Carbon::now()
+            ]
+        );
+
+        $gmail = new GmailService();
+
+        $subject = "Password Reset Code";
+        $body = "<h2>Verification Code</h2><p>Your 6-digit code is: <b>$code</b></p>";
+
+        $sent = $gmail->sendEmail($request->email, $subject, $body);
+
+        return $sent
+            ? response()->json(['message' => 'Code sent!'])
+            : response()->json(['error' => 'Email failed'], 500);
+    }
+
+    // PATH: /verify-code
+    public function verifyCode(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'code' => 'required|string|size:6'
+        ]);
+
+        $reset = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->code)
+            ->first();
+
+        // Check if code exists and is less than 15 mins old
+        if (!$reset || Carbon::parse($reset->created_at)->addMinutes(15)->isPast()) {
+            return response()->json(['message' => 'Invalid or expired code'], 422);
+        }
+
+        return response()->json(['message' => 'Code verified!']);
+    }
+
+    // PATH: /reset-password
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+             'password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:16',
+                'confirmed',
+                'regex:/^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).+$/'
+                ]
+        ], [
+            'password.regex' => 'The password must contain at least one uppercase letter and one special character.',
+            'password.min' => 'The password must be at least 8 characters.',
+            'password.max' => 'The password may not be greater than 16 characters.',
+
+        ], [
+            'code' => 'required' // Re-verify to ensure session hasn't been hijacked
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        $user->update(['password' => Hash::make($request->password)]);
+
+        // Clean up
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return response()->json(['message' => 'Password updated!']);
     }
 
     public function logout(Request $request) {

@@ -40,6 +40,11 @@ Route::middleware('guest')->group(function () {
 
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/verify-email', [VerifyController::class, 'verifyEmail']);
+
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+    Route::post('/verify-reset-code', [AuthController::class, 'verifyCode']);
 });
 
 Route::middleware('throttle:resend-otp')->post('/auth/resend-otp', [VerifyController::class, 'resend']);
