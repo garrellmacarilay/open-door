@@ -3,22 +3,35 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Event;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AdminEventController extends Controller
 {
-    public function events() {
+    public function events(Request $request) {
 
         $now = now();
 
         $events = Event::orderBy('event_date', 'asc')->get();
 
-        $events->where('event_date', '>=', $now->toDateString());
+        if ($request->filled('month') && $request->filled('year')) {
+            $events = $events->filter(function ($event) use ($request) {
+                return \Carbon\Carbon::parse($event->event_date)->month == $request->month &&
+                    \Carbon\Carbon::parse($event->event_date)->year == $request->year;
+            });
+        } else {
+            $events = $events->where('event_date', '>=', $now->toDateString());
+        }
+
+         // Filter out past events
+         $events = $events->filter(function ($event) use ($now) {
+            return \Carbon\Carbon::parse($event->event_date)->isSameDay($now) || \Carbon\Carbon::parse($event->event_date)->isFuture();
+        });
 
         return response()->json([
             'success' => true,
-            'data' => $events
+            'data' => $events->values()
         ]);
     }
 
@@ -28,10 +41,23 @@ class AdminEventController extends Controller
             'event_title' => 'required|string',
             'description' => 'required|string',
             'event_date' => 'required|date',
-            'event_time' => 'required|date_format:H:i'
+            'event_time' => 'required|date_format:g:i A'
         ]);
 
-        $events = Event::create($val);
+        try {
+            $val['event_date'] = \Carbon\Carbon::createFromFormat('m/d/Y', $val['event_date'])->format('Y-m-d');
+            $val['event_time'] = \Carbon\Carbon::createFromFormat('g:i A', $val['event_time'])->format('H:i');
+            $events = Event::create($val);
+            Log::info('Event created successfully: ' . $events->id);
+        } catch (\Exception $e) {
+            Log::error('Error creating event: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create event'
+            ], 500);
+        }
+
 
         return response()->json([
             'success' => true,
