@@ -45,6 +45,7 @@ class BookingSeeder extends Seeder
                 'password'   => bcrypt('password'),
                 'role'       => 'student',
                 'contact_number' => '09' . rand(100000000, 999999999),
+                'email_verified_at' => now()
             ]);
 
             // Create student info

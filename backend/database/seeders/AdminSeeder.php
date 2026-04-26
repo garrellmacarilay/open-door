@@ -16,12 +16,13 @@ class AdminSeeder extends Seeder
     public function run(): void
     {
         $user = User::firstOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => env('ADMIN_EMAIL')],
             [
-            'full_name' => 'Super Admin',
-            'password' => Hash::make('password123'), // Make sure to hash the password
-            'role' => 'admin',
-            'status' => 'active',
+                'full_name' => 'PSAS Admin',
+                'password' => Hash::make(env('ADMIN_PASSWORD')), // Make sure to hash the password
+                'role' => 'admin',
+                'status' => 'active',
+                'email_verified_at' => now()
             ]
         );
 

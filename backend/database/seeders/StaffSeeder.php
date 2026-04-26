@@ -33,7 +33,8 @@ class StaffSeeder extends Seeder
                 [
                     'full_name' => $office->office_name . " Staff",
                     'password' => Hash::make('password123'),
-                    'role' => 'staff'
+                    'role' => 'staff',
+                    'email_verified_at' => now()
                 ]
             );
 
