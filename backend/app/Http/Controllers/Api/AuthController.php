@@ -36,6 +36,17 @@ class AuthController extends Controller
             'password.max' => 'The password may not be greater than 16 characters.',
         ]);
 
+        //check if email ends with @student.laverdad.edu.ph
+        if (!str_ends_with($data['email'], config('services.school_domain', env('SCHOOL_DOMAIN')))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => [
+                    'email' => ['Email must be a provided by the school.']
+                ]
+            ], 422);
+        }
+
         $existingUser = User::where('email', $data['email'])->first();
 
         if ($existingUser) {
@@ -48,17 +59,13 @@ class AuthController extends Controller
                         ]
                 ], 422);
             }
-        }
-
-        //check if email ends with @student.laverdad.edu.ph
-        if (!str_ends_with($data['email'], config('services.school_domain', env('SCHOOL_DOMAIN')))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => [
-                    'email' => ['Email must be a provided by the school.']
-                ]
-            ], 422);
+            if ($existingUser->google_id !== null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors'  => ['email' => ['This email is linked to a Google account. Please login with Google.']]
+                ], 422);
+            }
         }
 
         $code = rand(100000, 999999);
@@ -127,6 +134,22 @@ class AuthController extends Controller
                     'email' => ['This email address is not registered']
                 ]
             ], 404);
+        }
+
+        if (!$user->email_verified_at) {
+            return response()->json([
+                'success' => false,
+                'errors' => [
+                    'email' => ['Please verify your email before logging in.']
+                ]
+            ], 403);
+        }
+
+        if ($user->google_id && !$user->password) {
+            return response()->json([
+                'success' => false,
+                'errors'  => ['email' => ['This account uses Google login. Please sign in with Google.']]
+            ], 403);
         }
 
         $credentials = $request->only('email', 'password');

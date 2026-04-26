@@ -38,6 +38,10 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/google', [GoogleController::class, 'redirect']);
     Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 
+    Route::get('/auth/google/mobile', [GoogleController::class, 'mobileRedirect']);
+    Route::get('/auth/google/mobile/callback', [GoogleController::class, 'mobileCallback']);
+
+
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/verify-email', [VerifyController::class, 'verifyEmail']);
 

@@ -112,4 +112,117 @@ class GoogleController extends Controller
             return response()->json(['error' => 'Login Failed: ' . $e->getMessage()], 500);
         }
     }
+
+    public function mobileRedirect(){
+        $redirectUri = url('/auth/google/mobile/callback');
+
+        return Socialite::driver('google')->stateless()->redirectUrl($redirectUri)->redirect();
+    }
+
+    public function mobileCallback()
+    {
+        try {
+            $redirectUri = url('/auth/google/mobile/callback');
+
+            $googleUser = Socialite::driver('google')
+                ->stateless()
+                ->redirectUrl($redirectUri)
+                ->user();
+
+            $email = $googleUser->getEmail();
+
+            $adminEmails = array_map('trim', explode(',', env('ADMIN_EMAIL', '')));
+            $staffEmails = array_map('trim', explode(',', env('STAFF_EMAILS', '')));
+
+            $role = 'student';
+            if (in_array($email, $adminEmails)) {
+                $role = 'admin';
+            } elseif (in_array($email, $staffEmails)) {
+                $role = 'staff';
+            }
+
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+                $user = User::create([
+                    'full_name' => $googleUser->getName(),
+                    'email'     => $email,
+                    'google_id' => $googleUser->getId(),
+                    'password'  => Hash::make(Str::random(16)),
+                    'role'      => $role,
+                    'email_verified_at' => now()
+                ]);
+
+                if ($googleUser->getAvatar()) {
+                    try {
+                        $avatarContents = Http::get($googleUser->getAvatar())->body();
+                        $avatarFilename = 'avatars/profile_pictures/' . uniqid('google_') . '.jpg';
+                        Storage::disk('public')->put($avatarFilename, $avatarContents);
+                        $user->profile_picture = $avatarFilename;
+                        $user->save();
+                    } catch (\Exception $e) {
+                        Log::error("Failed to download avatar: " . $e->getMessage());
+                    }
+                }
+
+                if ($role === 'student') {
+                    $student = Student::firstOrCreate([
+                        'user_id'        => $user->id,
+                        'student_number' => 'S' . Str::upper(Str::random(7)),
+                    ]);
+                    $user->update(['student_id' => $student->id]);
+                }
+            } else {
+            // Existing user — link Google account and verify email if not done yet
+                $updates = [];
+
+                if (!$user->google_id) {
+                    $updates['google_id'] = $googleUser->getId();
+                }
+
+                if (!$user->email_verified_at) {
+                    $updates['email_verified_at'] = now();
+                }
+
+                if ($user->role !== $role) {
+                    $updates['role'] = $role;
+                }
+
+                if (!empty($updates)) {
+                    $user->update($updates);
+                }
+
+                // Ensure student record exists in case registration was incomplete
+                if ($role === 'student') {
+                    $student = Student::firstOrCreate(
+                        ['user_id' => $user->id],
+                        ['student_number' => 'S' . Str::upper(Str::random(7))]
+                    );
+
+                    if (!$user->student_id) {
+                        $user->update(['student_id' => $student->id]);
+                    }
+                }
+            }
+
+            $token = $user->createToken('auth_token', ['*'], now()->addMinutes(30))->plainTextToken;
+            $deepLink = env('EXPO_DEEP_LINK', 'opendoor://auth');
+
+            return response()->view('auth.mobile_callback', [
+                'token'    => $token,
+                'role'     => $user->role,
+                'deepLink' => $deepLink,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("Mobile OAuth error: " . $e->getMessage());
+            $deepLink = env('EXPO_DEEP_LINK', 'opendoor://auth');
+            return response()->view('auth.mobile_callback', [
+                'token'    => null,
+                'role'     => null,
+                'deepLink' => $deepLink,
+                'error'    => $e->getMessage(),
+            ]);
+        }
+    }
 }

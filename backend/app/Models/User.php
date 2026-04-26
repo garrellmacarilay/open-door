@@ -32,7 +32,9 @@ class User extends Authenticatable
         'status',
         'profile_picture',
         'verification_code',
-        'email_verified_at'
+        'email_verified_at',
+        'google_id',
+        'has_set_password',
     ];
 
     /**
@@ -42,7 +44,7 @@ class User extends Authenticatable
      */
 
     protected $with = ['staff'];
-    
+
     protected $hidden = [
         'password',
         'remember_token',
