@@ -166,10 +166,10 @@ class GoogleController extends Controller
                 }
 
                 if ($role === 'student') {
-                    $student = Student::firstOrCreate([
-                        'user_id'        => $user->id,
-                        'student_number' => 'S' . Str::upper(Str::random(7)),
-                    ]);
+                    $student = Student::firstOrCreate(
+                        ['user_id' => $user->id],
+                        ['student_number' => 'S' . Str::upper(Str::random(7))]
+                    );
                     $user->update(['student_id' => $student->id]);
                 }
             } else {
