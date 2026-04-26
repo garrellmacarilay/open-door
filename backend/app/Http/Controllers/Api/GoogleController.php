@@ -2,20 +2,25 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
-use App\Models\Student;
-use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
+use App\Models\Student;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+
 class GoogleController extends Controller
 {
-    public function redirect()
+    public function redirect(Request $request)
     {
+        if ($request->has('redirect_uri')) {
+            session(['mobile_redirect_uri' => $request->get('redirect_uri')]);
+        }
         return Socialite::driver('google')->stateless()->redirect();
     }
 
@@ -89,6 +94,15 @@ class GoogleController extends Controller
             $expiresAt = now()->addMinutes(30);
 
             $token = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
+
+
+            $mobileRedirectUri = session('mobile_redirect_uri');
+
+            if ($mobileRedirectUri) {
+                // e.g. yourapp://auth?token=xxx&role=student
+                return redirect("{$mobileRedirectUri}?token={$token}&role={$user->role}");
+            }
+
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
             // Pass the role to the frontend so you can redirect them to /admin or /dashboard
