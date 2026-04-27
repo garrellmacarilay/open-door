@@ -122,7 +122,7 @@ class GoogleController extends Controller
     public function mobileCallback()
     {
         try {
-            $redirectUri = url('/auth/google/mobile/callback');
+            $redirectUri = url('/api/auth/google/mobile/callback');
 
             $googleUser = Socialite::driver('google')
                 ->stateless()
