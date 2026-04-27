@@ -206,7 +206,7 @@ class GoogleController extends Controller
             }
 
             $token = $user->createToken('auth_token', ['*'], now()->addMinutes(30))->plainTextToken;
-            $deepLink = env('EXPO_DEEP_LINK', 'opendoomobile://auth');
+            $deepLink = env('EXPO_DEEP_LINK', 'opendoomobile://');
 
             return response()->view('auth.mobile_callback', [
                 'token'    => $token,
@@ -216,7 +216,7 @@ class GoogleController extends Controller
 
         } catch (\Exception $e) {
             Log::error("Mobile OAuth error: " . $e->getMessage());
-            $deepLink = env('EXPO_DEEP_LINK', 'opendoomobile://auth');
+            $deepLink = env('EXPO_DEEP_LINK', 'opendoomobile://');
             return response()->view('auth.mobile_callback', [
                 'token'    => null,
                 'role'     => null,
