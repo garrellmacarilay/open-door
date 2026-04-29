@@ -16,7 +16,7 @@ class BookingSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = fake();
+        $faker = Faker::create();
 
         $statuses = ['approved', 'pending', 'cancelled', 'rescheduled', 'completed', 'declined'];
 
