@@ -464,81 +464,65 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // ---------------------------------------------------------
-        // DETERMINE RECEIVER AND CONTEXT
-        // ---------------------------------------------------------
         $studentUser = $booking->student->user;
-
-        // Default: Assume Staff is acting, notify Student
         $receiver = $studentUser;
         $notificationContext = "Staff initiated";
 
-        // If Student is acting, notify Staff/Admin
         if ($currentUser->id === $studentUser->id) {
-
-            // Get the Staff model first
             $staffMember = $booking->office->staff()->first();
 
-            // Check if staff exists AND if that staff has a linked user
             if (!$staffMember || !$staffMember->user) {
                 return response()->json(['success' => false, 'message' => 'No office staff user found to notify.'], 500);
             }
 
-            // Set receiver to the USER associated with the staff
             $receiver = $staffMember->user;
-
             $notificationContext = "Student initiated";
         }
 
         // 1. DATABASE TRANSACTION
-        $emailLog = DB::transaction(function () use ($booking, $currentUser, $receiver, $notificationContext, $request) {
-            // Update Status
-            $updateData = [
-                'status' => 'cancelled',
-            ];
-
-            if ($request->cancelled_reason) {
-                $updateData['cancelled_reason'] = $request->cancelled_reason;
-            }
-
-            $booking->update($updateData);
-
-            // ✅ Dynamic Message Construction
-            if ($notificationContext === "Student initiated") {
-                 // Message for STAFF
-                $modalMsg = "{$currentUser->full_name} has cancelled a booking.";
-                $emailSubject = "Cancellation Alert: Booking #{$booking->reference_code}";
-                $emailBody = "Hi {$receiver->name},\n\n" .
-                             "The student {$currentUser->full_name} has CANCELLED their appointment at {$booking->office->office_name}.";
-            } else {
-                // Message for STUDENT
-                $modalMsg = "Your booking at ({$booking->office->office_name}) has been CANCELLED by the office.";
-                $emailSubject = "Appointment Cancelled: Booking #{$booking->reference_code}";
-                $emailBody = "Hi {$receiver->name},\n\n" .
-                             "Your booking at {$booking->office->office_name} has been CANCELLED by the staff.";
-            }
-
-            // ✅ Insert modal notification
-            (new ModalNotificationCreated(
-                $booking,
-                $currentUser,
-                'cancellation',
-                $modalMsg
-            ))->handleCustomInsert($receiver);
-
-            // ✅ Create Email Log
-            return EmailNotification::create([
-                'user_id'         => $receiver->id,
-                'booking_id'      => $booking->id,
-                'recipient_email' => $receiver->email,
-                'subject'         => $emailSubject,
-                'message'         => $emailBody,
-                'type'            => 'booking_cancelled',
-                'status'          => 'pending',
+        $result = DB::transaction(function () use ($booking, $currentUser, $receiver, $notificationContext, $request) {
+            $booking->update([
+                'status'           => 'cancelled',
+                'cancelled_reason' => $request->cancelled_reason ?? null,
             ]);
+
+            if ($notificationContext === "Student initiated") {
+                $modalMsg     = "{$currentUser->full_name} has cancelled a booking.";
+                $emailSubject = "Cancellation Alert: Booking #{$booking->reference_code}";
+                $emailBody    = "Hi {$receiver->name},\n\n" .
+                                "The student {$currentUser->full_name} has CANCELLED their appointment at {$booking->office->office_name}.";
+            } else {
+                $modalMsg     = "Your booking at ({$booking->office->office_name}) has been CANCELLED by the office.";
+                $emailSubject = "Appointment Cancelled: Booking #{$booking->reference_code}";
+                $emailBody    = "Hi {$receiver->name},\n\n" .
+                                "Your booking at {$booking->office->office_name} has been CANCELLED by the staff.";
+            }
+
+            return [
+                'modalMsg' => $modalMsg,
+                'emailLog' => EmailNotification::create([
+                    'user_id'         => $receiver->id,
+                    'booking_id'      => $booking->id,
+                    'recipient_email' => $receiver->email,
+                    'subject'         => $emailSubject,
+                    'message'         => $emailBody,
+                    'type'            => 'booking_cancelled',
+                    'status'          => 'pending',
+                ]),
+            ];
         });
 
-        // 2. SEND EMAIL (Outside Transaction)
+        // 2. INSERT NOTIFICATION OUTSIDE TRANSACTION
+        (new ModalNotificationCreated(
+            $booking,
+            $currentUser,
+            'cancellation',
+            $result['modalMsg']
+        ))->handleCustomInsert($receiver);
+
+        $emailLog = $result['emailLog'];
+
+        // 3. SEND EMAIL
         if ($emailLog) {
             try {
                 $htmlMessage = view('emails.booking_notification', [
@@ -547,7 +531,7 @@ class BookingController extends Controller
                 ])->render();
 
                 $gmail = new GmailService();
-                $sent = $gmail->sendEmail($emailLog->recipient_email, $emailLog->subject, $htmlMessage);
+                $sent  = $gmail->sendEmail($emailLog->recipient_email, $emailLog->subject, $htmlMessage);
 
                 $emailLog->update(['status' => $sent ? 'sent' : 'failed', 'sent_at' => $sent ? now() : null]);
 
