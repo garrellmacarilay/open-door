@@ -169,6 +169,9 @@ class AdminBookingController extends Controller
                     'group_members' => $booking->group_members,
                     'concern_description' => $booking->concern_description,
                     'status' => strtolower($booking->status),
+                    'cancelled_reason' => $booking->cancelled_reason ?? '',
+                    'declined_reason' => $booking->declined_reason ?? '',
+                    'rescheduled_reason' => $booking->rescheduled_reason ?? '',
                     'reference_code' => $booking->reference_code,
                     'feedback' => [
                         'ratings' => $booking->feedback->rating ?? '',

@@ -223,6 +223,9 @@ class OfficeController extends Controller
                     'attachment_name' => $booking->uploaded_file_name,
                     'group_members' => $booking->group_members,
                     'concern_description' => $booking->concern_description,
+                    'cancelled_reason' => $booking->cancelled_reason ?? '',
+                    'declined_reason' => $booking->declined_reason ?? '',
+                    'rescheduled_reason' => $booking->rescheduled_reason ?? '',
                     'status' => strtolower($booking->status),
                     'reference_code' => $booking->reference_code,
                     'feedback' => [
