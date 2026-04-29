@@ -16,10 +16,30 @@ class CalendarController extends Controller
         $query = Booking::with(['student.user', 'office', 'staff']);
 
         if ($request->filled('month') && $request->filled('year')) {
+            $requestedDate = \Carbon\Carbon::createFromDate($request->year, $request->month, 1);
+
+            // Block past months entirely
+            if ($requestedDate->lt($now->copy()->startOfMonth())) {
+                return response()->json([
+                    'success' => true,
+                    'data' => [],
+                    'meta' => ['current_page' => 1, 'last_page' => 1, 'total' => 0, 'has_more' => false]
+                ]);
+            }
+
             $query->whereMonth('consultation_date', $request->month)
-                    ->whereYear('consultation_date', $request->year);
+                ->whereYear('consultation_date', $request->year);
+
+            if ($request->filled('day')) {
+                $query->whereDay('consultation_date', $request->day);
+            } elseif ($request->filled('min_day')) {
+                $minDate = \Carbon\Carbon::createFromDate(
+                    $request->year, $request->month, $request->min_day
+                )->startOfDay();
+                $query->where('consultation_date', '>=', $minDate);
+            }
         } else {
-            $query->where('consultation_date', '>=', $now->toDateString()); //only render today's appointment onwards
+            $query->where('consultation_date', '>=', $now->toDateString());
         }
 
 

@@ -10,31 +10,29 @@ use Illuminate\Support\Facades\Log;
 class AdminEventController extends Controller
 {
     public function events(Request $request) {
-
         $now = now();
 
-        $events = Event::orderBy('event_date', 'asc')->get();
+        $query = Event::orderBy('event_date', 'asc');
 
         if ($request->filled('month') && $request->filled('year')) {
-            $events = $events->filter(function ($event) use ($request) {
-                return \Carbon\Carbon::parse($event->event_date)->month == $request->month &&
-                    \Carbon\Carbon::parse($event->event_date)->year == $request->year;
-            });
+            $query->whereMonth('event_date', $request->month)
+                ->whereYear('event_date', $request->year);
+
+            if ($request->filled('day')) {
+                $query->whereDay('event_date', $request->day);
+            }
         } else {
-            $events = $events->where('event_date', '>=', $now->toDateString());
+            // No month/year specified — show from today onwards
+            $query->where('event_date', '>=', $now->toDateString());
         }
 
-         // Filter out past events
-         $events = $events->filter(function ($event) use ($now) {
-            return \Carbon\Carbon::parse($event->event_date)->isSameDay($now) || \Carbon\Carbon::parse($event->event_date)->isFuture();
-        });
+        $events = $query->get();
 
         return response()->json([
             'success' => true,
             'data' => $events->values()
         ]);
     }
-
     public function storeEvents(Request $request) {
 
         $val = $request->validate([

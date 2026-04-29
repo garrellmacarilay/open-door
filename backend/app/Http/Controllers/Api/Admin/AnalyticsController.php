@@ -16,12 +16,13 @@ use Spatie\Browsershot\Browsershot;
 
 class AnalyticsController extends Controller
 {
-    public function consultationStats()
-    {
-        $statsNow = Carbon::now();
+    public function consultationStats(Request $request) {
 
-        $start = $statsNow->copy()->startOfMonth();
-        $end = $statsNow->copy()->endOfMonth();
+        $month = $request->input('month', Carbon::now()->month);
+        $year  = $request->input('year',  Carbon::now()->year);
+
+        $start = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $end   = Carbon::createFromDate($year, $month, 1)->endOfMonth();
 
         //Total Summary
         $total = Booking::whereBetween('consultation_date', [$start, $end])->count();
@@ -64,7 +65,7 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function consultationTrends()
+    public function consultationTrends(Request $request)
     {
         $now = Carbon::now();
 
@@ -99,11 +100,18 @@ class AnalyticsController extends Controller
 
 
 
-    public function serviceDistribution()
+    public function serviceDistribution(Request $request)
     {
+        $month = $request->input('month', Carbon::now()->month);
+        $year  = $request->input('year',  Carbon::now()->year);
+
+        $start = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $end   = Carbon::createFromDate($year, $month, 1)->endOfMonth();
+
         $distribution = Booking::query()
             ->join('offices', 'bookings.office_id', '=', 'offices.id')
             ->selectRaw('offices.office_name as office, COUNT(bookings.id) as count')
+            ->whereBetween('consultation_date', [$start, $end])
             ->groupBy('offices.office_name')
             ->get();
 
@@ -113,65 +121,55 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function generateReport(Request $request)
-    {
-        try {
-            $now = Carbon::now();
-            $start = $now->copy()->startOfMonth();
-            $end = $now->copy()->endOfMonth();
+public function generateReport(Request $request)
+{
+    try {
+        $month = $request->input('month', Carbon::now()->month);
+        $year  = $request->input('year',  Carbon::now()->year);
 
-            $completed = Booking::where('status', 'completed')
-                ->whereMonth('consultation_date', $now->month)->count();
-            $cancelled = Booking::where('status', 'cancelled')
-                ->whereMonth('consultation_date', $now->month)->count();
-            $total = Booking::whereBetween('consultation_date', [$start, $end])->count();
-            $distribution = Booking::selectRaw('office_id, COUNT(*) as total')
-                ->with('office:id,office_name')
-                ->whereMonth('consultation_date', $now->month)
-                ->whereYear('consultation_date', $now->year)
-                ->groupBy('office_id')->get();
+        $start = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $end   = Carbon::createFromDate($year, $month, 1)->endOfMonth();
 
-            $officeBreakdown = [];
-            foreach (Office::all() as $office) {
-                $query = Booking::where('office_id', $office->id)
-                    ->whereMonth('consultation_date', $now->month)
-                    ->whereYear('consultation_date', $now->year);
-                $officeBreakdown[] = [
-                    'name' => $office->office_name,
-                    'total' => $query->count(),
-                    'completed' => (clone $query)->where('status', 'completed')->count(),
-                    'cancelled' => (clone $query)->where('status', 'cancelled')->count()
-                ];
-            }
+        $total     = Booking::whereBetween('consultation_date', [$start, $end])->count();
+        $approved  = Booking::where('status', 'approved') ->whereBetween('consultation_date', [$start, $end])->count();
+        $completed = Booking::where('status', 'completed')->whereBetween('consultation_date', [$start, $end])->count();
+        $declined  = Booking::where('status', 'declined') ->whereBetween('consultation_date', [$start, $end])->count();
+        $cancelled = Booking::where('status', 'cancelled')->whereBetween('consultation_date', [$start, $end])->count();
 
-            $monthYear = $now->format('F Y');
-
-            try {
-                $html = view('reports.analytics', compact(
-                    'monthYear', 'total', 'completed', 'cancelled', 'distribution', 'officeBreakdown'
-                ))->render();
-            } catch (\Exception $e) {
-                Log::error('View render failed: ' . $e->getMessage());
-                return response()->json(['error' => 'View render failed', 'details' => $e->getMessage()], 500);
-            }
-
-            $directory = storage_path('app/reports');
-            if (!file_exists($directory)) mkdir($directory, 0755, true);
-
-            $jobId = Str::uuid()->toString();
-            $tempDir = sys_get_temp_dir();
-            $filePath = $directory . DIRECTORY_SEPARATOR . 'report_' . $jobId . '.pdf';
-
-            Cache::put("report_status_{$jobId}", 'processing', 300);
-            \App\Jobs\GenerateReportJob::dispatch($jobId, $filePath, $html);
-
-            return response()->json(['job_id' => $jobId]);
-
-        } catch (\Exception $e) {
-            Log::error('Generate report failed: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+        $officeBreakdown = [];
+        foreach (Office::all() as $office) {
+            $query = Booking::where('office_id', $office->id)
+                ->whereBetween('consultation_date', [$start, $end]);
+            $officeBreakdown[] = [
+                'name'      => $office->office_name,
+                'total'     => $query->count(),
+                'completed' => (clone $query)->where('status', 'completed')->count(),
+                'cancelled' => (clone $query)->where('status', 'cancelled')->count(),
+            ];
         }
+
+        $monthYear = $start->format('F Y');
+
+        $html = view('reports.analytics', compact(
+            'monthYear', 'total', 'approved', 'completed', 'declined', 'cancelled', 'officeBreakdown'
+        ))->render();
+
+        $directory = storage_path('app/reports');
+        if (!file_exists($directory)) mkdir($directory, 0755, true);
+
+        $jobId    = Str::uuid()->toString();
+        $filePath = $directory . DIRECTORY_SEPARATOR . 'report_' . $jobId . '.pdf';
+
+        Cache::put("report_status_{$jobId}", 'processing', 300);
+        \App\Jobs\GenerateReportJob::dispatch($jobId, $filePath, $html);
+
+        return response()->json(['job_id' => $jobId]);
+
+    } catch (\Exception $e) {
+        Log::error('Generate report failed: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
     }
+}
 
     public function reportStatus(Request $request, string $jobId)
     {
@@ -201,10 +199,13 @@ class AnalyticsController extends Controller
         ]);
     }
 
-    public function officeFeedback() {
+    public function officeFeedback(Request $request) {
+        $month = $request->input('month', now()->month);
+        $year = $request->input('year',  now()->year);
+
         $feedbackData = Feedback::with('office')
-        ->whereMonth('created_at', now()->month)
-        ->whereYear('created_at', now()->year)
+        ->whereMonth('created_at', $month)
+        ->whereYear('created_at', $year)
         ->get()
         ->groupBy('office_id')
         ->map(function ($feedbacks) {

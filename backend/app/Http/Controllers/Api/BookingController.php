@@ -321,7 +321,8 @@ class BookingController extends Controller
                     }
                 }
             ],
-            'uploaded_file_url' => 'nullable|file|mimes:pdf,jpg,png|max:5120'
+            'uploaded_file_url' => 'nullable|file|mimes:pdf,jpg,png|max:5120',
+            'rescheduled_reason' => 'nullable|string|max:255'
         ]);
 
         $booking = Booking::with(['office.staff.user', 'student.user'])->findOrFail($id);
@@ -372,6 +373,7 @@ class BookingController extends Controller
             // Update Booking Data
             $updatedData = [
                 'consultation_date' => $request->consultation_date,
+                'rescheduled_reason' => $request->rescheduled_reason,
                 'status' => 'pending',
             ];
 
@@ -448,6 +450,10 @@ class BookingController extends Controller
 
     public function cancel(Request $request, $id)
     {
+        $request->validate([
+            'cancelled_reason' => 'nullable|string|max:255'
+        ]);
+
         $booking = Booking::with(['office.staff.user', 'student.user'])->findOrFail($id);
         $currentUser = Auth::user();
 
@@ -485,9 +491,17 @@ class BookingController extends Controller
         }
 
         // 1. DATABASE TRANSACTION
-        $emailLog = DB::transaction(function () use ($booking, $currentUser, $receiver, $notificationContext) {
+        $emailLog = DB::transaction(function () use ($booking, $currentUser, $receiver, $notificationContext, $request) {
             // Update Status
-            $booking->update(['status' => 'cancelled']);
+            $updateData = [
+                'status' => 'cancelled',
+            ];
+
+            if ($request->cancelled_reason) {
+                $updateData['cancelled_reason'] = $request->cancelled_reason;
+            }
+
+            $booking->update($updateData);
 
             // ✅ Dynamic Message Construction
             if ($notificationContext === "Student initiated") {

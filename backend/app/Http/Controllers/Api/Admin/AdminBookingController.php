@@ -164,7 +164,7 @@ class AdminBookingController extends Controller
                     'student' => $booking->student->user->full_name ?? 'Unknown',
                     'office' => $booking->office->office_name ?? 'N/A',
                     'staff' => $booking->staff ? $booking->staff->user->full_name : 'Unassigned',
-                    'attachment' => $booking->uploaded_file_url,
+                    'attachment_url' => $booking->uploaded_file_url,
                     'attachment_name' => $booking->uploaded_file_name,
                     'group_members' => $booking->group_members,
                     'concern_description' => $booking->concern_description,

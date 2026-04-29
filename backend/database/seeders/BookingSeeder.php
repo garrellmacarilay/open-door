@@ -10,11 +10,14 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Faker\Factory as Faker;
 
 class BookingSeeder extends Seeder
 {
     public function run(): void
     {
+        $faker = Faker::create();
+
         $statuses = ['approved', 'pending', 'cancelled', 'rescheduled', 'completed', 'declined'];
 
         $comments = [
@@ -35,61 +38,67 @@ class BookingSeeder extends Seeder
 
         $counter = (Booking::max('id') ?? 0) + 1;
 
-        // --- Create 50 students with bookings ---
-        for ($i = 1; $i <= 50; $i++) {
+        for ($i = 1; $i <= 200; $i++) {
 
-            // Create a student user
+            $firstName = $faker->firstName;
+            $lastName  = $faker->lastName;
+            $fullName  = $firstName . ' ' . $lastName;
+            $emailSlug = Str::slug($firstName . $lastName, '');
+
             $user = User::create([
-                'full_name'  => "Student {$i}",
-                'email'      => "student{$i}@student.laverdad.edu.ph",
-                'password'   => bcrypt('password'),
-                'role'       => 'student',
-                'contact_number' => '09' . rand(100000000, 999999999),
+                'full_name'         => $fullName,
+                'email'             => "{$emailSlug}{$i}@student.laverdad.edu.ph",
+                'password'          => bcrypt('password'),
+                'role'              => 'student',
+                'contact_number'    => '09' . $faker->numerify('#########'),
                 'email_verified_at' => now()
             ]);
 
-            // Create student info
             $student = Student::create([
-                'user_id' => $user->id,
-                'student_number' => 'LVCC-' . rand(10000, 99999),
-                'program' => 'BSIT',
-                'year_level' => rand(1, 4),
+                'user_id'        => $user->id,
+                'student_number' => 'LVCC-' . $faker->unique()->numberBetween(10000, 99999),
+                'program'        => $faker->randomElement(['BSIT', 'BSIS', 'BSA', 'BSEMC']),
+                'year_level'     => rand(1, 4),
             ]);
 
-            // Generate 1–3 bookings per student
-            $bookingCount = rand(1, 3);
+            // 4–6 bookings per student → ~1000 total across 200 students
+            $bookingCount = rand(4, 6);
 
             for ($b = 1; $b <= $bookingCount; $b++) {
 
-                $startDate = Carbon::now(); // Feb 17 current year
-                $endDate = Carbon::create(now()->year, 12, 1);
+                // Distribute across January to June
+                $startDate = Carbon::create(now()->year, 1, 1);
+                $endDate   = Carbon::create(now()->year, 6, 30);
 
-                $consultDate = Carbon::createFromTimeStamp(rand($startDate->timestamp, $endDate->timestamp))
-                    ->setTime(rand(8, 16), rand(0, 59));
+                $consultDate = Carbon::createFromTimestamp(
+                    rand($startDate->timestamp, $endDate->timestamp)
+                )->setTime(rand(8, 16), rand(0, 59));
 
                 $status = $statuses[array_rand($statuses)];
 
-                $booking =Booking::create([
-                    'student_id' => $student->id,
-                    'office_id'  => $offices->random()->id,
-                    'staff_id'   => null, // optional
-                    'service_type' => 'Consultation',
-                    'consultation_date' => $consultDate,
-                    'concern_description' => "Dummy consultation concern #{$i}-{$b}",
-                    'status' => $statuses[array_rand($statuses)],
-                    'group_members' => null,
-                    'uploaded_file_url' => null,
-                    'reference_code' => 'APPT-' . str_pad($counter++, 3, '0', STR_PAD_LEFT),
+                $booking = Booking::create([
+                    'student_id'          => $student->id,
+                    'office_id'           => $offices->random()->id,
+                    'staff_id'            => null,
+                    'service_type'        => 'Consultation',
+                    'consultation_date'   => $consultDate,
+                    'concern_description' => $faker->sentence(),
+                    'status'              => $status,
+                    'group_members'       => null,
+                    'uploaded_file_url'   => null,
+                    'uploaded_file_name'  => null,
+                    'reference_code'      => 'APPT-' . str_pad($counter++, 5, '0', STR_PAD_LEFT),
                 ]);
 
                 if ($status === 'completed') {
                     Feedback::create([
                         'booking_id' => $booking->id,
                         'student_id' => $booking->student_id,
-                        'office_id' => $booking->office_id,
-                        'staff_id' => $booking->staff_id,
-                        'rating' => rand(4, 5),
-                        'comment' => $comments[array_rand($comments)],
+                        'office_id'  => $booking->office_id,
+                        'staff_id'   => $booking->staff_id,
+                        'rating'     => rand(4, 5),
+                        'comment'    => $comments[array_rand($comments)],
+                        'created_at' => $consultDate, // align feedback date with booking
                     ]);
                 }
             }

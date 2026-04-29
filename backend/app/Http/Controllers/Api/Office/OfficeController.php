@@ -25,14 +25,23 @@ class OfficeController extends Controller
 
         $now = now();
 
-       $query = Booking::with(['student.user', 'office', 'staff.user'])
+        $query = Booking::with(['student.user', 'office', 'staff.user'])
             ->where('office_id', $officeId);
 
         if ($request->filled('month') && $request->filled('year')) {
             $query->whereMonth('consultation_date', $request->month)
-                    ->whereYear('consultation_date', $request->year);
+                ->whereYear('consultation_date', $request->year);
+
+            if ($request->filled('day')) {
+                $query->whereDay('consultation_date', $request->day);
+            } elseif ($request->filled('min_day')) {
+                $minDate = \Carbon\Carbon::createFromDate(
+                    $request->year, $request->month, $request->min_day
+                )->startOfDay();
+                $query->where('consultation_date', '>=', $minDate);
+            }
         } else {
-            $query->where('consultation_date', '>=', $now->toDateString()); //only render today's appointment onwards
+            $query->where('consultation_date', '>=', $now->toDateString());
         }
 
         if ($request->filled('status')) {
@@ -51,15 +60,15 @@ class OfficeController extends Controller
             return[
                 'id' => $booking->id,
                 'title' => $booking->student->user->full_name ?? 'Unknown',
-                'start' => $booking->consultation_date,
-                'dateString' => $booking->consultation_date,
-                'end' => $booking->consultation_date,
+                'start' => \Carbon\Carbon::parse($booking->consultation_date)->toDateString(),
+                'dateString' => \Carbon\Carbon::parse($booking->consultation_date)->toDateString(),
+                'end' => \Carbon\Carbon::parse($booking->consultation_date)->toDateString(),
                 'color' => $this->getStatusColor($booking->status),
                 'details' => [
                     'student' => $booking->student->user->full_name ?? 'Unknown',
                     'office' => $booking->office->office_name ?? 'N/A',
                     'staff' => $booking->staff ? $booking->staff->user->full_name : 'Unassigned',
-                    'attachment' => $booking->uploaded_file_url,
+                    'attachment_url' => $booking->uploaded_file_url,
                     'attachment_name' => $booking->uploaded_file_name,
                     'group_members' => $booking->group_members,
                     'concern_description' => $booking->concern_description,
@@ -210,7 +219,7 @@ class OfficeController extends Controller
                     'student' => $booking->student->user->full_name ?? 'Unknown',
                     'office' => $booking->office->office_name ?? 'N/A',
                     'staff' => $booking->staff ? $booking->staff->user->full_name : 'Unassigned',
-                    'attachment' => $booking->uploaded_file_url,
+                    'attachment_url' => $booking->uploaded_file_url,
                     'attachment_name' => $booking->uploaded_file_name,
                     'group_members' => $booking->group_members,
                     'concern_description' => $booking->concern_description,
