@@ -20,10 +20,10 @@
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.9",
         "spatie/browsershot": "^5.0",
-        "spatie/laravel-pdf": "dev-main"
+        "spatie/laravel-pdf": "dev-main",
+        "fakerphp/faker": "^1.23"
     },
     "require-dev": {
-        "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.18",
         "laravel/sail": "^1.41",
